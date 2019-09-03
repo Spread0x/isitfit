@@ -10,7 +10,7 @@ def read(fname):
 # and https://packaging.python.org/tutorials/packaging-projects/
 setup(
     name='isitfit',
-    version='0.1.1',
+    version='0.1.2',
     author="Shadi Akiki, AutofitCloud",
     author_email="shadi@autofitcloud.com",
     url='https://gitlab.com/autofitcloud/isitfit',
