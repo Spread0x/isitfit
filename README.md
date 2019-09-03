@@ -31,7 +31,7 @@ Cloudtrail page 1: 7it [00:05,  1.22it/s]
 First pass, EC2 instance: 9it [00:01,  5.48it/s]
 Second pass, EC2 instance: 9it [00:10,  1.31s/it]
 IFI = 5.47%
-IFI >= 70% is well optimized)
+(IFI >= 70% is well optimized)
 (IFI <= 30% is underused)
 ```
 
