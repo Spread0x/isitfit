@@ -21,6 +21,11 @@ isitfit --debug # show higher verbosity
 AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit
 ```
 
+Note that the AWS keys should belong to a user/role with the following minimal policies:
+
+`AmazonEC2ReadOnlyAccess, CloudWatchReadOnlyAccess`
+
+
 
 ## Changelog
 
