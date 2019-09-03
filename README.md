@@ -12,6 +12,8 @@ pip3 install isitfit
 
 ## Usage
 
+Example usage
+
 ```
 # use default profile in ~/.aws/credentials
 isitfit
@@ -21,9 +23,29 @@ isitfit --debug # show higher verbosity
 AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit
 ```
 
-Note that the AWS keys should belong to a user/role with the following minimal policies:
+Example output
+
+```
+Cloudtrail page 1: 1it [00:01,  1.91s/it]
+Cloudtrail page 1: 7it [00:05,  1.22it/s]
+First pass, EC2 instance: 9it [00:01,  5.48it/s]
+Second pass, EC2 instance: 9it [00:10,  1.31s/it]
+IFI = 5.47%
+IFI >= 70% is well optimized)
+(IFI <= 30% is underused)
+```
+
+IFI = Infrastructure Fitness Index
+
+It is a percentage ratio of used capacity to total capacity
+
+
+PS 1: the AWS keys should belong to a user/role with the following minimal policies:
 
 `AmazonEC2ReadOnlyAccess, CloudWatchReadOnlyAccess`
+
+
+PS 2: isitfit 0.1.2 only uses CPUUtilization
 
 
 
