@@ -1,4 +1,4 @@
-# isitfit
+# isitfit [![PyPI version](https://badge.fury.io/py/isitfit.svg)](https://badge.fury.io/py/isitfit)
 
 Command-line tool to calculate the AWS resource capacity excess.
 
@@ -36,4 +36,10 @@ Apache License 2.0. Check file `LICENSE`
 
 ```
 pip3 install -e .
+
+# publish to pypi
+python3 setup.py sdist bdist_wheel
+twine upload dist/*
 ```
+
+Got pypi badge from https://badge.fury.io/for/py/git-remote-aws

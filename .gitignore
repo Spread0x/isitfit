@@ -1,3 +1,5 @@
 .*swp
 __pycache__
 isitfit.egg-info
+build
+dist
