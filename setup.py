@@ -10,7 +10,7 @@ def read(fname):
 # and https://packaging.python.org/tutorials/packaging-projects/
 setup(
     name='isitfit',
-    version='0.1.0',
+    version='0.1.1',
     author="Shadi Akiki, AutofitCloud",
     author_email="shadi@autofitcloud.com",
     url='https://gitlab.com/autofitcloud/isitfit',
@@ -28,7 +28,7 @@ setup(
         'boto3==1.9.219',
         'cachecontrol==0.12.5',
         'lockfile==0.12.2',
-        'git-remote-aws==0.5.1'
+        'git-remote-aws==0.5.2'
     ],
     entry_points='''
         [console_scripts]

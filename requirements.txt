@@ -6,5 +6,5 @@ cachecontrol==0.12.5
 lockfile==0.12.2 # for caching to file
 
 
-git-remote-aws==0.5.1
+git-remote-aws==0.5.2
 # git+ssh://git@gitlab.com/autofitcloud/git-remote-aws.git
