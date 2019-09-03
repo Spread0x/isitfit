@@ -1,26 +1,37 @@
 # isitfit
 
-Command-line tool to calculate the infrastructure fitness index.
+Command-line tool to calculate the AWS resource capacity excess.
 
 
-# Installation
+## Installation
 
 ```
 pip3 install isitfit
 ```
 
 
-# Usage
+## Usage
 
 ```
 # use default profile in ~/.aws/credentials
-python3 cli.py
+isitfit
 
 # specify a particular profile
-AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 python3 cli.py 
+AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit
 ```
 
+## Changelog
 
-# License
+Check `CHANGELOG.md`
+
+
+## License
 
 Apache
+
+
+## Dev notes
+
+```
+pip3 install -e .
+```
