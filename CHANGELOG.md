@@ -3,6 +3,11 @@ Version latest (0.2.0?, 2019-09-03?)
 - ...
 
 
+Version 0.1.2 (2019-09-03)
+
+- BUGFIX: remove caching of cloudtrail since it doesn't generalize well yet (between profiles)
+
+
 Version 0.1.1 (2019-09-03)
 
 - ENH: version bump for git-remote-aws 0.5.2

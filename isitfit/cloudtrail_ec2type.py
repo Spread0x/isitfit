@@ -25,6 +25,17 @@ class Manager:
         # set index again, and sort decreasing this time (not like git-remote-aws default)
         self.df_cloudtrail = self.df_cloudtrail.set_index(["instanceId", "EventTime"]).sort_index(ascending=False)
 
+
+    def _fetch(self):
+        # get cloudtail ec2 type changes for all instances
+        logger.debug("Downloading cloudtrail data")
+        cloudtrail_manager = GraCloudtrailManager(self.cloudtrail_client)
+        df = cloudtrail_manager.ec2_typeChanges()
+        return df
+
+
+    """
+    # Cached version ... disabled because not sure how to generalize it
     def _fetch(self):
         # get cloudtail ec2 type changes for all instances
         # FIXME
@@ -44,6 +55,7 @@ class Manager:
 
         # done
         return df
+    """
 
 
 
