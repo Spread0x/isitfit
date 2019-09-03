@@ -43,3 +43,16 @@ twine upload dist/*
 ```
 
 Got pypi badge from https://badge.fury.io/for/py/git-remote-aws
+
+
+
+## Support
+
+I built `isitfit` as part of the workflow behind [AutofitCloud](https://autofitcloud.com), the early-stage startup that I'm founding, seeking to cut cloud waste on our planet.
+
+If you like `isitfit` and would like to see it developed further,
+please support me by signing up at https://autofitcloud.com
+
+Over and out!
+
+--[u/shadiakiki1986](https://www.reddit.com/user/shadiakiki1986)
