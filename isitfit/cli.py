@@ -6,10 +6,6 @@ mysetlocale()
 
 import logging
 logger = logging.getLogger('isitfit')
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-logger.addHandler(ch)
-logger.setLevel(logging.DEBUG)
 
 from .mainManager import MainManager
 
@@ -17,7 +13,14 @@ from .mainManager import MainManager
 import click
 
 @click.command()
-def cli():
+@click.option('--debug', is_flag=True)
+def cli(debug):
+    logLevel = logging.DEBUG if debug else logging.INFO
+    ch = logging.StreamHandler()
+    ch.setLevel(logLevel)
+    logger.addHandler(ch)
+    logger.setLevel(logLevel)
+
     mm = MainManager()
     ifi = mm.get_ifi()
     logger.info("IFI = %0.2f%%"%ifi)

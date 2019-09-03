@@ -15,10 +15,12 @@ pip3 install isitfit
 ```
 # use default profile in ~/.aws/credentials
 isitfit
+isitfit --debug # show higher verbosity
 
 # specify a particular profile
 AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit
 ```
+
 
 ## Changelog
 
