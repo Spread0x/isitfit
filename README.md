@@ -6,7 +6,7 @@ Command-line tool to calculate the AWS EC2 capacity excess.
 ## Installation
 
 ```
-pip3 install isitfit
+pip3 install awscli isitfit
 ```
 
 
@@ -15,7 +15,12 @@ pip3 install isitfit
 Example usage
 
 ```
-# use default profile in ~/.aws/credentials
+# configure awscli first
+aws configure
+# ...
+
+# Calculate excess EC2 capacity
+# using default profile in ~/.aws/credentials
 isitfit
 isitfit --debug # show higher verbosity
 
