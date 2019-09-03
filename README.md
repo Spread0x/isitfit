@@ -29,7 +29,7 @@ Check `CHANGELOG.md`
 
 ## License
 
-Apache
+Apache License 2.0. Check file `LICENSE`
 
 
 ## Dev notes
