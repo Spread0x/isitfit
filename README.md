@@ -1,6 +1,6 @@
 # isitfit [![PyPI version](https://badge.fury.io/py/isitfit.svg)](https://badge.fury.io/py/isitfit)
 
-Command-line tool to calculate the AWS EC2 capacity excess.
+A simple command-line tool to measure an AWS account's EC2 total utilized capacity ratio.
 
 
 ## Installation
