@@ -26,15 +26,20 @@ Second pass, EC2 instance: 4it [00:00,  9.46it/s]
 ... done
 
 Summary:
-Number of EC2 machines = 3
-Billed cost per hour = 5.23 $/hour
-Used cost per hour = 0.18 $/hour
-CWAU = Used / Billed * 100 = 3 %
+
+Field                            Value
+-------------------------------  -----------
+Analysis start date              2019-06-07
+Analysis end date                2019-09-05
+Number of analysed EC2 machines  3
+Billed cost per hour             5.23 $/hour
+Used cost per hour               0.18 $/hour
+CWAU = Used / Billed * 100       3 %
 
 For reference:
 * CWAU >= 70% is well optimized
 * CWAU <= 30% is underused
-* CWAU in isitfit version 0.1.2 is based on CPU utilization only (and not memory utilization)
+* isitfit version 0.1 is based on CPU utilization only (and not yet on memory utilization)
 ```
 
 

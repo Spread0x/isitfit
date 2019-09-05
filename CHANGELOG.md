@@ -3,6 +3,7 @@ Version latest (0.1.3?, 2019-09-05?)
 - ENH: use CWAU terminology instead of IFI
 - ENH: show total cost per hour and used cost per hour
 - ENH: add number of ec2 machines scanned
+- ENH: use tabulate for the results + show start/end dates of analysis
 
 
 Version 0.1.2 (2019-09-03)
