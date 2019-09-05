@@ -62,7 +62,7 @@ class MainManager:
 
         if sum_capacity==0: return 0
 
-        return sum_capacity, sum_used, sum_used/sum_capacity*100
+        return n_ec2, sum_capacity, sum_used, sum_used/sum_capacity*100
 
 
     def _cloudwatch_metrics(self, ec2_obj):
