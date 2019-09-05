@@ -15,16 +15,19 @@ pip3 install awscli isitfit
 ### Example 1: basic usage
 
 ```
-# isitfit
-Cloudtrail page 1: 1it [00:00, 13.56it/s]
-Cloudtrail page 1: 1it [00:00, 13.47it/s]
-First pass, EC2 instance: 4it [00:00, 71.70it/s]                                                                                                                             
-Second pass, EC2 instance: 4it [00:00, 13.80it/s]                                                                                                                            
+> isitfit
 
+Calculating the Cost-Weighted Average Utilization (CWAU) of the AWS EC2 account:
+Fetching history...
+Cloudtrail page 1: 1it [00:00,  5.18it/s]
+Cloudtrail page 1: 1it [00:00, 22.43it/s]
+First pass, EC2 instance: 4it [00:00, 72.76it/s]                                                                                                                             
+Second pass, EC2 instance: 4it [00:00,  9.46it/s]                                                                                                                            
+... done
 
-Completed calculating the Cost-Weighted Average Utilization (CWAU) of the AWS EC2 account:
-
-Billed cost per hour = 5.13 $/hour
+Summary:
+Number of EC2 machines = 3
+Billed cost per hour = 5.23 $/hour
 Used cost per hour = 0.18 $/hour
 CWAU = Used / Billed * 100 = 3 %
 
