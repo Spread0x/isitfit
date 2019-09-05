@@ -1,6 +1,6 @@
 # isitfit [![PyPI version](https://badge.fury.io/py/isitfit.svg)](https://badge.fury.io/py/isitfit)
 
-A simple command-line tool to measure an AWS account's EC2 total utilized capacity ratio.
+A simple command-line tool to check if an AWS EC2 account is fit or underused.
 
 
 ## Installation
@@ -12,46 +12,43 @@ pip3 install awscli isitfit
 
 ## Usage
 
-Example usage
+### Example 1: basic usage
 
 ```
-# configure awscli first
-aws configure
-# ...
+# isitfit
+Cloudtrail page 1: 1it [00:00, 13.56it/s]
+Cloudtrail page 1: 1it [00:00, 13.47it/s]
+First pass, EC2 instance: 4it [00:00, 71.70it/s]                                                                                                                             
+Second pass, EC2 instance: 4it [00:00, 13.80it/s]                                                                                                                            
 
-# Calculate excess EC2 capacity
-# using default profile in ~/.aws/credentials
-isitfit
-isitfit --debug # show higher verbosity
 
-# specify a particular profile
-AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit
+Completed calculating the Cost-Weighted Average Utilization (CWAU) of the AWS EC2 account:
+
+Billed cost per hour = 5.13 $/hour
+Used cost per hour = 0.18 $/hour
+CWAU = Used / Billed * 100 = 3 %
+
+For reference:
+* CWAU >= 70% is well optimized
+* CWAU <= 30% is underused
+* CWAU in isitfit version 0.1.2 is based on CPU utilization only (and not memory utilization)
 ```
 
-Example output
 
-```
-Cloudtrail page 1: 1it [00:01,  1.91s/it]
-Cloudtrail page 1: 7it [00:05,  1.22it/s]
-First pass, EC2 instance: 9it [00:01,  5.48it/s]
-Second pass, EC2 instance: 9it [00:10,  1.31s/it]
-IFI = 5.47%
-(IFI >= 70% is well optimized)
-(IFI <= 30% is underused)
-```
-
-IFI = Infrastructure Fitness Index
-
-It is a percentage ratio of used capacity to total capacity
-
-
-PS 1: the AWS keys should belong to a user/role with the following minimal policies:
+PS: the AWS keys should belong to a user/role with the following minimal policies:
 
 `AmazonEC2ReadOnlyAccess, CloudWatchReadOnlyAccess`
 
 
-PS 2: isitfit 0.1.2 only uses CPUUtilization
+### Example 2: Advanced usage
 
+```
+# show higher verbosity
+isitfit --debug
+
+# specify a particular profile
+AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit
+```
 
 
 ## Changelog

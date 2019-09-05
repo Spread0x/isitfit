@@ -22,10 +22,19 @@ def cli(debug):
     logger.setLevel(logLevel)
 
     mm = MainManager()
-    ifi = mm.get_ifi()
-    logger.info("IFI = %0.2f%%"%ifi)
-    logger.info("(IFI >= 70% is well optimized)")
-    logger.info("(IFI <= 30% is underused)")
+    sum_capacity, sum_used, cwau = mm.get_ifi()
+    logger.info("")
+    logger.info("")
+    logger.info("Completed calculating the Cost-Weighted Average Utilization (CWAU) of the AWS EC2 account:")
+    logger.info("")
+    logger.info("Billed cost per hour = %0.2f $/hour"%sum_capacity)
+    logger.info("Used cost per hour = %0.2f $/hour"%sum_used)
+    logger.info("CWAU = Used / Billed * 100 = %0.0f %%"%cwau)
+    logger.info("")
+    logger.info("For reference:")
+    logger.info("* CWAU >= 70% is well optimized")
+    logger.info("* CWAU <= 30% is underused")
+    logger.info("* CWAU in isitfit version 0.1.2 is based on CPU utilization only (and not memory utilization)")
 
 
 if __name__ == '__main__':

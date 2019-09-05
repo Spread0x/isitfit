@@ -3,6 +3,12 @@ Version latest (0.2.0?, 2019-09-03?)
 - ...
 
 
+Version 0.1.3 (2019-09-05)
+
+- ENH: use CWAU terminology instead of IFI
+- ENH: show total cost per hour and used cost per hour
+
+
 Version 0.1.2 (2019-09-03)
 
 - BUGFIX: remove caching of cloudtrail since it doesn't generalize well yet (between profiles)
