@@ -1,6 +1,6 @@
 Version latest (0.1.4?, 2019-09-05?)
 
-- ...
+- enh: ec2 catalog to be downloaded with CDN rather than direct github raw link
 
 
 Version 0.1.5 (2019-09-10)

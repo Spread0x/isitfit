@@ -38,7 +38,9 @@ import pandas as pd
 def ec2_catalog():
     # based on URL = 'http://www.ec2instances.info/instances.json'
     # URL = 's3://...csv'
-    URL = 'https://gitlab.com/autofitcloud/www.ec2instances.info-ec2op/raw/master/www.ec2instances.info/t3b_smaller_familyL2.json'
+    # Edit 2019-09-10 use CDN link instead of direct gitlab link
+    # URL = 'https://gitlab.com/autofitcloud/www.ec2instances.info-ec2op/raw/master/www.ec2instances.info/t3b_smaller_familyL2.json'
+    URL = 'https://cdn.jsdelivr.net/gh/autofitcloud/www.ec2instances.info-ec2op/www.ec2instances.info/t3b_smaller_familyL2.json'
 
     # cached https://cachecontrol.readthedocs.io/en/latest/
     sess = requests.session()
