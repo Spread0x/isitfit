@@ -37,9 +37,9 @@ class MainManager:
 
         # 0th pass to count
         n_ec2 = len(list(self.ec2_resource.instances.all()))
+        logger.warning("Found %i EC2 instances"%n_ec2)
 
         if n_ec2==0:
-          logger.warning("No EC2 instances found")
           return 0,0,0,0
 
         # download ec2 catalog: 2 columns: ec2 type, ec2 cost per hour

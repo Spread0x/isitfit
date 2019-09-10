@@ -7,6 +7,7 @@ Version 0.1.5 (2019-09-10)
 
 - bugfix: early return in case of no ec2 instances found
 - enh: download ec2 catalog AFTER checking if there are any ec2 instances
+- enh: display number of ec2 instances in stdout
 
 
 Version 0.1.4 (2019-09-10)
