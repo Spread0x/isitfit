@@ -1,5 +1,10 @@
 Version latest (0.1.4?, 2019-09-05?)
 
+- ...
+
+
+Version 0.1.4 (2019-09-10)
+
 - bugfix: cli output is actually `$` and not `$/hr`
 - enh: add `--version` flag
 - enh: clearer debug/warning logging
