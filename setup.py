@@ -17,7 +17,11 @@ setup(
     author_email="shadi@autofitcloud.com",
     url='https://gitlab.com/autofitcloud/isitfit',
     description="Command-line tool to calculate excess AWS cloud resource capacity",
-    long_description = read('README.md'),
+
+    # 2019-09-10 not sure what in the README.md is yielding the twine error
+    # The description failed to render in the default format of reStructuredText.
+    # long_description = read('README.md'),
+    long_description = 'Check https://isitfit.autofitcloud.com',
     long_description_content_type="text/markdown",
     
     # packages=find_packages(),
