@@ -140,6 +140,8 @@ class MainManager:
         # merge with catalog
         ec2_df = ec2_df.merge(self.df_cat, left_on='instanceType', right_on='API Name', how='left')
         logger.debug("\nafter merge with catalog")
+        import pdb
+        pdb.set_trace()
         logger.debug(ec2_df.head())
 
         # results: 2 numbers: capacity (USD), used (USD)

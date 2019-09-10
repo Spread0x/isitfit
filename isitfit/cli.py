@@ -33,8 +33,8 @@ def cli(debug):
       ["Analysis start date", "%s"%dt_start],
       ["Analysis end date", "%s"%dt_end],
       ["Number of analysed EC2 machines", "%i"%n_ec2],
-      ["Billed cost per hour", "%0.2f $/hour"%sum_capacity],
-      ["Used cost per hour", "%0.2f $/hour"%sum_used],
+      ["Billed cost", "%0.2f $"%sum_capacity],
+      ["Used cost", "%0.2f $"%sum_used],
       ["CWAU = Used / Billed * 100", "%0.0f %%"%cwau],
     ]
     

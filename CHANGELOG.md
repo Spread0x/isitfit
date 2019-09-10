@@ -1,6 +1,6 @@
 Version latest (0.1.4?, 2019-09-05?)
 
-- ...
+- bugfix: cli output is actually `$` and not `$/hr`
 
 
 
