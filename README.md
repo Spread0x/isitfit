@@ -21,8 +21,10 @@ Calculating the Cost-Weighted Average Utilization (CWAU) of the AWS EC2 account:
 Fetching history...
 Cloudtrail page 1: 1it [00:00,  5.18it/s]
 Cloudtrail page 1: 1it [00:00, 22.43it/s]
-First pass, EC2 instance: 4it [00:00, 72.76it/s]                                                                                                                             
-Second pass, EC2 instance: 4it [00:00,  9.46it/s]                                                                                                                            
+First pass, EC2 instance: 4it [00:00, 72.76it/s]
+Second pass through EC2 instances:  12%|█       | 1/8 [00:00<?, ?it/s]
+No cloudwatch data for i-e1ca46eb
+Second pass, EC2 instance: 4it [00:00,  9.46it/s]
 ... done
 
 Summary:
@@ -31,10 +33,10 @@ Field                            Value
 -------------------------------  -----------
 Analysis start date              2019-06-07
 Analysis end date                2019-09-05
-Number of analysed EC2 machines  3
-Billed cost per hour             5.23 $/hour
-Used cost per hour               0.18 $/hour
-CWAU = Used / Billed * 100       3 %
+Number of EC2 machines           8
+Billed cost                      165.42 $
+Used cost                        9.16 $
+CWAU = Used / Billed * 100       6 %
 
 For reference:
 * CWAU >= 70% is well optimized
