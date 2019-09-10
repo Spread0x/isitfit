@@ -34,12 +34,17 @@ class MainManager:
 
 
     def get_ifi(self):
-        # download ec2 catalog: 2 columns: ec2 type, ec2 cost per hour
-        logger.debug("Downloading ec2 catalog")
-        self.df_cat = ec2_catalog()
 
         # 0th pass to count
         n_ec2 = len(list(self.ec2_resource.instances.all()))
+
+        if n_ec2==0:
+          logger.warning("No EC2 instances found")
+          return 0,0,0,0
+
+        # download ec2 catalog: 2 columns: ec2 type, ec2 cost per hour
+        logger.debug("Downloading ec2 catalog")
+        self.df_cat = ec2_catalog()
 
         # get cloudtail ec2 type changes for all instances
         self.cloudtrail_manager.init_data(self.ec2_resource.instances.all(), n_ec2)
