@@ -13,7 +13,14 @@ from tabulate import tabulate
 
 @click.command()
 @click.option('--debug', is_flag=True)
-def cli(debug):
+@click.option('--version', is_flag=True)
+def cli(debug, version):
+
+    if version:
+      from . import isitfit_version
+      print('isitfit version %s'%isitfit_version)
+      return
+
     logLevel = logging.DEBUG if debug else logging.INFO
     ch = logging.StreamHandler()
     ch.setLevel(logLevel)

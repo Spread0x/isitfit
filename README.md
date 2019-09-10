@@ -56,6 +56,10 @@ isitfit --debug
 
 # specify a particular profile
 AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit
+
+# show installed version
+isitfit --version
+pip3 freeze|grep isitfit
 ```
 
 

@@ -6,11 +6,13 @@ def read(fname):
   return open(os.path.join(os.path.dirname(__file__), fname)).read()
   
 
+from isitfit import isitfit_version
+
 # follow https://github.com/awslabs/git-remote-codecommit/blob/master/setup.py
 # and https://packaging.python.org/tutorials/packaging-projects/
 setup(
     name='isitfit',
-    version='0.1.4',
+    version=isitfit_version,
     author="Shadi Akiki, AutofitCloud",
     author_email="shadi@autofitcloud.com",
     url='https://gitlab.com/autofitcloud/isitfit',
