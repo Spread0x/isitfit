@@ -14,6 +14,7 @@ from .cloudtrail_ec2type import Manager as CloudtrailEc2typeManager
 
 
 SECONDS_IN_ONE_DAY = 60*60*24 # 86400  # used for granularity (daily)
+MINUTES_IN_ONE_DAY = 60*24 # 1440
 N_DAYS=90
 
 
@@ -47,7 +48,7 @@ class MainManager:
         sum_capacity = 0
         sum_used = 0
         df_all = []
-        for ec2_obj in tqdm(self.ec2_resource.instances.all(), total=n_ec2, desc="Second pass, EC2 instance", initial=1):
+        for ec2_obj in tqdm(self.ec2_resource.instances.all(), total=n_ec2, desc="Second pass through EC2 instances", initial=1):
             res_capacity, res_used = self._handle_ec2obj(ec2_obj)
             sum_capacity += res_capacity
             sum_used += res_used
@@ -60,9 +61,11 @@ class MainManager:
         logger.debug(df_all)
         logger.debug("\n")
 
-        if sum_capacity==0: return 0
+        cwau = 0
+        if sum_capacity!=0:
+          cwau = sum_used/sum_capacity*100
 
-        return n_ec2, sum_capacity, sum_used, sum_used/sum_capacity*100
+        return n_ec2, sum_capacity, sum_used, cwau
 
 
     def _cloudwatch_metrics(self, ec2_obj):
@@ -92,13 +95,11 @@ class MainManager:
             df_i = df_i.sort_values(['Timestamp'], ascending=True)
             df_cw1.append(df_i)
 
-        #
         if len(df_cw1)==0:
-          # raise ValueError("No metrics for %s"%ec2_obj.instance_id)
           return None
 
         if len(df_cw1) >1:
-          raise ValueError(">1 # metrics for %s"%ec2_obj.instance_id)
+          raise ValueError("More than 1 cloudwatch metric found for %s"%ec2_obj.instance_id)
 
         # merge
         # df_cw2 = pd.concat(df_cw1, axis=1)
@@ -116,22 +117,20 @@ class MainManager:
 
         # no data
         if df_metrics is None:
-          logger.debug("No cloudwatch")
+          logger.warning("No cloudwatch data for %s"%ec2_obj.instance_id)
           return 0, 0
 
         # pandas series of number of cpu's available on the machine over time, past 90 days
         df_type_ts1 = self.cloudtrail_manager.single(ec2_obj)
         if df_type_ts1 is None:
-          logger.debug("No cloudtrail")
+          logger.warning("No cloudtrail data for %s"%ec2_obj.instance_id)
           return 0,0
 
         # convert type timeseries to the same timeframes as pcpu and n5mn
         #if ec2_obj.instance_id=='i-069a7808addd143c7':
-        #  import pdb
-        #  pdb.set_trace()
         ec2_df = mergeSeriesOnTimestampRange(df_metrics, df_type_ts1)
-        logger.debug("\nafter merge series on timestamp range")
-        logger.debug(ec2_df.head())
+        #logger.debug("\nafter merge series on timestamp range")
+        #logger.debug(ec2_df.head())
 
         # merge with type changes (can't use .merge on timestamps, need to use .concat)
         #ec2_df = df_metrics.merge(df_type_ts2, left_on='Timestamp', right_on='EventTime', how='left')
@@ -139,13 +138,17 @@ class MainManager:
 
         # merge with catalog
         ec2_df = ec2_df.merge(self.df_cat, left_on='instanceType', right_on='API Name', how='left')
-        logger.debug("\nafter merge with catalog")
-        import pdb
-        pdb.set_trace()
-        logger.debug(ec2_df.head())
+        #logger.debug("\nafter merge with catalog")
+        #logger.debug(ec2_df.head())
+
+        # calculate number of running hours
+        # In the latest 90 days, sampling is per minute in cloudwatch
+        # https://aws.amazon.com/cloudwatch/faqs/
+        # Q: What is the minimum resolution for the data that Amazon CloudWatch receives and aggregates?
+        # A: ... For example, if you request for 1-minute data for a day from 10 days ago, you will receive the 1440 data points ...
+        ec2_df['nhours'] = np.ceil(ec2_df.SampleCount/60)
 
         # results: 2 numbers: capacity (USD), used (USD)
-        ec2_df['nhours'] = np.ceil(ec2_df.SampleCount/12)
         res_capacity = (ec2_df.nhours*ec2_df.cost_hourly).sum()
         res_used     = (ec2_df.nhours*ec2_df.cost_hourly*ec2_df.Average/100).sum()
 

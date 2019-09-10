@@ -11,13 +11,14 @@ from .mainManager import MainManager
 import click
 from tabulate import tabulate
 
+from . import isitfit_version
+
 @click.command()
 @click.option('--debug', is_flag=True)
 @click.option('--version', is_flag=True)
 def cli(debug, version):
 
     if version:
-      from . import isitfit_version
       print('isitfit version %s'%isitfit_version)
       return
 
@@ -27,7 +28,8 @@ def cli(debug, version):
     logger.addHandler(ch)
     logger.setLevel(logLevel)
 
-    logger.info("Calculating the Cost-Weighted Average Utilization (CWAU) of the AWS EC2 account:")
+    logger.info("Is it fit?")
+    logger.info("Cost-Weighted Average Utilization (CWAU) of the AWS EC2 account:")
     logger.info("Fetching history...")
     mm = MainManager()
     n_ec2, sum_capacity, sum_used, cwau = mm.get_ifi()
@@ -39,7 +41,7 @@ def cli(debug, version):
     table = [
       ["Analysis start date", "%s"%dt_start],
       ["Analysis end date", "%s"%dt_end],
-      ["Number of analysed EC2 machines", "%i"%n_ec2],
+      ["Number of EC2 machines", "%i"%n_ec2],
       ["Billed cost", "%0.2f $"%sum_capacity],
       ["Used cost", "%0.2f $"%sum_used],
       ["CWAU = Used / Billed * 100", "%0.0f %%"%cwau],
@@ -53,7 +55,7 @@ def cli(debug, version):
     logger.info("For reference:")
     logger.info("* CWAU >= 70% is well optimized")
     logger.info("* CWAU <= 30% is underused")
-    logger.info("* isitfit version 0.1 is based on CPU utilization only (and not yet on memory utilization)")
+    logger.info("* isitfit version %s is based on CPU utilization only (and not yet on memory utilization)"%isitfit_version)
 
 
 if __name__ == '__main__':

@@ -2,6 +2,9 @@ Version latest (0.1.4?, 2019-09-05?)
 
 - bugfix: cli output is actually `$` and not `$/hr`
 - enh: add `--version` flag
+- enh: clearer debug/warning logging
+- bugfix: case of `sum_capacity=0` no longer throwing error (closes #1)
+- bugfix: data from cloudwatch in last 90 days is 1-minute not 5-minutes
 
 
 
