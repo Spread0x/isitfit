@@ -19,6 +19,7 @@ pip3 install awscli isitfit
 
 Calculating the Cost-Weighted Average Utilization (CWAU) of the AWS EC2 account:
 Fetching history...
+Found 8 EC2 instances
 Cloudtrail page 1: 1it [00:00,  5.18it/s]
 Cloudtrail page 1: 1it [00:00, 22.43it/s]
 First pass, EC2 instance: 4it [00:00, 72.76it/s]
@@ -86,6 +87,8 @@ twine upload dist/*
 ```
 
 Got pypi badge from https://badge.fury.io/for/py/git-remote-aws
+
+Run my local tests with `./test.sh`
 
 
 
