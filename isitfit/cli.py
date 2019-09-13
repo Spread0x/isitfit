@@ -1,6 +1,6 @@
 # RuntimeError: Click will abort further execution because Python 3 was configured to use ASCII as encoding for the environment. 
 # Consult https://click.palletsprojects.com/en/7.x/python3/ for mitigation steps.
-from gitRemoteAws.utils import mysetlocale
+from .utils import mysetlocale
 mysetlocale()
 
 

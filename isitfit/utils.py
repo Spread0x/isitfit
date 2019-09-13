@@ -58,3 +58,11 @@ def ec2_catalog():
     # df = df.set_index('API Name') # need to use merge, not index
     return df
 
+
+# copied from git-remote-aws
+def mysetlocale():
+  li = 'en_US.utf8'
+  import os
+  os.environ["LC_ALL"] = li
+  os.environ["LANG"]   = li
+
