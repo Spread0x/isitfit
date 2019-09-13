@@ -66,9 +66,14 @@ class MainManager:
             self._handle_ec2obj(ec2_obj)
 
         # call listeners
+        logger.info("... done")
+        logger.info("")
+        logger.info("")
         for l in self.listeners['all']:
           l(n_ec2, self)
 
+        logger.info("")
+        logger.info("")
         return
 
 
@@ -86,7 +91,7 @@ class MainManager:
             json_i = m_i.get_statistics(
               Dimensions=[{'Name': 'InstanceId', 'Value': ec2_obj.instance_id}],
               Period=SECONDS_IN_ONE_DAY,
-              Statistics=['Average', 'SampleCount'],
+              Statistics=['Average', 'SampleCount', 'Maximum'],
               Unit='Percent',
               StartTime=self.StartTime,
               EndTime=self.EndTime
@@ -147,7 +152,7 @@ class MainManager:
         # ec2_df = pd.concat([df_metrics, df_type_ts2], axis=1)
 
         # merge with catalog
-        ec2_df = ec2_df.merge(self.df_cat, left_on='instanceType', right_on='API Name', how='left')
+        ec2_df = ec2_df.merge(self.df_cat[['API Name', 'cost_hourly']], left_on='instanceType', right_on='API Name', how='left')
         #logger.debug("\nafter merge with catalog")
         #logger.debug(ec2_df.head())
 

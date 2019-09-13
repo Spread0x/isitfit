@@ -48,7 +48,6 @@ class UtilizationListener:
       ["CWAU = Used / Billed * 100", "%0.0f %%"%cwau],
     ]
     
-    logger.info("")
     # logger.info("Summary:")
     logger.info("Cost-Weighted Average Utilization (CWAU) of the AWS EC2 account:")
     logger.info("")

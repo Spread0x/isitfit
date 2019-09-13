@@ -1,6 +1,7 @@
 Version latest (0.1.7?, 2019-09-??)
 
 - enh: split out code for the listener design pattern for utilization
+- feat: add basic maxmax optimizer listener
 - ...
 
 

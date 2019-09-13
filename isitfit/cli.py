@@ -9,6 +9,7 @@ logger = logging.getLogger('isitfit')
 
 from .mainManager import MainManager
 from .utilizationListener import UtilizationListener
+from .optimizerListener import OptimizerListener
 import click
 
 from . import isitfit_version
@@ -16,7 +17,8 @@ from . import isitfit_version
 @click.command()
 @click.option('--debug', is_flag=True)
 @click.option('--version', is_flag=True)
-def cli(debug, version):
+@click.option('--optimize', is_flag=True)
+def cli(debug, version, optimize):
 
     if version:
       print('isitfit version %s'%isitfit_version)
@@ -33,17 +35,21 @@ def cli(debug, version):
 
     logger.info("Initializing")
     ul = UtilizationListener()
+    ol = OptimizerListener()
     mm = MainManager()
 
     # utilization listeners
-    mm.add_listener('ec2', ul.per_ec2)
-    mm.add_listener('all', ul.after_all)
+    if not optimize:
+      mm.add_listener('ec2', ul.per_ec2)
+      mm.add_listener('all', ul.after_all)
+    else:
+      mm.add_listener('ec2', ol.per_ec2)
+      mm.add_listener('all', ol.after_all)
 
     # start download data and processing
     logger.info("Fetching history...")
     mm.get_ifi()
 
-    logger.info("... done")
     logger.info("* isitfit version %s is based on CPU utilization only (and not yet on memory utilization)"%isitfit_version)
 
 

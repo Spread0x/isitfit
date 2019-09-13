@@ -12,13 +12,21 @@ pip3 install awscli isitfit
 
 ## Usage
 
+### Pre-requisites
+
+The AWS CLI should be configured with a user/role with the following minimal policies:
+
+`AmazonEC2ReadOnlyAccess, CloudWatchReadOnlyAccess`
+
+
 ### Example 1: basic usage
+
+Calculate AWS EC2 used-to-billed cost
 
 ```
 > isitfit
 Is it fit?
 
-Cost-Weighted Average Utilization (CWAU) of the AWS EC2 account:
 Fetching history...
 Found 8 EC2 instances
 Cloudtrail page 1: 1it [00:00,  5.18it/s]
@@ -29,7 +37,7 @@ No cloudwatch data for i-e1ca46eb
 Second pass, EC2 instance: 4it [00:00,  9.46it/s]
 ... done
 
-Summary:
+Cost-Weighted Average Utilization (CWAU) of the AWS EC2 account:
 
 Field                            Value
 -------------------------------  -----------
@@ -43,13 +51,36 @@ CWAU = Used / Billed * 100       6 %
 For reference:
 * CWAU >= 70% is well optimized
 * CWAU <= 30% is underused
+
 * isitfit version 0.1 is based on CPU utilization only (and not yet on memory utilization)
 ```
 
+Calculate recommended type changes
 
-PS: the AWS keys should belong to a user/role with the following minimal policies:
+```
+# isitfit --optimize
+Is it fit?
+Initializing
+Fetching history...
+...
+...done
 
-`AmazonEC2ReadOnlyAccess, CloudWatchReadOnlyAccess`
+
+Optimization based on the following CPU thresholds:
+{'idle': 3, 'low': 30, 'high': 70}
+
+Recommendation value: 0.097238 $/hour
+i.e. if you implement these recommendations, this is extra cost since positive
+
+
+Details
+           instance_id instance_type  max_cpu classification  cost_hourly recommended_type  recommended_costdiff
+1           i-02432bc7      t2.micro       24      Underused     0.013671          t2.nano             -0.006835
+2  i-08c802de5accc1e89     t3.medium       82       Overused     0.049320         t3.large              0.049320
+3  i-069a7808addd143c7     t2.medium      100       Overused     0.054612         t2.large              0.054753
+
+* isitfit version 0.1.7 is based on CPU utilization only (and not yet on memory utilization)
+```
 
 
 ### Example 2: Advanced usage

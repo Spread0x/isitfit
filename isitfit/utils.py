@@ -50,7 +50,10 @@ def ec2_catalog():
     # read catalog, copy from ec2op-cli/ec2op/optimizer/cwDailyMaxMaxCpu
     j = json.dumps(r.json(), indent=4, sort_keys=True)
     df = pd.read_json(j, orient='split')
-    df = df[['API Name', 'Linux On Demand cost']]
+    
+    # Edit 2019-09-13 no need to subsample the columns at this stage
+    # df = df[['API Name', 'Linux On Demand cost']]
+
     df = df.rename(columns={'Linux On Demand cost': 'cost_hourly'})
     # df = df.set_index('API Name') # need to use merge, not index
     return df
