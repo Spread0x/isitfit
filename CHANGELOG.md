@@ -1,6 +1,7 @@
 Version latest (0.1.7?, 2019-09-??)
 
 - ...
+- enh: add link to isitfit.autofitcloud.com in cli footer
 
 
 Version 0.2.1 (2019-09-13)
