@@ -35,7 +35,8 @@ setup(
         'cachecontrol==0.12.5',
         'lockfile==0.12.2',
         'tabulate==0.8.3',
-        'termcolor==1.1.0'
+        'termcolor==1.1.0',
+        'tqdm==4.32.2'
     ],
     entry_points='''
         [console_scripts]
