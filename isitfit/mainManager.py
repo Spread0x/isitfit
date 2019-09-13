@@ -95,7 +95,13 @@ class MainManager:
             if len(json_i['Datapoints'])==0: continue # skip (no data)
 
             df_i = pd.DataFrame(json_i['Datapoints'])
-            df_i = df_i[['Timestamp', 'SampleCount', 'Average']]
+
+            # edit 2019-09-13: no need to subsample columns
+            # The initial goal was to drop the "Unit" column (which just said "Percent"),
+            # but it's not such a big deal, and avoiding this subsampling simplifies the code a bit
+            # df_i = df_i[['Timestamp', 'SampleCount', 'Average']]
+
+            # sort and append in case of multiple metrics
             df_i = df_i.sort_values(['Timestamp'], ascending=True)
             df_cw1.append(df_i)
 
