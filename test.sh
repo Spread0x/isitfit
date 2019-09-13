@@ -3,13 +3,13 @@
 set -e
 set -x
 
-# default profile (shadiakiki1986@gmail.com@amazonaws.com)
+echo "Test 1: default profile (shadiakiki1986@gmail.com@amazonaws.com)"
 isitfit
 
-# non-default profile (shadi@autofitcloud.com@amazonaws.com)
+echo "Test 2: non-default profile (shadi@autofitcloud.com@amazonaws.com)"
 AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit
 
-# default profile in region with 0 ec2 instances
+echo "Test 3: default profile in region with 0 ec2 instances"
 AWS_DEFAULT_REGION=eu-central-1 isitfit
 
 # done
