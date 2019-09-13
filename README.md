@@ -16,8 +16,9 @@ pip3 install awscli isitfit
 
 ```
 > isitfit
+Is it fit?
 
-Calculating the Cost-Weighted Average Utilization (CWAU) of the AWS EC2 account:
+Cost-Weighted Average Utilization (CWAU) of the AWS EC2 account:
 Fetching history...
 Found 8 EC2 instances
 Cloudtrail page 1: 1it [00:00,  5.18it/s]

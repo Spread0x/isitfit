@@ -34,7 +34,6 @@ setup(
         'boto3==1.9.219',
         'cachecontrol==0.12.5',
         'lockfile==0.12.2',
-        'git-remote-aws==0.5.2',
         'tabulate==0.8.3'
     ],
     entry_points='''

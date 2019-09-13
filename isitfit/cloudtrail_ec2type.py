@@ -1,6 +1,6 @@
 import pandas as pd
 from tqdm import tqdm
-from gitRemoteAws.pull_cloudtrail_lookupEvents import GeneralManager as GraCloudtrailManager
+from .pull_cloudtrail_lookupEvents import GeneralManager as GraCloudtrailManager
 import os
 
 import logging
