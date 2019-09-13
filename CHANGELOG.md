@@ -3,6 +3,11 @@ Version latest (0.1.7?, 2019-09-??)
 - ...
 
 
+Version 0.2.4 (2019-09-13)
+
+- bugfix: tqdm dependency added
+
+
 Version 0.2.3 (2019-09-13)
 
 - bugfix: mysetlocale was still referenced from git-remote-aws
