@@ -18,6 +18,12 @@ MINUTES_IN_ONE_DAY = 60*24 # 1440
 N_DAYS=90
 
 
+class NoCloudtrailException(Exception):
+    pass
+
+class NoCloudwatchException(Exception):
+    pass
+
 
 class MainManager:
     def __init__(self):
@@ -62,13 +68,29 @@ class MainManager:
         sum_capacity = 0
         sum_used = 0
         df_all = []
+        ec2_noCloudwatch = []
+        ec2_noCloudtrail = []
         for ec2_obj in tqdm(self.ec2_resource.instances.all(), total=n_ec2, desc="Second pass through EC2 instances", initial=1):
+          try:
             self._handle_ec2obj(ec2_obj)
+          except NoCloudwatchException:
+            ec2_noCloudwatch.append(ec2_obj.instance_id)
+          except NoCloudtrailException:
+            ec2_noCloudtrail.append(ec2_obj.instance_id)
 
         # call listeners
         logger.info("... done")
         logger.info("")
         logger.info("")
+
+        if len(ec2_noCloudwatch)>0:
+          logger.warning("No cloudwatch data for: %s"%", ".join(ec2_noCloudwatch))
+          logger.info("")
+
+        if len(ec2_noCloudtrail)>0:
+          logger.warning("No cloudtrail data for: %s"%", ".join(ec2_noCloudtrail))
+          logger.info("")
+
         for l in self.listeners['all']:
           l(n_ec2, self)
 
@@ -132,14 +154,12 @@ class MainManager:
 
         # no data
         if df_metrics is None:
-          logger.warning("No cloudwatch data for %s"%ec2_obj.instance_id)
-          return 0, 0
+          raise NoCloudwatchException("No cloudwatch data for %s"%ec2_obj.instance_id)
 
         # pandas series of number of cpu's available on the machine over time, past 90 days
         df_type_ts1 = self.cloudtrail_manager.single(ec2_obj)
         if df_type_ts1 is None:
-          logger.warning("No cloudtrail data for %s"%ec2_obj.instance_id)
-          return 0,0
+          raise NoCloudtrailException("No cloudtrail data for %s"%ec2_obj.instance_id)
 
         # convert type timeseries to the same timeframes as pcpu and n5mn
         #if ec2_obj.instance_id=='i-069a7808addd143c7':
@@ -167,4 +187,4 @@ class MainManager:
         for l in self.listeners['ec2']:
           l(ec2_obj, ec2_df)
 
-        return
+        return 0
