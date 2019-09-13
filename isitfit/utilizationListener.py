@@ -21,7 +21,7 @@ class UtilizationListener:
     # results: 2 numbers: capacity (USD), used (USD)
     res_capacity = (ec2_df.nhours*ec2_df.cost_hourly).sum()
     res_used     = (ec2_df.nhours*ec2_df.cost_hourly*ec2_df.Average/100).sum()
-    logger.debug("res_capacity=%s, res_used=%s"%(res_capacity, res_used))
+    #logger.debug("res_capacity=%s, res_used=%s"%(res_capacity, res_used))
 
     self.sum_capacity += res_capacity
     self.sum_used += res_used

@@ -15,7 +15,9 @@ from dateutil.relativedelta import relativedelta
 import boto3
 from tqdm import tqdm
 import json
+
 import logging
+logger = logging.getLogger('isitfit')
 
 #------------------------------
 # utility to serialize date
@@ -102,13 +104,46 @@ class Ec2Typechanges:
       
       
     def _handleEventRun(self, event):
-          #logging.error(event)
-          #return
+          # logger.debug("Cloudtrail event: %s"%json.dumps(event, default=json_serial))
+
+          if 'Resources' not in event:
+            logger.debug("No 'Resources' key in event. Skipping")
+            return None # ignore this situation
         
-          instanceId = [x for x in event['Resources'] if x['ResourceType']=='AWS::EC2::Instance'][0]['ResourceName']
+          instanceId = [x for x in event['Resources'] if x['ResourceType']=='AWS::EC2::Instance']
+          if len(instanceId)==0:
+            logger.debug("No AWS EC2 instances in event. Skipping")
+            return None # ignore this situation
+
+          # proceed
+          instanceId = instanceId[0]
+
+          if 'ResourceName' not in instanceId:
+            logger.debug("No ResourceName key in event. Skipping")
+            return None # ignore this situation
+          
+          # proceed
+          instanceId = instanceId['ResourceName']
+
+          if 'CloudTrailEvent' not in event:
+            logger.debug("No CloudTrailEvent key in event. Skipping")
+            return None # ignore this situation
 
           ce_dict = json.loads(event['CloudTrailEvent'])
+
+          if 'requestParameters' not in ce_dict:
+            logger.debug("No requestParameters key in event['CloudTrailEvent']. Skipping")
+            return None # ignore this situation
+
+          if 'instanceType' not in ce_dict['requestParameters']:
+            logger.debug("No instanceType key in event['CloudTrailEvent']['requestParameters']. Skipping")
+            return None # ignore this situation
+
           newType = ce_dict['requestParameters']['instanceType']
+
+          if 'EventTime' not in event:
+            logger.debug("No EventTime key in event. Skipping")
+            return None # ignore this situation
 
           ts_obj = event['EventTime']
           # ts_obj = dt.datetime.utcfromtimestamp(ts_int)
@@ -124,7 +159,16 @@ class Ec2Typechanges:
           
           
     def _handleEventModify(self, event):
+          if 'CloudTrailEvent' not in event:
+            logger.debug("No CloudTrailEvent key in event. Skipping")
+            return None # ignore this situation
+
           ce_dict = json.loads(event['CloudTrailEvent'])
+
+          if 'requestParameters' not in ce_dict:
+            logger.debug("No requestParameters key in event['CloudTrailEvent']. Skipping")
+            return None # ignore this situation
+
           rp_dict = ce_dict['requestParameters']
           newType = None
 
@@ -146,6 +190,10 @@ class Ec2Typechanges:
           ts_obj = event['EventTime']
           # ts_obj = dt.datetime.utcfromtimestamp(ts_int)
           # ts_str = ts_obj.strftime('%Y-%m-%d %H:%M:%S')
+
+          if 'instanceId' not in rp_dict:
+            logger.debug("No instanceId key in requestParameters. Skipping")
+            return None # ignore this situation
 
           result = {
             'EventTime': ts_obj, # ts_str,

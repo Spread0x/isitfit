@@ -3,6 +3,11 @@ Version latest (0.1.7?, 2019-09-??)
 - ...
 
 
+Version 0.2.5 (2019-09-13)
+
+- bugfix: cloudtrail events to checked more thoroughly for keys (for issue #3)
+
+
 Version 0.2.4 (2019-09-13)
 
 - bugfix: tqdm dependency added

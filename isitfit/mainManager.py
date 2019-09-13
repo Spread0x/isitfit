@@ -147,7 +147,7 @@ class MainManager:
 
 
     def _handle_ec2obj(self, ec2_obj):
-        logger.debug("%s, %s"%(ec2_obj.instance_id, ec2_obj.instance_type))
+        # logger.debug("%s, %s"%(ec2_obj.instance_id, ec2_obj.instance_type))
 
         # pandas series of CPU utilization, daily max, for 90 days
         df_metrics = self._cloudwatch_metrics(ec2_obj)
