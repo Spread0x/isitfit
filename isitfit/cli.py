@@ -8,8 +8,8 @@ import logging
 logger = logging.getLogger('isitfit')
 
 from .mainManager import MainManager
+from .utilizationListener import UtilizationListener
 import click
-from tabulate import tabulate
 
 from . import isitfit_version
 
@@ -28,33 +28,22 @@ def cli(debug, version):
     logger.addHandler(ch)
     logger.setLevel(logLevel)
 
+
     logger.info("Is it fit?")
-    logger.info("Cost-Weighted Average Utilization (CWAU) of the AWS EC2 account:")
-    logger.info("Fetching history...")
+
+    logger.info("Initializing")
+    ul = UtilizationListener()
     mm = MainManager()
-    n_ec2, sum_capacity, sum_used, cwau = mm.get_ifi()
+
+    # utilization listeners
+    mm.add_listener('ec2', ul.per_ec2)
+    mm.add_listener('all', ul.after_all)
+
+    # start download data and processing
+    logger.info("Fetching history...")
+    mm.get_ifi()
+
     logger.info("... done")
-    
-    dt_start = mm.StartTime.strftime("%Y-%m-%d")
-    dt_end   = mm.EndTime.strftime("%Y-%m-%d")
-    
-    table = [
-      ["Analysis start date", "%s"%dt_start],
-      ["Analysis end date", "%s"%dt_end],
-      ["Number of EC2 machines", "%i"%n_ec2],
-      ["Billed cost", "%0.2f $"%sum_capacity],
-      ["Used cost", "%0.2f $"%sum_used],
-      ["CWAU = Used / Billed * 100", "%0.0f %%"%cwau],
-    ]
-    
-    logger.info("")
-    logger.info("Summary:")
-    logger.info("")
-    logger.info(tabulate(table, headers=['Field', 'Value']))
-    logger.info("")
-    logger.info("For reference:")
-    logger.info("* CWAU >= 70% is well optimized")
-    logger.info("* CWAU <= 30% is underused")
     logger.info("* isitfit version %s is based on CPU utilization only (and not yet on memory utilization)"%isitfit_version)
 
 

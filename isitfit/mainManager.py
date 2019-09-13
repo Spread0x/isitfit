@@ -32,6 +32,15 @@ class MainManager:
         self.cloudtrail_client = boto3.client('cloudtrail')
         self.cloudtrail_manager = CloudtrailEc2typeManager(self.cloudtrail_client, dt_now_d)
 
+        self.listeners = {'ec2': [], 'all': []}
+
+
+    def add_listener(self, event, listener):
+      if event not in self.listeners:
+        raise ValueError("Event %s is not supported for listeners. Use: %s"%(event, ",".join(self.listeners.keys())))
+
+      self.listeners[event].append(listener)
+
 
     def get_ifi(self):
 
@@ -40,7 +49,7 @@ class MainManager:
         logger.warning("Found %i EC2 instances"%n_ec2)
 
         if n_ec2==0:
-          return 0,0,0,0
+          return
 
         # download ec2 catalog: 2 columns: ec2 type, ec2 cost per hour
         logger.debug("Downloading ec2 catalog")
@@ -54,23 +63,13 @@ class MainManager:
         sum_used = 0
         df_all = []
         for ec2_obj in tqdm(self.ec2_resource.instances.all(), total=n_ec2, desc="Second pass through EC2 instances", initial=1):
-            res_capacity, res_used = self._handle_ec2obj(ec2_obj)
-            sum_capacity += res_capacity
-            sum_used += res_used
-            df_all.append({'instance_id': ec2_obj.instance_id, 'capacity': res_capacity, 'used': res_used})
-            logger.debug("\n")
+            self._handle_ec2obj(ec2_obj)
 
-        # for debugging
-        df_all = pd.DataFrame(df_all)
-        logger.debug("\ncapacity/used per instance")
-        logger.debug(df_all)
-        logger.debug("\n")
+        # call listeners
+        for l in self.listeners['all']:
+          l(n_ec2, self)
 
-        cwau = 0
-        if sum_capacity!=0:
-          cwau = sum_used/sum_capacity*100
-
-        return n_ec2, sum_capacity, sum_used, cwau
+        return
 
 
     def _cloudwatch_metrics(self, ec2_obj):
@@ -153,9 +152,8 @@ class MainManager:
         # A: ... For example, if you request for 1-minute data for a day from 10 days ago, you will receive the 1440 data points ...
         ec2_df['nhours'] = np.ceil(ec2_df.SampleCount/60)
 
-        # results: 2 numbers: capacity (USD), used (USD)
-        res_capacity = (ec2_df.nhours*ec2_df.cost_hourly).sum()
-        res_used     = (ec2_df.nhours*ec2_df.cost_hourly*ec2_df.Average/100).sum()
+        # call listeners
+        for l in self.listeners['ec2']:
+          l(ec2_obj, ec2_df)
 
-        logger.debug("res_capacity=%s, res_used=%s"%(res_capacity, res_used))
-        return res_capacity, res_used
+        return
