@@ -1,4 +1,9 @@
-Version latest (0.1.6?, 2019-09-05, 2019-09-13)
+Version latest (0.1.7?, 2019-09-??)
+
+- ...
+
+
+Version 0.1.6 (2019-09-05, 2019-09-13)
 
 - enh: ec2 catalog to be downloaded with CDN rather than direct github raw link
 - enh: copy `pull_cloudtrail_lookupEvents.py` from `git-remote-aws` to `isitfit` and severing the dependency
