@@ -4,6 +4,9 @@ logger = logging.getLogger('isitfit')
 import pandas as pd
 from tabulate import tabulate
 
+# https://pypi.org/project/termcolor/
+from termcolor import colored
+
 
 class UtilizationListener:
 
@@ -32,9 +35,15 @@ class UtilizationListener:
     logger.debug(df_all)
     logger.debug("\n")
 
-    cwau = 0
+    cwau_val = 0
     if self.sum_capacity!=0:
-      cwau = self.sum_used/self.sum_capacity*100
+      cwau_val = self.sum_used/self.sum_capacity*100
+
+    cwau_color = 'orange'
+    if cwau_val >= 70:
+      cwau_color = 'green'
+    elif cwau_val <= 30:
+      cwau_color = 'red'
 
     dt_start = mm.StartTime.strftime("%Y-%m-%d")
     dt_end   = mm.EndTime.strftime("%Y-%m-%d")
@@ -43,9 +52,9 @@ class UtilizationListener:
       ["Analysis start date", "%s"%dt_start],
       ["Analysis end date", "%s"%dt_end],
       ["Number of EC2 machines", "%i"%n_ec2],
-      ["Billed cost", "%0.2f $"%self.sum_capacity],
-      ["Used cost", "%0.2f $"%self.sum_used],
-      ["CWAU = Used / Billed * 100", "%0.0f %%"%cwau],
+      [colored("Billed cost", 'cyan'), colored("%0.2f $"%self.sum_capacity, 'cyan')],
+      [colored("Used cost", 'cyan'), colored("%0.2f $"%self.sum_used, 'cyan')],
+      [colored("CWAU = Used / Billed * 100", cwau_color), colored("%0.0f %%"%cwau_val, cwau_color)],
     ]
     
     # logger.info("Summary:")
@@ -54,6 +63,6 @@ class UtilizationListener:
     logger.info(tabulate(table, headers=['Field', 'Value']))
     logger.info("")
     logger.info("For reference:")
-    logger.info("* CWAU >= 70% is well optimized")
-    logger.info("* CWAU <= 30% is underused")
+    logger.info(colored("* CWAU >= 70% is well optimized", 'green'))
+    logger.info(colored("* CWAU <= 30% is underused", 'red'))
 

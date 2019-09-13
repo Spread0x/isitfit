@@ -34,7 +34,8 @@ setup(
         'boto3==1.9.219',
         'cachecontrol==0.12.5',
         'lockfile==0.12.2',
-        'tabulate==0.8.3'
+        'tabulate==0.8.3',
+        'termcolor==1.1.0'
     ],
     entry_points='''
         [console_scripts]

@@ -7,3 +7,4 @@ lockfile==0.12.2 # for caching to file
 
 
 tabulate==0.8.3
+termcolor==1.1.0

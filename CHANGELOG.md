@@ -2,6 +2,7 @@ Version latest (0.1.7?, 2019-09-??)
 
 - ...
 - enh: cleaner status bar by moving missing cloudwatch/cloudtrail data instances to after the status bar
+- enh: add colors to terminal output to highlight important information
 
 
 Version 0.2.0 (2019-09-13)

@@ -2,7 +2,9 @@ import logging
 logger = logging.getLogger('isitfit')
 
 import pandas as pd
-from tabulate import tabulate
+
+# https://pypi.org/project/termcolor/
+from termcolor import colored
 
 
 class OptimizerListener:
@@ -74,13 +76,15 @@ class OptimizerListener:
     # display
     df_sort = df_all.sort_values(['recommended_costdiff'], ascending=True)
     df_sort.dropna(subset=['recommended_costdiff'], inplace=True)
-    df_sum = df_all.recommended_costdiff.sum()
+    sum_val = df_all.recommended_costdiff.sum()
+    sum_comment = "extra cost since positive" if sum_val>0 else "savings since negative"
+    sum_color = "red" if sum_val>0 else "green"
 
     logger.info("Optimization based on the following CPU thresholds:")
     logger.info(self.thresholds)
     logger.info("")
-    logger.info("Recommendation value: %f $/hour"%df_sum)
-    logger.info("i.e. if you implement these recommendations, this is %s"%"extra cost since positive" if df_sum>0 else "savings since negative")
+    logger.info(colored("Recommendation value: %f $/hour"%sum_val, sum_color))
+    logger.info("i.e. if you implement these recommendations, this is %s"%colored(sum_comment, sum_color))
     logger.info("")
     logger.info("")
 
