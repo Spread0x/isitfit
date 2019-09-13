@@ -28,13 +28,6 @@ Calculate AWS EC2 used-to-billed cost
 Is it fit?
 
 Fetching history...
-Found 8 EC2 instances
-Cloudtrail page 1: 1it [00:00,  5.18it/s]
-Cloudtrail page 1: 1it [00:00, 22.43it/s]
-First pass, EC2 instance: 4it [00:00, 72.76it/s]
-Second pass through EC2 instances:  12%|█       | 1/8 [00:00<?, ?it/s]
-No cloudwatch data for i-e1ca46eb
-Second pass, EC2 instance: 4it [00:00,  9.46it/s]
 ... done
 
 Cost-Weighted Average Utilization (CWAU) of the AWS EC2 account:
@@ -62,7 +55,6 @@ Calculate recommended type changes
 Is it fit?
 Initializing
 Fetching history...
-...
 ...done
 
 
