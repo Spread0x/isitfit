@@ -3,6 +3,9 @@
 A simple command-line tool to check if an AWS EC2 account is fit or underused.
 
 
+[![asciicast](https://asciinema.org/a/ldJ6sfn4tdLVvB7lYiOZAcICG.svg)](https://asciinema.org/a/ldJ6sfn4tdLVvB7lYiOZAcICG)
+
+
 ## Installation
 
 ```
