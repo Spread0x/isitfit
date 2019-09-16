@@ -1,6 +1,8 @@
 Version latest (0.1.7?, 2019-09-??)
 
 - ...
+- enh: add documentation in readme about recommendations
+- enh: stricter "overused" classifier, lambda classifier to output a 2nd classification of hourly vs daily resolution
 
 
 Version 0.3.0 (2019-09-16)

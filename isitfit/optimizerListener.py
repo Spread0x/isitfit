@@ -8,22 +8,22 @@ from termcolor import colored
 
 
 def class2recommendedType(r):
-  if r.classification in ['Underused', 'Lambda']:
+  if r.classification_1 in ['Underused', 'Lambda']:
     # FIXME lambda-convertible would mean that the instance is downsizable twice, so maybe need to return r.type_smaller2x
     return r.type_smaller
 
-  if r.classification=='Overused':
+  if r.classification_1=='Overused':
     return r.type_larger
 
   return None
 
 
 def class2recommendedCost(r):
-  if r.classification in ['Underused', 'Lambda']:
+  if r.classification_1 in ['Underused', 'Lambda']:
     # FIXME add savings from the twice downsizing in class2recommendedType, then calculate the cost from lambda functions and add it as overhead here
     return r.cost_hourly_smaller-r.cost_hourly
 
-  if r.classification=='Overused':
+  if r.classification_1=='Overused':
     return r.cost_hourly_larger-r.cost_hourly
 
   return None
@@ -46,33 +46,40 @@ class OptimizerListener:
   def _ec2df_to_classification(self, ec2_df):
     maxmax = ec2_df.Maximum.max()
     maxavg = ec2_df.Average.max()
-    #print("ec2_df.maxmax, maxavg=", maxmax, maxavg)
+    avgmax = ec2_df.Maximum.mean()
+    #print("ec2_df.{maxmax,avgmax,maxavg} = ", maxmax, avgmax, maxavg)
 
     # check if good to convert to lambda
+    # i.e. daily data shows few large spikes
     thres = self.thresholds['lambda']
-    if maxmax >= thres['high'] and maxavg <= thres['low']:
-      return 'Lambda'
+    if maxmax >= thres['high'] and avgmax <= thres['low'] and maxavg <= thres['low']:
+      return 'Lambda', 'day resolution'
 
     # check rightsizing
+    # i.e. no special spikes in daily data
+    # FIXME: can check hourly data for higher precision here
     thres = self.thresholds['rightsize']
     if maxmax <= thres['idle']:
-      return 'Idle'
+      return 'Idle', None
     elif maxmax <= thres['low']:
-      return 'Underused'
-    elif maxmax >= thres['high']:
-      return 'Overused'
+      return 'Underused', None
+    elif maxmax >= thres['high'] and avgmax >= thres['high'] and maxavg >= thres['high']:
+      return 'Overused', None
+    elif maxmax >= thres['high'] and avgmax >= thres['high'] and maxavg <= thres['low']:
+      return 'Lambda', 'hour resolution'
 
-    return 'Normal'
+    return 'Normal', None
 
 
   def per_ec2(self, ec2_obj, ec2_df):
     #print(ec2_obj.instance_id)
-    ec2_c = self._ec2df_to_classification(ec2_df)
+    ec2_c1, ec2_c2 = self._ec2df_to_classification(ec2_df)
 
     self.ec2_classes.append({
       'instance_id': ec2_obj.instance_id,
       'instance_type': ec2_obj.instance_type,
-      'classification': ec2_c
+      'classification_1': ec2_c1,
+      'classification_2': ec2_c2
     })
 
 
@@ -98,9 +105,9 @@ class OptimizerListener:
     df_all = df_all.drop(['type_smaller', 'type_larger', 'cost_hourly_smaller', 'cost_hourly_larger'], axis=1)
 
     # display
-    #df_all = df_all.set_index('classification')
+    #df_all = df_all.set_index('classification_1')
     #for v in ['Idle', 'Underused', 'Overused', 'Normal']:
-    #  logger.info("\nInstance classification: %s"%v)
+    #  logger.info("\nInstance classification_1: %s"%v)
     #  if v not in df_all.index:
     #    logger.info("None")
     #  else:
