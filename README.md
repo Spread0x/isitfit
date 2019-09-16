@@ -93,6 +93,16 @@ pip3 freeze|grep isitfit
 ```
 
 
+## Recommendations
+
+As of today (2019-09-16), recommendations are:
+
+- Lambda: this is for EC2 servers whose workload has spikes that can be moved into separate lambda functions. The server itself can be downsized at least twice after moving the spike to lambda.
+- Undersused: this is an EC2 server that can be downsized at least once
+- Overused: this is an EC2 server whose usage is being concentrated
+- Normal: EC2 servers for whom isitfit doesn't have any recommendations
+
+
 ## Changelog
 
 Check `CHANGELOG.md`
