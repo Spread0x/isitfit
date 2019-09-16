@@ -1,6 +1,7 @@
 Version latest (0.1.7?, 2019-09-??)
 
 - ...
+- FEAT: add optimizer for recommending lambda functions (in addition to the rightsizer)
 
 
 Version 0.2.5 (2019-09-13)

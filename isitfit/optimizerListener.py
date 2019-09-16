@@ -7,33 +7,69 @@ import pandas as pd
 from termcolor import colored
 
 
+def class2recommendedType(r):
+  if r.classification in ['Underused', 'Lambda']:
+    return r.type_smaller
+
+  if r.classification=='Overused':
+    return r.type_larger
+
+  return None
+
+
+def class2recommendedCost(r):
+  if r.classification in ['Underused', 'Lambda']:
+    return r.cost_hourly_smaller-r.cost_hourly
+
+  if r.classification=='Overused':
+    return r.cost_hourly_larger-r.cost_hourly
+
+  return None
+
+
 class OptimizerListener:
 
   def __init__(self, thresholds = None):
     if thresholds is None:
-      thresholds = {'idle': 3, 'low': 30, 'high': 70}
+      thresholds = {
+        'rightsize': {'idle': 3, 'low': 30, 'high': 70},
+        'lambda': {'low': 20, 'high': 80}
+      }
 
     # iterate over all ec2 instances
     self.thresholds = thresholds
     self.ec2_classes = []
 
 
-  def per_ec2(self, ec2_obj, ec2_df):
+  def _ec2df_to_classification(self, ec2_df):
     maxmax = ec2_df.Maximum.max()
-    ec2_c = 'Unknown'
-    if maxmax <= self.thresholds['idle']:
-      ec2_c = 'Idle'
-    elif maxmax <= self.thresholds['low']:
-      ec2_c = 'Underused'
-    elif maxmax >= self.thresholds['high']:
-      ec2_c = 'Overused'
-    else:
-      ec2_c = 'Normal'
+    maxavg = ec2_df.Average.max()
+    #print("ec2_df.maxmax, maxavg=", maxmax, maxavg)
+
+    # check if good to convert to lambda
+    thres = self.thresholds['lambda']
+    if maxmax >= thres['high'] and maxavg <= thres['low']:
+      return 'Lambda'
+
+    # check rightsizing
+    thres = self.thresholds['rightsize']
+    if maxmax <= thres['idle']:
+      return 'Idle'
+    elif maxmax <= thres['low']:
+      return 'Underused'
+    elif maxmax >= thres['high']:
+      return 'Overused'
+
+    return 'Normal'
+
+
+  def per_ec2(self, ec2_obj, ec2_df):
+    #print(ec2_obj.instance_id)
+    ec2_c = self._ec2df_to_classification(ec2_df)
 
     self.ec2_classes.append({
       'instance_id': ec2_obj.instance_id,
       'instance_type': ec2_obj.instance_type,
-      'max_cpu': maxmax,
       'classification': ec2_c
     })
 
@@ -41,7 +77,6 @@ class OptimizerListener:
 
   def after_all(self, n_ec2, mm):
     df_all = pd.DataFrame(self.ec2_classes)
-    df_all['max_cpu'] = df_all.max_cpu.astype('int')
 
     # merge current type hourly cost
     map_cost = mm.df_cat[['API Name', 'cost_hourly']]
@@ -56,8 +91,6 @@ class OptimizerListener:
     df_all = df_all.merge(map_larger, left_on='instance_type', right_on='API Name', how='left').drop(['API Name'], axis=1)
 
     # imply a recommended type
-    class2recommendedType = lambda r: r.type_smaller if r.classification=='Underused' else (r.type_larger if r.classification=='Overused' else None)
-    class2recommendedCost = lambda r: r.cost_hourly_smaller-r.cost_hourly if r.classification=='Underused' else (r.cost_hourly_larger-r.cost_hourly if r.classification=='Overused' else None)
     df_all['recommended_type'] = df_all.apply(class2recommendedType, axis=1)
     df_all['recommended_costdiff'] = df_all.apply(class2recommendedCost, axis=1)
     df_all = df_all.drop(['type_smaller', 'type_larger', 'cost_hourly_smaller', 'cost_hourly_larger'], axis=1)
@@ -80,20 +113,21 @@ class OptimizerListener:
     sum_comment = "extra cost since positive" if sum_val>0 else "savings since negative"
     sum_color = "red" if sum_val>0 else "green"
 
-    logger.info("Optimization based on the following CPU thresholds:")
-    logger.info(self.thresholds)
-    logger.info("")
+    #logger.info("Optimization based on the following CPU thresholds:")
+    #logger.info(self.thresholds)
+    #logger.info("")
     logger.info(colored("Recommendation value: %f $/hour"%sum_val, sum_color))
     logger.info("i.e. if you implement these recommendations, this is %s"%colored(sum_comment, sum_color))
     logger.info("")
     logger.info("")
 
-    if df_sort.shape[0]<=10:
-      logger.info("Details")
-      logger.info(df_sort)
-    else:
-      logger.info("Top savings (down-sizable):")
-      logger.info(df_sort.head(n=5))
-      logger.info("Bottom savings (up-sizable):")
-      logger.info(df_sort.tail(n=5))
+    with pd.option_context("display.max_columns", 10):
+      if df_sort.shape[0]<=10:
+        logger.info("Details")
+        logger.info(df_sort)
+      else:
+        logger.info("Top savings (down-sizable):")
+        logger.info(df_sort.head(n=5))
+        logger.info("Bottom savings (up-sizable):")
+        logger.info(df_sort.tail(n=5))
 
