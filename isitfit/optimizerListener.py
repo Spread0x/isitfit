@@ -9,6 +9,7 @@ from termcolor import colored
 
 def class2recommendedType(r):
   if r.classification in ['Underused', 'Lambda']:
+    # FIXME lambda-convertible would mean that the instance is downsizable twice, so maybe need to return r.type_smaller2x
     return r.type_smaller
 
   if r.classification=='Overused':
@@ -19,6 +20,7 @@ def class2recommendedType(r):
 
 def class2recommendedCost(r):
   if r.classification in ['Underused', 'Lambda']:
+    # FIXME add savings from the twice downsizing in class2recommendedType, then calculate the cost from lambda functions and add it as overhead here
     return r.cost_hourly_smaller-r.cost_hourly
 
   if r.classification=='Overused':
