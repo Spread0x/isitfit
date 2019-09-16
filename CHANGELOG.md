@@ -1,6 +1,7 @@
 Version latest (0.1.7?, 2019-09-??)
 
 - ...
+- enh: when no recommendations, show cleaner output
 
 
 Version 0.3.1 (2019-09-16)
