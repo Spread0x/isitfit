@@ -8,8 +8,9 @@ from termcolor import colored
 
 
 def class2recommendedType(r):
-  if r.classification_1 in ['Underused', 'Lambda']:
-    # FIXME lambda-convertible would mean that the instance is downsizable twice, so maybe need to return r.type_smaller2x
+  if r.classification_1 == 'Underused':
+    # FIXME classification 2 will contain if it's a burstable workload or lambda-convertible
+    # that would mean that the instance is downsizable twice, so maybe need to return r.type_smaller2x
     return r.type_smaller
 
   if r.classification_1=='Overused':
@@ -19,8 +20,9 @@ def class2recommendedType(r):
 
 
 def class2recommendedCost(r):
-  if r.classification_1 in ['Underused', 'Lambda']:
-    # FIXME add savings from the twice downsizing in class2recommendedType, then calculate the cost from lambda functions and add it as overhead here
+  if r.classification_1 == 'Underused':
+    # FIXME add savings from the twice downsizing in class2recommendedType if it's a burstable workload or lambda-convertible,
+    # then calculate the cost from lambda functions and add it as overhead here
     return r.cost_hourly_smaller-r.cost_hourly
 
   if r.classification_1=='Overused':
@@ -35,7 +37,7 @@ class OptimizerListener:
     if thresholds is None:
       thresholds = {
         'rightsize': {'idle': 3, 'low': 30, 'high': 70},
-        'lambda': {'low': 20, 'high': 80}
+        'burst': {'low': 20, 'high': 80}
       }
 
     # iterate over all ec2 instances
@@ -49,11 +51,11 @@ class OptimizerListener:
     avgmax = ec2_df.Maximum.mean()
     #print("ec2_df.{maxmax,avgmax,maxavg} = ", maxmax, avgmax, maxavg)
 
-    # check if good to convert to lambda
+    # check if good to convert to burstable or lambda
     # i.e. daily data shows few large spikes
-    thres = self.thresholds['lambda']
+    thres = self.thresholds['burst']
     if maxmax >= thres['high'] and avgmax <= thres['low'] and maxavg <= thres['low']:
-      return 'Lambda', 'day resolution'
+      return 'Underused', 'Burstable, daily resolution'
 
     # check rightsizing
     # i.e. no special spikes in daily data
@@ -66,7 +68,7 @@ class OptimizerListener:
     elif maxmax >= thres['high'] and avgmax >= thres['high'] and maxavg >= thres['high']:
       return 'Overused', None
     elif maxmax >= thres['high'] and avgmax >= thres['high'] and maxavg <= thres['low']:
-      return 'Lambda', 'hour resolution'
+      return 'Underused', 'Burstable, hourly resolution'
 
     return 'Normal', None
 
