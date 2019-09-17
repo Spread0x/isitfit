@@ -4,6 +4,10 @@ Version latest (0.1.7?, 2019-09-??)
 - enh: replace "lambda" with "underused/burstable {hourly,daily}"
 
 
+Version 0.3.2 (2019-09-16)
+- enh: when no recommendations, show cleaner output
+
+
 Version 0.3.1 (2019-09-16)
 
 - enh: add documentation in readme about recommendations

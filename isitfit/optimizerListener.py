@@ -120,6 +120,13 @@ class OptimizerListener:
     # display
     df_sort = df_all.sort_values(['recommended_costdiff'], ascending=True)
     df_sort.dropna(subset=['recommended_costdiff'], inplace=True)
+    
+    # if no recommendations
+    if df_sort.shape[0]==0:
+      logger.info(colored("No optimizations from isitfit for this AWS EC2 account", "red"))
+      return
+    
+    # if there are recommendations, show them
     sum_val = df_all.recommended_costdiff.sum()
     sum_comment = "extra cost since positive" if sum_val>0 else "savings since negative"
     sum_color = "red" if sum_val>0 else "green"
