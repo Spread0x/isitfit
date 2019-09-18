@@ -1,6 +1,10 @@
 Version latest (0.1.7?, 2019-09-??)
 
 - ...
+
+
+Version 0.4.0 (2019-09-18)
+
 - enh: replace "lambda" with "underused/burstable {hourly,daily}"
 - feat: support caching through redis via environment variables
 
