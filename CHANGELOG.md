@@ -1,8 +1,11 @@
 Version latest (0.1.7?, 2019-09-??)
 
 - ...
-- enh: use tabulate to pretty print the pandas dataframes for the optimization
 
+
+Version 0.4.2 (2019-09-18)
+
+- enh: use tabulate to pretty print the pandas dataframes for the optimization
 
 
 Version 0.4.1 (2019-09-18)
