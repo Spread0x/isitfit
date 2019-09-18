@@ -92,6 +92,21 @@ isitfit --version
 pip3 freeze|grep isitfit
 ```
 
+### Example 3: caching results for efficient re-runs
+
+Caching in `isitfit` relies on `redis` and `pyarrow`.
+
+To use caching:
+
+```
+apt-get install redis-server
+pip3 install redis==3.3.8 pyarrow==0.14.1
+export ISITFIT_REDIS_HOST=localhost
+export ISITFIT_REDIS_PORT=6379
+export ISITFIT_REDIS_DB=0
+isitfit
+```
+
 
 ## Recommendations
 

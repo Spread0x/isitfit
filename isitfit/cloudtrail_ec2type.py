@@ -3,19 +3,21 @@ from tqdm import tqdm
 from .pull_cloudtrail_lookupEvents import GeneralManager as GraCloudtrailManager
 import os
 
+
 import logging
 logger = logging.getLogger('isitfit')
 
 
 
 class Manager:
-    def __init__(self, cloudtrail_client, EndTime):
+    def __init__(self, cloudtrail_client, EndTime, cache_man):
         self.cloudtrail_client = cloudtrail_client
         self.EndTime = EndTime
+        self.cache_man = cache_man
 
     def init_data(self, ec2_instances, n_ec2):
         # get cloudtail ec2 type changes for all instances
-        self.df_cloudtrail = self._fetch()
+        self.df_cloudtrail = self._fetch_cached()
 
         # first pass to append ec2 types to cloudtrail based on "now"
         self.df_cloudtrail = self.df_cloudtrail.reset_index()
@@ -26,13 +28,35 @@ class Manager:
         self.df_cloudtrail = self.df_cloudtrail.set_index(["instanceId", "EventTime"]).sort_index(ascending=False)
 
 
-    def _fetch(self):
-        # get cloudtail ec2 type changes for all instances
+    def _fetch_cached(self):
+        # get cloudtrail ec2 type changes for all instances
+
+        # check cache first
+        cache_key = "cloudtrail_ec2type._fetch"
+        if self.cache_man.isReady():
+          df_cache = self.cache_man.get(cache_key)
+          if df_cache is not None:
+            logger.debug("Found cloudtrail data in redis cache")
+            return df_cache
+
+        # if no cache, then download
+        df_fresh = self._fetch_core()
+
+        # if caching enabled, store it for later fetching
+        # https://stackoverflow.com/a/57986261/4126114
+        if self.cache_man.isReady():
+          self.cache_man.set(cache_key, df_fresh)
+
+        # done
+        return df_fresh
+
+
+    def _fetch_core(self):
+        # get cloudtrail ec2 type changes for all instances
         logger.debug("Downloading cloudtrail data")
         cloudtrail_manager = GraCloudtrailManager(self.cloudtrail_client)
         df = cloudtrail_manager.ec2_typeChanges()
         return df
-
 
     """
     # Cached version ... disabled because not sure how to generalize it

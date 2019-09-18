@@ -3,6 +3,17 @@
 set -e
 set -x
 
+# set caching
+ISITFIT_REDIS_HOST=localhost
+ISITFIT_REDIS_PORT=6379
+ISITFIT_REDIS_DB=0
+redis-cli -n $ISITFIT_REDIS_DB flushdb #  || echo "redis db clear failed" (eg db number out of range)
+
+
+# start
+echo "Test 0: version"
+isitfit --version
+
 echo "Test 1: default profile (shadiakiki1986@gmail.com@amazonaws.com)"
 isitfit
 

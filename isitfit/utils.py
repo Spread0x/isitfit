@@ -36,6 +36,10 @@ from cachecontrol.caches.file_cache import FileCache
 import json
 import pandas as pd
 def ec2_catalog():
+    import logging
+    logger = logging.getLogger('isitfit')
+    logger.debug("Downloading ec2 catalog (cached to local file)")
+
     # based on URL = 'http://www.ec2instances.info/instances.json'
     # URL = 's3://...csv'
     # Edit 2019-09-10 use CDN link instead of direct gitlab link

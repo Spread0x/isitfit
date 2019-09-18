@@ -4,6 +4,7 @@ from tqdm import tqdm
 import datetime as dt
 import numpy as np
 import pytz
+from .cacheManager import RedisPandas as RedisPandasCacheManager
 
 import logging
 logger = logging.getLogger('isitfit')
@@ -27,18 +28,26 @@ class NoCloudwatchException(Exception):
 
 class MainManager:
     def __init__(self):
+        # boto3 ec2 and cloudwatch data
         self.ec2_resource = boto3.resource('ec2')
         self.cloudwatch_resource = boto3.resource('cloudwatch')
 
+        # set start/end dates
         dt_now_d=dt.datetime.now().replace(tzinfo=pytz.utc)
         self.StartTime=dt_now_d - dt.timedelta(days=N_DAYS)
         self.EndTime=dt_now_d
         logger.debug("Metrics start..end: %s .. %s"%(self.StartTime, self.EndTime))
 
-        self.cloudtrail_client = boto3.client('cloudtrail')
-        self.cloudtrail_manager = CloudtrailEc2typeManager(self.cloudtrail_client, dt_now_d)
+        # manager of redis-pandas caching
+        self.cache_man = RedisPandasCacheManager()
 
+        # boto3 cloudtrail data
+        cloudtrail_client = boto3.client('cloudtrail')
+        self.cloudtrail_manager = CloudtrailEc2typeManager(cloudtrail_client, dt_now_d, self.cache_man)
+
+        # listeners post ec2 data fetch and post all activities
         self.listeners = {'ec2': [], 'all': []}
+
 
 
     def add_listener(self, event, listener):
@@ -49,6 +58,10 @@ class MainManager:
 
 
     def get_ifi(self):
+        # set up caching if requested
+        self.cache_man.fetch_envvars()
+        if self.cache_man.isSetup():
+          self.cache_man.connect()
 
         # 0th pass to count
         n_ec2 = len(list(self.ec2_resource.instances.all()))
@@ -58,7 +71,6 @@ class MainManager:
           return
 
         # download ec2 catalog: 2 columns: ec2 type, ec2 cost per hour
-        logger.debug("Downloading ec2 catalog")
         self.df_cat = ec2_catalog()
 
         # get cloudtail ec2 type changes for all instances
@@ -99,7 +111,29 @@ class MainManager:
         return
 
 
-    def _cloudwatch_metrics(self, ec2_obj):
+    def _cloudwatch_metrics_cached(self, ec2_obj):
+        # check cache first
+        cache_key = "mainManager._cloudwatch_metrics/%s"%ec2_obj.instance_id
+        if self.cache_man.isReady():
+          df_cache = self.cache_man.get(cache_key)
+          if df_cache is not None:
+            logger.debug("Found cloudwatch metrics in redis cache for %s"%ec2_obj.instance_id)
+            return df_cache
+
+        # if no cache, then download
+        df_fresh = self._cloudwatch_metrics_core(ec2_obj)
+
+        # if caching enabled, store it for later fetching
+        # https://stackoverflow.com/a/57986261/4126114
+        # Note that this even stores the result if it was "None" (meaning that no data was found)
+        if self.cache_man.isReady():
+          self.cache_man.set(cache_key, df_fresh)
+
+        # done
+        return df_fresh
+
+
+    def _cloudwatch_metrics_core(self, ec2_obj):
         """
         Return a pandas series of CPU utilization, daily max, for 90 days
         """
@@ -141,16 +175,23 @@ class MainManager:
         # merge
         # df_cw2 = pd.concat(df_cw1, axis=1)
 
+        # dataframe to be returned
+        df_cw3 = df_cw1[0]
+
+        # before returning, convert dateutil timezone to pytz
+        # for https://github.com/pandas-dev/pandas/issues/25423
+        # via https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.dt.tz_convert.html
+        df_cw3['Timestamp'] = df_cw3.Timestamp.dt.tz_convert(pytz.utc)
+
         # done
-        # return df_cw2.CPUUtilization
-        return df_cw1[0]
+        return df_cw3
 
 
     def _handle_ec2obj(self, ec2_obj):
         # logger.debug("%s, %s"%(ec2_obj.instance_id, ec2_obj.instance_type))
 
         # pandas series of CPU utilization, daily max, for 90 days
-        df_metrics = self._cloudwatch_metrics(ec2_obj)
+        df_metrics = self._cloudwatch_metrics_cached(ec2_obj)
 
         # no data
         if df_metrics is None:
