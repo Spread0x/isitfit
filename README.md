@@ -107,6 +107,13 @@ export ISITFIT_REDIS_DB=0
 isitfit
 ```
 
+To clear the cache
+
+```
+apt-get install redis-client
+redis-cli -n 0 flushdb
+```
+
 
 ## Recommendations
 
