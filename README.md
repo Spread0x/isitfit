@@ -121,10 +121,30 @@ redis-cli -n 0 flushdb
 
 As of today (2019-09-16), recommendations are:
 
-- Lambda: this is for EC2 servers whose workload has spikes that can be moved into separate lambda functions. The server itself can be downsized at least twice after moving the spike to lambda.
-- Undersused: this is an EC2 server that can be downsized at least once
-- Overused: this is an EC2 server whose usage is being concentrated
+- Idle: this is an EC2 server that's sitting there doing nothing over the past 90 days
+- Underused: this is an EC2 server that can be downsized at least one size
+- Overused: this is an EC2 server whose usage is concentrated
 - Normal: EC2 servers for whom isitfit doesn't have any recommendations
+
+
+A finer degree of recommendation specifies:
+
+- Burstable: this is for EC2 servers whose workload has spikes. These can benefit from burstable machine types (aws ec2's t2 family), or moved into separate lambda functions. The server itself can be downsized at least twice afterwards.
+
+
+Sizing is currently rule-based, and generated from the daily cpu utilization from the last 90 days (fetched from AWS Cloudwatch).
+
+- idle: If the maximum over 90 days of daily maximum is < 3%
+- underused: If it's < 30%
+- underused, convertible to burstable, if:
+  - it's > 70%
+  - the average daily max is also > 70%
+  - but the maximum of the daily average < 30%
+
+If underused, the next smaller instance within the same family is recommended.
+
+The relevant source code is [here](https://github.com/autofitcloud/isitfit/blob/master/isitfit/optimizerListener.py#L69)
+
 
 
 ## Changelog
