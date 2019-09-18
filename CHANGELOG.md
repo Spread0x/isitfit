@@ -1,12 +1,14 @@
 Version latest (0.1.7?, 2019-09-??)
 
 - ...
+- enh: use tabulate to pretty print the pandas dataframes for the optimization
 
 
 
 Version 0.4.1 (2019-09-18)
 
 - bugfix: just a version bump because pypi is not providing 0.4.0 upon pip install despite showing it on https://pypi.org/project/isitfit/
+  - turns out it's pypi that slow to propagate the latest version
 
 
 Version 0.4.0 (2019-09-18)

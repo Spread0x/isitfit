@@ -2,9 +2,14 @@ import logging
 logger = logging.getLogger('isitfit')
 
 import pandas as pd
+from tabulate import tabulate
 
 # https://pypi.org/project/termcolor/
 from termcolor import colored
+
+
+def df2tabulate(df):
+  return tabulate(df, headers='keys', tablefmt='psql')
 
 
 def class2recommendedType(r):
@@ -142,10 +147,10 @@ class OptimizerListener:
     with pd.option_context("display.max_columns", 10):
       if df_sort.shape[0]<=10:
         logger.info("Details")
-        logger.info(df_sort)
+        logger.info(df2tabulate(df_sort))
       else:
         logger.info("Top savings (down-sizable):")
-        logger.info(df_sort.head(n=5))
+        logger.info(df2tabulate(df_sort.head(n=5)))
         logger.info("Bottom savings (up-sizable):")
-        logger.info(df_sort.tail(n=5))
+        logger.info(df2tabulate(df_sort.tail(n=5)))
 

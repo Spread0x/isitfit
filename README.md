@@ -64,15 +64,17 @@ Fetching history...
 Optimization based on the following CPU thresholds:
 {'idle': 3, 'low': 30, 'high': 70}
 
-Recommendation value: 0.097238 $/hour
-i.e. if you implement these recommendations, this is extra cost since positive
-
+Recommendation value: -0.034176 $/hour
+i.e. if you implement these recommendations, this is savings since negative
 
 Details
-           instance_id instance_type  max_cpu classification  cost_hourly recommended_type  recommended_costdiff
-1           i-02432bc7      t2.micro       24      Underused     0.013671          t2.nano             -0.006835
-2  i-08c802de5accc1e89     t3.medium       82       Overused     0.049320         t3.large              0.049320
-3  i-069a7808addd143c7     t2.medium      100       Overused     0.054612         t2.large              0.054753
++----+---------------------+-----------------+--------------------+------------------------------+---------------+--------------------+------------------------+
+|    | instance_id         | instance_type   | classification_1   | classification_2             |   cost_hourly | recommended_type   |   recommended_costdiff |
+|----+---------------------+-----------------+--------------------+------------------------------+---------------+--------------------+------------------------|
+|  2 | i-069a7808addd143c7 | t2.medium       | Underused          | Burstable, hourly resolution |     0.0546118 | t2.small           |            -0.0273412  |
+|  1 | i-02432bc7          | t2.micro        | Underused          |                              |     0.0136706 | t2.nano            |            -0.00683529 |
++----+---------------------+-----------------+--------------------+------------------------------+---------------+--------------------+------------------------+
+
 
 * isitfit version 0.1.7 is based on CPU utilization only (and not yet on memory utilization)
 ```
