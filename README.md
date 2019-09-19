@@ -1,3 +1,10 @@
+# isitfit
+
+[![PyPI version](https://badge.fury.io/py/isitfit.svg)](https://badge.fury.io/py/isitfit)
+
+A simple command-line tool to check if an AWS EC2 account is fit or underused.
+
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
@@ -17,14 +24,6 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# isitfit
-
-[![PyPI version](https://badge.fury.io/py/isitfit.svg)](https://badge.fury.io/py/isitfit)
-
-A simple command-line tool to check if an AWS EC2 account is fit or underused.
-
-
-[![asciicast](https://asciinema.org/a/268751.svg)](https://asciinema.org/a/268751)
 
 
 ## Installation
