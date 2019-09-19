@@ -14,7 +14,7 @@ A simple command-line tool to check if an AWS EC2 account is fit or underused.
   - [Pre-requisites](#pre-requisites)
   - [Example 1: basic usage](#example-1-basic-usage)
   - [Example 2: Advanced usage](#example-2-advanced-usage)
-  - [Example 3: caching results for efficient re-runs](#example-3-caching-results-for-efficient-re-runs)
+  - [Example 3: caching results with redis](#example-3-caching-results-with-redis)
 - [What does Underused mean?](#what-does-underused-mean)
 - [Changelog](#changelog)
 - [License](#license)
@@ -113,19 +113,32 @@ isitfit --version
 pip3 freeze|grep isitfit
 ```
 
-### Example 3: caching results for efficient re-runs
+### Example 3: caching results with redis
 
-Caching in `isitfit` relies on `redis` and `pyarrow`.
+Caching in `isitfit` makes re-runs more efficient.
 
-To use caching:
+It relies on `redis` and `pyarrow`.
+
+To use caching, install the pre-requisites:
 
 ```
 apt-get install redis-server
 pip3 install redis==3.3.8 pyarrow==0.14.1
+```
+
+Set up the environment variables
+
+```
 export ISITFIT_REDIS_HOST=localhost
 export ISITFIT_REDIS_PORT=6379
 export ISITFIT_REDIS_DB=0
+```
+
+Use isitfit as usual
+
+```
 isitfit
+isitfit --optimize
 ```
 
 To clear the cache
