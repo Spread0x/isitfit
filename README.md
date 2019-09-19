@@ -47,10 +47,6 @@ Calculate AWS EC2 used-to-billed cost
 
 ```
 > isitfit
-Is it fit?
-
-Fetching history...
-... done
 
 Cost-Weighted Average Utilization (CWAU) of the AWS EC2 account:
 
@@ -73,15 +69,7 @@ For reference:
 Calculate recommended type changes
 
 ```
-# isitfit --optimize
-Is it fit?
-Initializing
-Fetching history...
-...done
-
-
-Optimization based on the following CPU thresholds:
-{'idle': 3, 'low': 30, 'high': 70}
+> isitfit --optimize
 
 Recommendation value: -0.034176 $/hour
 i.e. if you implement these recommendations, this is savings since negative
