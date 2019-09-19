@@ -1,4 +1,25 @@
-# isitfit [![PyPI version](https://badge.fury.io/py/isitfit.svg)](https://badge.fury.io/py/isitfit)
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [isitfit](#isitfit)
+  - [Installation](#installation)
+  - [Usage](#usage)
+    - [Pre-requisites](#pre-requisites)
+    - [Example 1: basic usage](#example-1-basic-usage)
+    - [Example 2: Advanced usage](#example-2-advanced-usage)
+    - [Example 3: caching results for efficient re-runs](#example-3-caching-results-for-efficient-re-runs)
+  - [What does Underused mean?](#what-does-underused-mean)
+  - [Changelog](#changelog)
+  - [License](#license)
+  - [Dev notes](#dev-notes)
+  - [Support](#support)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+# isitfit
+
+[![PyPI version](https://badge.fury.io/py/isitfit.svg)](https://badge.fury.io/py/isitfit)
 
 A simple command-line tool to check if an AWS EC2 account is fit or underused.
 
@@ -117,9 +138,9 @@ redis-cli -n 0 flushdb
 ```
 
 
-## Recommendations
+## What does Underused mean?
 
-As of today (2019-09-16), recommendations are:
+isitfit categorizes instances as:
 
 - Idle: this is an EC2 server that's sitting there doing nothing over the past 90 days
 - Underused: this is an EC2 server that can be downsized at least one size
@@ -127,12 +148,12 @@ As of today (2019-09-16), recommendations are:
 - Normal: EC2 servers for whom isitfit doesn't have any recommendations
 
 
-A finer degree of recommendation specifies:
+A finer degree of categorization specifies:
 
 - Burstable: this is for EC2 servers whose workload has spikes. These can benefit from burstable machine types (aws ec2's t2 family), or moved into separate lambda functions. The server itself can be downsized at least twice afterwards.
 
 
-Sizing is currently rule-based, and generated from the daily cpu utilization from the last 90 days (fetched from AWS Cloudwatch).
+The above categories are currently rule-based, generated from the daily cpu utilization of the last 90 days (fetched from AWS Cloudwatch).
 
 - idle: If the maximum over 90 days of daily maximum is < 3%
 - underused: If it's < 30%
@@ -141,7 +162,7 @@ Sizing is currently rule-based, and generated from the daily cpu utilization fro
   - the average daily max is also > 70%
   - but the maximum of the daily average < 30%
 
-If underused, the next smaller instance within the same family is recommended.
+Sizing is simply a rule that says: "If underused, recommend the next smaller instance within the same family. If overused, recommend the next larger one."
 
 The relevant source code is [here](https://github.com/autofitcloud/isitfit/blob/master/isitfit/optimizerListener.py#L69)
 
@@ -159,17 +180,30 @@ Apache License 2.0. Check file `LICENSE`
 
 ## Dev notes
 
+Local editable installation
+
 ```
 pip3 install -e .
+```
 
-# publish to pypi
+publish to pypi
+
+```
 python3 setup.py sdist bdist_wheel
 twine upload dist/*
 ```
 
-Got pypi badge from https://badge.fury.io/for/py/git-remote-aws
+Got pypi badge from
+https://badge.fury.io/for/py/git-remote-aws
 
 Run my local tests with `./test.sh`
+
+Update README TOC with
+
+```
+npm install -g doctoc
+doctoc README.md
+```
 
 
 
