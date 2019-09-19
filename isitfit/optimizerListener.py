@@ -38,7 +38,9 @@ def class2recommendedCost(r):
 
 class OptimizerListener:
 
-  def __init__(self, thresholds = None):
+  def __init__(self, n, thresholds = None):
+    self.n = n
+
     if thresholds is None:
       thresholds = {
         'rightsize': {'idle': 3, 'low': 30, 'high': 70},
@@ -78,7 +80,7 @@ class OptimizerListener:
     return 'Normal', None
 
 
-  def per_ec2(self, ec2_obj, ec2_df):
+  def per_ec2(self, ec2_obj, ec2_df, mm):
     #print(ec2_obj.instance_id)
     ec2_c1, ec2_c2 = self._ec2df_to_classification(ec2_df)
 
@@ -88,6 +90,15 @@ class OptimizerListener:
       'classification_1': ec2_c1,
       'classification_2': ec2_c2
     })
+
+    if self.n!=0:
+      sub_underused = [x for x in self.ec2_classes if x['classification_1']=='Underused']
+      if len(sub_underused) >= self.n:
+        # break early
+        self.after_all(None, mm)
+        import sys
+        sys.exit(0)
+
 
 
 
@@ -141,6 +152,10 @@ class OptimizerListener:
     #logger.info("")
     logger.info(colored("Recommendation value: %f $/hour"%sum_val, sum_color))
     logger.info("i.e. if you implement these recommendations, this is %s"%colored(sum_comment, sum_color))
+
+    if self.n!=0:
+      logger.info(colored("Note that this table has been filtered for only the 1st %i scan results"%self.n, "cyan"))
+
     logger.info("")
     logger.info("")
 

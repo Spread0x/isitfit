@@ -1,6 +1,7 @@
 Version latest (0.1.7?, 2019-09-??)
 
 - ...
+- feat: add option `--n` to `--optimize` to find the first n optimizations and stop early
 
 
 Version 0.4.2 (2019-09-18)

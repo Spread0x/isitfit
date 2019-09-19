@@ -29,6 +29,9 @@ isitfit --optimize
 echo "Test 5: optimize in region with 0 ec2 instances"
 AWS_DEFAULT_REGION=eu-central-1 isitfit --optimize
 
+echo "Test 6: optimize with n=1"
+isitfit --optimize --n=1
+
 # done
 # `set -x` doesn't let the script reach this point in case of any error
 echo "Tests completed"

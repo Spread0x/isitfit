@@ -226,6 +226,6 @@ class MainManager:
 
         # call listeners
         for l in self.listeners['ec2']:
-          l(ec2_obj, ec2_df)
+          l(ec2_obj, ec2_df, self)
 
         return 0

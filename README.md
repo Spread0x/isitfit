@@ -62,17 +62,16 @@ CWAU = Used / Billed * 100       6 %
 For reference:
 * CWAU >= 70% is well optimized
 * CWAU <= 30% is underused
-
-* isitfit version 0.1 is based on CPU utilization only (and not yet on memory utilization)
 ```
 
-Calculate recommended type changes
+Find the first 3 recommended type changes
 
 ```
-> isitfit --optimize
+> isitfit --optimize --n=2
 
 Recommendation value: -0.034176 $/hour
 i.e. if you implement these recommendations, this is savings since negative
+Note that this table has been filtered for only the 1st 2 scan results
 
 Details
 +----+---------------------+-----------------+--------------------+------------------------------+---------------+--------------------+------------------------+
@@ -81,9 +80,13 @@ Details
 |  2 | i-069a7808addd143c7 | t2.medium       | Underused          | Burstable, hourly resolution |     0.0546118 | t2.small           |            -0.0273412  |
 |  1 | i-02432bc7          | t2.micro        | Underused          |                              |     0.0136706 | t2.nano            |            -0.00683529 |
 +----+---------------------+-----------------+--------------------+------------------------------+---------------+--------------------+------------------------+
+```
 
+Find all recommended type changes
 
-* isitfit version 0.1.7 is based on CPU utilization only (and not yet on memory utilization)
+```
+> isitfit --optimize
+...
 ```
 
 

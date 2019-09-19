@@ -17,7 +17,7 @@ class UtilizationListener:
     self.df_all = []
 
 
-  def per_ec2(self, ec2_obj, ec2_df):
+  def per_ec2(self, ec2_obj, ec2_df, mm):
     # results: 2 numbers: capacity (USD), used (USD)
     res_capacity = (ec2_df.nhours*ec2_df.cost_hourly).sum()
     res_used     = (ec2_df.nhours*ec2_df.cost_hourly*ec2_df.Average/100).sum()
