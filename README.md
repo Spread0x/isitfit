@@ -9,18 +9,17 @@ A simple command-line tool to check if an AWS EC2 account is fit or underused.
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [isitfit](#isitfit)
-  - [Installation](#installation)
-  - [Usage](#usage)
-    - [Pre-requisites](#pre-requisites)
-    - [Example 1: basic usage](#example-1-basic-usage)
-    - [Example 2: Advanced usage](#example-2-advanced-usage)
-    - [Example 3: caching results for efficient re-runs](#example-3-caching-results-for-efficient-re-runs)
-  - [What does Underused mean?](#what-does-underused-mean)
-  - [Changelog](#changelog)
-  - [License](#license)
-  - [Dev notes](#dev-notes)
-  - [Support](#support)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Pre-requisites](#pre-requisites)
+  - [Example 1: basic usage](#example-1-basic-usage)
+  - [Example 2: Advanced usage](#example-2-advanced-usage)
+  - [Example 3: caching results for efficient re-runs](#example-3-caching-results-for-efficient-re-runs)
+- [What does Underused mean?](#what-does-underused-mean)
+- [Changelog](#changelog)
+- [License](#license)
+- [Dev notes](#dev-notes)
+- [Support](#support)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
