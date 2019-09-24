@@ -17,7 +17,14 @@ class UtilizationListener:
     self.df_all = []
 
 
-  def per_ec2(self, ec2_obj, ec2_df, mm):
+  def per_ec2(self, ec2_obj, ec2_df, mm, ddg_df):
+    """
+    Listener function to be called upon the download of each EC2 instance's data
+    ec2_obj - boto3 resource
+    ec2_df - pandas dataframe with data from cloudwatch+cloudtrail
+    mm - mainManager class
+    ddg_df - dataframe of data from datadog: {cpu,ram}-{max,avg}
+    """
     # results: 2 numbers: capacity (USD), used (USD)
     res_capacity = (ec2_df.nhours*ec2_df.cost_hourly).sum()
     res_used     = (ec2_df.nhours*ec2_df.cost_hourly*ec2_df.Average/100).sum()

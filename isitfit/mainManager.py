@@ -5,6 +5,7 @@ import datetime as dt
 import numpy as np
 import pytz
 from .cacheManager import RedisPandas as RedisPandasCacheManager
+from .datadogManager import HostNotFoundInDdg, DataNotFoundForHostInDdg
 
 import logging
 logger = logging.getLogger('isitfit')
@@ -26,8 +27,15 @@ class NoCloudwatchException(Exception):
     pass
 
 
+def myreturn(df_xxx):
+    if df_xxx.shape[0] > 0:
+      return df_xxx
+    else:
+      return None # this means that the data was found in cache, but it was empty (meaning aws returned no data)
+
+
 class MainManager:
-    def __init__(self):
+    def __init__(self, ddg):
         # boto3 ec2 and cloudwatch data
         self.ec2_resource = boto3.resource('ec2')
         self.cloudwatch_resource = boto3.resource('cloudwatch')
@@ -47,6 +55,9 @@ class MainManager:
 
         # listeners post ec2 data fetch and post all activities
         self.listeners = {'ec2': [], 'all': []}
+
+        # datadog manager
+        self.ddg = ddg
 
 
 
@@ -116,13 +127,15 @@ class MainManager:
 
 
     def _cloudwatch_metrics_cached(self, ec2_obj):
+
         # check cache first
         cache_key = "mainManager._cloudwatch_metrics/%s"%ec2_obj.instance_id
         if self.cache_man.isReady():
           df_cache = self.cache_man.get(cache_key)
           if df_cache is not None:
-            logger.debug("Found cloudwatch metrics in redis cache for %s"%ec2_obj.instance_id)
-            return df_cache
+            msg_suffix = ", but data is empty" if df_cache.shape[0]==0 else ""
+            logger.debug("Found cloudwatch metrics in redis cache for %s%s"%(ec2_obj.instance_id, msg_suffix))
+            return myreturn(df_cache)
 
         # if no cache, then download
         df_fresh = self._cloudwatch_metrics_core(ec2_obj)
@@ -134,7 +147,7 @@ class MainManager:
           self.cache_man.set(cache_key, df_fresh)
 
         # done
-        return df_fresh
+        return myreturn(df_fresh)
 
 
     def _cloudwatch_metrics_core(self, ec2_obj):
@@ -171,7 +184,7 @@ class MainManager:
             df_cw1.append(df_i)
 
         if len(df_cw1)==0:
-          return None
+          return pd.DataFrame() # use an empty dataframe in order to distinguish when getting from cache if not available in cache or data not found but set in cache
 
         if len(df_cw1) >1:
           raise ValueError("More than 1 cloudwatch metric found for %s"%ec2_obj.instance_id)
@@ -189,6 +202,40 @@ class MainManager:
 
         # done
         return df_cw3
+
+
+    def _get_ddg_cached(self, ec2_obj):
+        # check if we can get datadog data
+        if not self.ddg.is_configured():
+          return None
+
+        # check cache first
+        cache_key = "mainManager._get_ddg_cached/%s"%ec2_obj.instance_id
+        if self.cache_man.isReady():
+          df_cache = self.cache_man.get(cache_key)
+          if df_cache is not None:
+            msg_suffix = ", but data is empty" if df_cache.shape[0]==0 else ""
+            logger.debug("Found datadog metrics in redis cache for %s%s"%(ec2_obj.instance_id, msg_suffix))
+            return myreturn(df_cache)
+
+        # if no cache, then download
+        df_fresh = pd.DataFrame() # use an empty dataframe in order to distinguish when getting from cache if not available in cache or data not found but set in cache
+        try:
+          df_fresh = self.ddg.get_metrics_all(ec2_obj.instance_id)
+        except HostNotFoundInDdg:
+          pass
+        except DataNotFoundForHostInDdg:
+          pass
+
+        # if caching enabled, store it for later fetching
+        # https://stackoverflow.com/a/57986261/4126114
+        # Note that this even stores the result if it was "None" (meaning that no data was found)
+        if self.cache_man.isReady():
+          # print("Saving to redis %s"%ec2_obj.instance_id)
+          self.cache_man.set(cache_key, df_fresh)
+
+        # done
+        return myreturn(df_fresh)
 
 
     def _handle_ec2obj(self, ec2_obj):
@@ -228,8 +275,13 @@ class MainManager:
         # A: ... For example, if you request for 1-minute data for a day from 10 days ago, you will receive the 1440 data points ...
         ec2_df['nhours'] = np.ceil(ec2_df.SampleCount/60)
 
+        # check if we can get datadog data
+        ddg_df = self._get_ddg_cached(ec2_obj)
+        # print("ddg data", ddg_df)
+
+
         # call listeners
         for l in self.listeners['ec2']:
-          l(ec2_obj, ec2_df, self)
+          l(ec2_obj, ec2_df, self, ddg_df)
 
         return 0

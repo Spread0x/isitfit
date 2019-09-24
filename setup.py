@@ -31,7 +31,7 @@ setup(
         'click==7.0',
         'pandas==0.25.1',
         'requests==2.22.0',
-        'boto3==1.9.219',
+        # 'boto3==1.9.219', # automatically installed by awscli
         'cachecontrol==0.12.5',
         'lockfile==0.12.2',
         'tabulate==0.8.3',
@@ -39,7 +39,8 @@ setup(
         'tqdm==4.32.2',
         'redis==3.3.8',
         'pyarrow==0.14.1',
-        'awscli' # 1.16.217'
+        'awscli==1.16.244', # check note in requirements.txt
+        'datadog==0.30.0'
     ],
     entry_points='''
         [console_scripts]

@@ -1,7 +1,6 @@
 Click==7.0
 pandas==0.25.1
 requests==2.22.0
-boto3==1.9.219
 cachecontrol==0.12.5
 lockfile==0.12.2 # for caching to file
 
@@ -15,5 +14,8 @@ pyarrow==0.14.1
 
 # not a direct dependency in the source code
 # but required to configure the environment
-# Leaving out the version 1.16.217
-awscli
+# Including the version because it will fetch the corresponding boto3
+# Will also automatically install the necessary boto3==1.9.234
+awscli==1.16.244
+
+datadog==0.30.0

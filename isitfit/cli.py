@@ -10,6 +10,7 @@ logger = logging.getLogger('isitfit')
 from .mainManager import MainManager
 from .utilizationListener import UtilizationListener
 from .optimizerListener import OptimizerListener
+from .datadogManager import DatadogManager
 import click
 
 from . import isitfit_version
@@ -53,7 +54,8 @@ def cli(debug, version, optimize, n):
     logger.info("Initializing...")
     ul = UtilizationListener()
     ol = OptimizerListener(n)
-    mm = MainManager()
+    ddg = DatadogManager()
+    mm = MainManager(ddg)
 
     # utilization listeners
     if not optimize:

@@ -1,6 +1,8 @@
-Version latest (0.1.7?, 2019-09-??)
+Version latest (0.5.0?, 2019-09-24?)
 
 - ...
+- enh: readme docs for examples was not up-to-date with monthly savings in `--optimize`. Updated.
+- feat: add datadog integration (this is a major change and requires rigorous testing)
 
 
 Version 0.4.5 (2019-09-24)

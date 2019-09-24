@@ -52,37 +52,67 @@ class OptimizerListener:
     self.ec2_classes = []
 
 
-  def _ec2df_to_classification(self, ec2_df):
-    maxmax = ec2_df.Maximum.max()
-    maxavg = ec2_df.Average.max()
-    avgmax = ec2_df.Maximum.mean()
-    #print("ec2_df.{maxmax,avgmax,maxavg} = ", maxmax, avgmax, maxavg)
-
+  def _xxx_to_classification(self, xxx_maxmax, xxx_maxavg, xxx_avgmax):
     # check if good to convert to burstable or lambda
     # i.e. daily data shows few large spikes
     thres = self.thresholds['burst']
-    if maxmax >= thres['high'] and avgmax <= thres['low'] and maxavg <= thres['low']:
+    if xxx_maxmax >= thres['high'] and xxx_avgmax <= thres['low'] and xxx_maxavg <= thres['low']:
       return 'Underused', 'Burstable, daily resolution'
 
     # check rightsizing
     # i.e. no special spikes in daily data
     # FIXME: can check hourly data for higher precision here
     thres = self.thresholds['rightsize']
-    if maxmax <= thres['idle']:
+    if xxx_maxmax <= thres['idle']:
       return 'Idle', None
-    elif maxmax <= thres['low']:
+    elif xxx_maxmax <= thres['low']:
       return 'Underused', None
-    elif maxmax >= thres['high'] and avgmax >= thres['high'] and maxavg >= thres['high']:
+    elif xxx_maxmax >= thres['high'] and xxx_avgmax >= thres['high'] and xxx_maxavg >= thres['high']:
       return 'Overused', None
-    elif maxmax >= thres['high'] and avgmax >= thres['high'] and maxavg <= thres['low']:
+    elif xxx_maxmax >= thres['high'] and xxx_avgmax >= thres['high'] and xxx_maxavg <= thres['low']:
       return 'Underused', 'Burstable, hourly resolution'
 
     return 'Normal', None
 
 
-  def per_ec2(self, ec2_obj, ec2_df, mm):
+  def _ec2df_to_classification(self, ec2_df, ddg_df):
+    cpu_maxmax = ec2_df.Maximum.max()
+    cpu_maxavg = ec2_df.Average.max()
+    cpu_avgmax = ec2_df.Maximum.mean()
+    cpu_c1, cpu_c2 = self._xxx_to_classification(cpu_maxmax, cpu_maxavg, cpu_avgmax)
+    #print("ec2_df.{maxmax,avgmax,maxavg} = ", maxmax, avgmax, maxavg)
+
+    if ddg_df is None:
+      cpu_c2 = [cpu_c2, "No memory data"]
+      cpu_c2 = [x for x in cpu_c2 if x is not None]
+      cpu_c2 = ", ".join(cpu_c2)
+      return cpu_c1, cpu_c2
+
+    # continue with datadog data
+    ram_maxmax = ddg_df.ram_used_max.max()
+    ram_maxavg = ddg_df.ram_used_max.mean()
+    ram_avg_max = ddg_df.ram_used_avg.max()
+    ram_c1, ram_c2 = self._xxx_to_classification(ram_maxmax, ram_maxavg, ram_avgmax)
+
+    # consolidate ram with cpu
+    out_c2 = ["CPU + RAM checked",
+              "CPU: %s"%cpu_c2 if cpu_c2 is not None else None,
+              "RAM: %s"%ram_c2 if ram_c2 is not None else None ]
+    out_c2 = ", ".join([x for x in out_c2 if x is not None])
+    if cpu_c1=='Overused' or ram_c1=='Overused':
+      return 'Overused', out_c2
+
+    if cpu_c1=='Normal' or ram_c1=='Normal':
+      return 'Normal', out_c2
+
+    return 'Underused', out_c2
+
+
+
+
+  def per_ec2(self, ec2_obj, ec2_df, mm, ddg_df):
     #print(ec2_obj.instance_id)
-    ec2_c1, ec2_c2 = self._ec2df_to_classification(ec2_df)
+    ec2_c1, ec2_c2 = self._ec2df_to_classification(ec2_df, ddg_df)
 
     self.ec2_classes.append({
       'instance_id': ec2_obj.instance_id,

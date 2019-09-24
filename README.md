@@ -13,8 +13,9 @@ A simple command-line tool to check if an AWS EC2 account is fit or underused.
 - [Usage](#usage)
   - [Pre-requisites](#pre-requisites)
   - [Example 1: basic usage](#example-1-basic-usage)
-  - [Example 2: Advanced usage](#example-2-advanced-usage)
+  - [Example 2: Using a non-default awscli profile](#example-2-using-a-non-default-awscli-profile)
   - [Example 3: caching results with redis](#example-3-caching-results-with-redis)
+  - [Example 4: datadog integration](#example-4-datadog-integration)
 - [What does Underused mean?](#what-does-underused-mean)
 - [Changelog](#changelog)
 - [License](#license)
@@ -47,6 +48,12 @@ The keys should belong to a user/role with the following minimal policies:
 
 ### Example 1: basic usage
 
+Check the version of `isitfit`
+
+```
+isitfit --version
+```
+
 Calculate AWS EC2 used-to-billed cost
 
 ```
@@ -73,17 +80,16 @@ Find the first 3 recommended type changes
 ```
 > isitfit --optimize --n=2
 
-Recommendation value: -0.034176 $/hour
-i.e. if you implement these recommendations, this is savings since negative
-Note that this table has been filtered for only the 1st 2 scan results
+Recommended savings: -74 $ (over next 3 months)
+This table has been filtered for only the 1st 2 scan results
 
 Details
-+----+---------------------+-----------------+--------------------+------------------------------+---------------+--------------------+------------------------+
-|    | instance_id         | instance_type   | classification_1   | classification_2             |   cost_hourly | recommended_type   |   recommended_costdiff |
-|----+---------------------+-----------------+--------------------+------------------------------+---------------+--------------------+------------------------|
-|  2 | i-069a7808addd143c7 | t2.medium       | Underused          | Burstable, hourly resolution |     0.0546118 | t2.small           |            -0.0273412  |
-|  1 | i-02432bc7          | t2.micro        | Underused          |                              |     0.0136706 | t2.nano            |            -0.00683529 |
-+----+---------------------+-----------------+--------------------+------------------------------+---------------+--------------------+------------------------+
++---------------------+-----------------+--------------------+------------------------------+-----------+--------------------+-----------+
+| instance_id         | instance_type   | classification_1   | classification_2             |   cost_3m | recommended_type   |   savings |
++---------------------+-----------------+--------------------+------------------------------+-----------+--------------------+-----------|
+| i-069a7808addd143c7 | t2.medium       | Underused          | Burstable, hourly resolution |       118 | t2.small           |      -59  |
+| i-02432bc7          | t2.micro        | Underused          |                              |        30 | t2.nano            |      -15  |
++---------------------+-----------------+--------------------+------------------------------+---------------+--------------------+-----------+
 ```
 
 Find all recommended type changes
@@ -94,19 +100,22 @@ Find all recommended type changes
 ```
 
 
-### Example 2: Advanced usage
+### Example 2: Using a non-default awscli profile
+
+To specify a particular profile from `~/.aws/credentials`, set the `AWS_PROFILE` and `AWS_DEFAULT_REGION` environment variables.
+
+For example
 
 ```
-# show higher verbosity
-isitfit --debug
-
-# specify a particular profile
 AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit
-
-# show installed version
-isitfit --version
-pip3 freeze|grep isitfit
 ```
+
+To show higher verbosity, append `--debug` to any command call
+
+```
+isitfit --debug
+```
+
 
 ### Example 3: caching results with redis
 
@@ -114,13 +123,13 @@ Caching in `isitfit` makes re-runs more efficient.
 
 It relies on `redis` and `pyarrow`.
 
-To use caching, install the pre-requisites:
+To use caching, install a local redis server:
 
 ```
 apt-get install redis-server
 ```
 
-Set up the environment variables
+Set up the environment variables to point to this local redis server
 
 ```
 export ISITFIT_REDIS_HOST=localhost
@@ -143,6 +152,26 @@ redis-cli -n 0 flushdb
 ```
 
 Consider saving the environment variables in the `~/.bashrc` file.
+
+
+### Example 4: datadog integration
+
+Get your datadog API key and APP key from [datadog/account/settings/API](https://app.datadoghq.com/account/settings#api).
+
+Set them to the environment variables `DATADOG_API_KEY` and `DATADOG_APP_KEY` as documented [here](https://github.com/DataDog/datadogpy#environment-variables).
+
+Then run isitfit as usual, eg `isitfit` or `isitfit --optimize`
+
+For example
+
+```
+export DATADOG_API_KEY=ABC1234
+export DATADOG_APP_KEY=ABC1234
+isitfit
+isitfit --optimize
+```
+
+Again, consider saving the environment variables in the `~/.bashrc` file.
 
 
 ## What does Underused mean?
