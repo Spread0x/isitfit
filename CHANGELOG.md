@@ -1,6 +1,8 @@
 Version latest (0.1.7?, 2019-09-??)
 
 - ...
+- enh: atexit usage changed in favor of try/finally so that the footer message is not displayed on error
+- enh: exception handling in case "redis" or "pyarrow" are not installed (only needed in case of caching)
 
 
 Version 0.4.4 (2019-09-24)

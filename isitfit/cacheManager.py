@@ -26,8 +26,20 @@ class RedisPandas:
 
   def connect(self):
     logger.info("Connecting to redis cache")
-    import redis
-    import pyarrow as pa
+    try:
+      import redis
+    except ModuleNotFoundError as e:
+      logger.error("Failed to load python's redis package. Did you forget to install it? Use: pip3 install redis")
+      import sys
+      sys.exit(1)
+
+    try:
+      import pyarrow as pa
+    except ModuleNotFoundError as e:
+      logger.error("Failed to load python's pyarrow package. Did you forget to install it? Use: pip3 install pyarrow")
+      import sys
+      sys.exit(1)
+
 
     self.redis_client = redis.Redis(**self.redis_args)
     self.pyarrow_context = pa.default_serialization_context()
