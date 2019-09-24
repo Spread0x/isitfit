@@ -142,6 +142,8 @@ apt-get install redis-client
 redis-cli -n 0 flushdb
 ```
 
+Consider saving the environment variables in the `~/.bashrc` file.
+
 
 ## What does Underused mean?
 
