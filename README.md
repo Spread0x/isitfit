@@ -114,7 +114,6 @@ To use caching, install the pre-requisites:
 
 ```
 apt-get install redis-server
-pip3 install redis==3.3.8 pyarrow==0.14.1
 ```
 
 Set up the environment variables

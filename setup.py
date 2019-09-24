@@ -36,7 +36,9 @@ setup(
         'lockfile==0.12.2',
         'tabulate==0.8.3',
         'termcolor==1.1.0',
-        'tqdm==4.32.2'
+        'tqdm==4.32.2',
+        'redis==3.3.8',
+        'pyarrow==0.14.1'
     ],
     entry_points='''
         [console_scripts]
