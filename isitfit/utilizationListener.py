@@ -49,12 +49,12 @@ class UtilizationListener:
     dt_end   = mm.EndTime.strftime("%Y-%m-%d")
     
     table = [
-      ["Analysis start date", "%s"%dt_start],
-      ["Analysis end date", "%s"%dt_end],
-      ["Number of EC2 machines", "%i"%n_ec2],
-      [colored("Billed cost", 'cyan'), colored("%0.2f $"%self.sum_capacity, 'cyan')],
-      [colored("Used cost", 'cyan'), colored("%0.2f $"%self.sum_used, 'cyan')],
-      [colored("CWAU = Used / Billed * 100", cwau_color), colored("%0.0f %%"%cwau_val, cwau_color)],
+      ["Start date", "%s"%dt_start],
+      ["End date", "%s"%dt_end],
+      ["EC2 machines", "%i"%n_ec2],
+      [colored("Billed cost", 'cyan'), colored("%0.0f $"%self.sum_capacity, 'cyan')],
+      [colored("Used cost", 'cyan'), colored("%0.0f $"%self.sum_used, 'cyan')],
+      [colored("CWAU (Used/Billed)", cwau_color), colored("%0.0f %%"%cwau_val, cwau_color)],
     ]
     
     # logger.info("Summary:")

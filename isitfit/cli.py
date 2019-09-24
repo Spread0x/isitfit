@@ -46,9 +46,9 @@ def cli(debug, version, optimize, n):
     logger.setLevel(logLevel)
 
 
-    logger.info("Is it fit?")
+    #logger.info("Is it fit?")
 
-    logger.info("Initializing")
+    logger.info("Initializing...")
     ul = UtilizationListener()
     ol = OptimizerListener(n)
     mm = MainManager()

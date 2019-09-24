@@ -9,7 +9,7 @@ from termcolor import colored
 
 
 def df2tabulate(df):
-  return tabulate(df, headers='keys', tablefmt='psql')
+  return tabulate(df.set_index('instance_id'), headers='keys', tablefmt='psql')
 
 
 def class2recommendedType(r):
@@ -28,10 +28,10 @@ def class2recommendedCost(r):
   if r.classification_1 == 'Underused':
     # FIXME add savings from the twice downsizing in class2recommendedType if it's a burstable workload or lambda-convertible,
     # then calculate the cost from lambda functions and add it as overhead here
-    return r.cost_hourly_smaller-r.cost_hourly
+    return r.cost_3m_smaller-r.cost_3m
 
   if r.classification_1=='Overused':
-    return r.cost_hourly_larger-r.cost_hourly
+    return r.cost_3m_larger-r.cost_3m
 
   return None
 
@@ -117,10 +117,16 @@ class OptimizerListener:
     map_larger = mm.df_cat[['API Name', 'type_smaller', 'cost_hourly']].rename(columns={'type_smaller': 'API Name', 'API Name': 'type_larger', 'cost_hourly': 'cost_hourly_larger'})
     df_all = df_all.merge(map_larger, left_on='instance_type', right_on='API Name', how='left').drop(['API Name'], axis=1)
 
+    # convert from hourly to 3-months
+    for fx1, fx2 in [('cost_3m', 'cost_hourly'), ('cost_3m_smaller', 'cost_hourly_smaller'), ('cost_3m_larger', 'cost_hourly_larger')]:
+      df_all[fx1] = df_all[fx2] * 24 * 30 * 3
+      df_all[fx1] = df_all[fx1].fillna(value=0).astype(int)
+
     # imply a recommended type
     df_all['recommended_type'] = df_all.apply(class2recommendedType, axis=1)
-    df_all['recommended_costdiff'] = df_all.apply(class2recommendedCost, axis=1)
-    df_all = df_all.drop(['type_smaller', 'type_larger', 'cost_hourly_smaller', 'cost_hourly_larger'], axis=1)
+    df_all['savings'] = df_all.apply(class2recommendedCost, axis=1)
+    df_all['savings'] = df_all.savings.fillna(value=0).astype(int)
+    df_all = df_all[['instance_id', 'instance_type', 'classification_1', 'classification_2', 'cost_3m', 'recommended_type', 'savings']]
 
     # display
     #df_all = df_all.set_index('classification_1')
@@ -134,8 +140,8 @@ class OptimizerListener:
     #  logger.info("\n")
 
     # display
-    df_sort = df_all.sort_values(['recommended_costdiff'], ascending=True)
-    df_sort.dropna(subset=['recommended_costdiff'], inplace=True)
+    df_sort = df_all.sort_values(['savings'], ascending=True)
+    df_sort.dropna(subset=['recommended_type'], inplace=True)
     
     # if no recommendations
     if df_sort.shape[0]==0:
@@ -143,18 +149,17 @@ class OptimizerListener:
       return
     
     # if there are recommendations, show them
-    sum_val = df_all.recommended_costdiff.sum()
-    sum_comment = "extra cost since positive" if sum_val>0 else "savings since negative"
+    sum_val = df_all.savings.sum()
+    sum_comment = "extra cost" if sum_val>0 else "savings"
     sum_color = "red" if sum_val>0 else "green"
 
     #logger.info("Optimization based on the following CPU thresholds:")
     #logger.info(self.thresholds)
     #logger.info("")
-    logger.info(colored("Recommendation value: %f $/hour"%sum_val, sum_color))
-    logger.info("i.e. if you implement these recommendations, this is %s"%colored(sum_comment, sum_color))
+    logger.info(colored("Recommended %s: %0.0f $ (over the next 3 months)"%(sum_comment, sum_val), sum_color))
 
     if self.n!=0:
-      logger.info(colored("Note that this table has been filtered for only the 1st %i scan results"%self.n, "cyan"))
+      logger.info(colored("This table has been filtered for only the 1st %i scan results"%self.n, "cyan"))
 
     logger.info("")
     logger.info("")

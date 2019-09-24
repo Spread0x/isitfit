@@ -1,6 +1,8 @@
 Version latest (0.1.7?, 2019-09-??)
 
 - ...
+- enh: clearer stdout messages
+- enh: optimization to show savings in 3 month interval (similar to analysis over 3 months)
 
 
 Version 0.4.3 (2019-09-19)
