@@ -13,3 +13,7 @@ tqdm==4.32.2
 redis==3.3.8
 pyarrow==0.14.1
 
+# not a direct dependency in the source code
+# but required to configure the environment
+# Leaving out the version 1.16.217
+awscli

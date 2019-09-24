@@ -38,7 +38,8 @@ setup(
         'termcolor==1.1.0',
         'tqdm==4.32.2',
         'redis==3.3.8',
-        'pyarrow==0.14.1'
+        'pyarrow==0.14.1',
+        'awscli' # 1.16.217'
     ],
     entry_points='''
         [console_scripts]

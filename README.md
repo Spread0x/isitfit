@@ -28,7 +28,7 @@ A simple command-line tool to check if an AWS EC2 account is fit or underused.
 ## Installation
 
 ```
-pip3 install awscli isitfit
+pip3 install isitfit
 ```
 
 
@@ -36,7 +36,11 @@ pip3 install awscli isitfit
 
 ### Pre-requisites
 
-The AWS CLI should be configured with a user/role with the following minimal policies:
+The AWS CLI should be configured with the account's access keys:
+
+`aws configure`
+
+The keys should belong to a user/role with the following minimal policies:
 
 `AmazonEC2ReadOnlyAccess, CloudWatchReadOnlyAccess`
 
