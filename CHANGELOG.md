@@ -1,6 +1,10 @@
 Version latest (0.1.7?, 2019-09-??)
 
 - ...
+
+
+Version 0.4.5 (2019-09-24)
+
 - enh: atexit usage changed in favor of try/finally so that the footer message is not displayed on error
 - enh: python packages redis and pyarrow are now direct dependencies (it's just simpler like this, I'm targeting large infra that needs it anyway)
 - enh: python package awscli also added as a direct dependency to simplify matters further
