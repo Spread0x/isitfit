@@ -65,6 +65,7 @@ def cli(debug, version, optimize, n, filter_tags):
         mm.add_listener('ec2', ol.per_ec2)
         mm.add_listener('all', ol.after_all)
         mm.add_listener('all', ol.display_all)
+        mm.add_listener('all', ol.storecsv_all)
 
 
       # start download data and processing

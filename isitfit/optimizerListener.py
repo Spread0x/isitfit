@@ -126,7 +126,7 @@ class OptimizerListener:
 
   def handle_pre(self):
       # a csv file handle to which to stream results
-      self.csv_fn = tempfile.NamedTemporaryFile(prefix='isitfit-', suffix='.csv', delete=False)
+      self.csv_fn = tempfile.NamedTemporaryFile(prefix='isitfit-intermediate-', suffix='.csv', delete=False)
       logger.info(colored("Intermediate results will be streamed to %s"%self.csv_fn.name, "cyan"))
       self.csv_fh = open(self.csv_fn.name, 'w')
       self.csv_writer = csv.writer(self.csv_fh)
@@ -229,6 +229,14 @@ class OptimizerListener:
     # main results
     self.df_sort = df_all.sort_values(['savings'], ascending=True)
     self.sum_val = df_all.savings.sum()
+
+
+  def storecsv_all(self, *args, **kwargs):
+      csv_fn = tempfile.NamedTemporaryFile(prefix='isitfit-full-', suffix='.csv', delete=False)
+      logger.info(colored("Saving final results to %s"%csv_fn.name, "cyan"))
+      with open(csv_fn.name, 'w') as fh:
+        self.df_sort.to_csv(fh)
+        logger.info(colored("Save complete", "cyan"))
 
 
   def display_all(self, *args, **kwargs):
