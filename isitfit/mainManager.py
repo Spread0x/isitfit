@@ -281,7 +281,11 @@ class MainManager:
         # this is redundant with the implementation in _cloudwatch_metrics_core,
         # and it's here just in case the cached redis version is not a date,
         # but it's not really worth it to make a full refresh of the cache for this
-        df_metrics['Timestamp'] = df_metrics.Timestamp.dt.date
+        # if df_metrics.Timestamp.dtype==dt.date:
+        try:
+          df_metrics['Timestamp'] = df_metrics.Timestamp.dt.date
+        except AttributeError:
+          pass
 
         # convert type timeseries to the same timeframes as pcpu and n5mn
         #if ec2_obj.instance_id=='i-069a7808addd143c7':
