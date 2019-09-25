@@ -54,8 +54,9 @@ class DatadogAssistant:
         
     def _get_meta(self):
         h_all = api.Hosts.search(host=self.host_id)
-        if len(h_all)==0:
+        if len(h_all['host_list'])==0:
             raise HostNotFoundInDdg("Did not find host %s in datadog"%self.host_id)
+
         h_i = h_all['host_list'][0]
         gohai = json.loads(h_i['meta']['gohai'])
         memory_total = int(gohai['memory']['total'].replace('kB',''))*1024
