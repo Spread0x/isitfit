@@ -99,14 +99,28 @@ class MainManager:
         self.cloudtrail_manager.init_data(self.ec2_resource.instances.all(), n_ec2_total)
 
         # iterate over all ec2 instances
+        n_ec2_analysed = 0
         sum_capacity = 0
         sum_used = 0
         df_all = []
         ec2_noCloudwatch = []
         ec2_noCloudtrail = []
         for ec2_obj in tqdm(self.ec2_resource.instances.all(), total=n_ec2_total, desc="Second pass through EC2 instances", initial=1):
+          # if filters requested, check that this instance passes
+          if self.filter_tags is not None:
+            f_tn = self.filter_tags.lower()
+            passesFilter = tagsContain(f_tn, ec2_obj)
+            if not passesFilter:
+              continue
+
           try:
-            self._handle_ec2obj(ec2_obj)
+            ec2_df, ddg_df = self._handle_ec2obj(ec2_obj)
+            n_ec2_analysed += 1
+
+            # call listeners
+            for l in self.listeners['ec2']:
+              l(ec2_obj, ec2_df, self, ddg_df)
+
           except NoCloudwatchException:
             ec2_noCloudwatch.append(ec2_obj.instance_id)
           except NoCloudtrailException:
@@ -130,7 +144,7 @@ class MainManager:
           logger.info("")
 
         for l in self.listeners['all']:
-          l(n_ec2_total, self)
+          l(n_ec2_total, self, n_ec2_analysed)
 
         logger.info("")
         logger.info("")
@@ -250,13 +264,6 @@ class MainManager:
     def _handle_ec2obj(self, ec2_obj):
         # logger.debug("%s, %s"%(ec2_obj.instance_id, ec2_obj.instance_type))
 
-        # if filters requested, check that this instance passes
-        if self.filter_tags is not None:
-          f_tn = self.filter_tags.lower()
-          passesFilter = tagsContain(f_tn, ec2_obj)
-          if not passesFilter:
-            return None
-
         # pandas series of CPU utilization, daily max, for 90 days
         df_metrics = self._cloudwatch_metrics_cached(ec2_obj)
 
@@ -295,9 +302,4 @@ class MainManager:
         ddg_df = self._get_ddg_cached(ec2_obj)
         # print("ddg data", ddg_df)
 
-
-        # call listeners
-        for l in self.listeners['ec2']:
-          l(ec2_obj, ec2_df, self, ddg_df)
-
-        return 0
+        return ec2_df, ddg_df

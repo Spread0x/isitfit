@@ -131,7 +131,7 @@ class OptimizerListener:
         sys.exit(0)
 
 
-  def after_all(self, n_ec2_total, mm):
+  def after_all(self, n_ec2_total, mm, n_ec2_all):
     df_all = pd.DataFrame(self.ec2_classes)
 
     # if no data
