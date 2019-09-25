@@ -156,7 +156,7 @@ Consider saving the environment variables in the `~/.bashrc` file.
 
 ### Example 4: datadog integration
 
-Get your datadog API key and APP key from [datadog/account/settings/API](https://app.datadoghq.com/account/settings#api).
+Get your datadog API key and APP key from [datadog/integrations/API](https://app.datadoghq.com/account/settings#api).
 
 Set them to the environment variables `DATADOG_API_KEY` and `DATADOG_APP_KEY` as documented [here](https://github.com/DataDog/datadogpy#environment-variables).
 

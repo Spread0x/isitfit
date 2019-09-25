@@ -133,8 +133,7 @@ class MainManager:
         if self.cache_man.isReady():
           df_cache = self.cache_man.get(cache_key)
           if df_cache is not None:
-            msg_suffix = ", but data is empty" if df_cache.shape[0]==0 else ""
-            logger.debug("Found cloudwatch metrics in redis cache for %s%s"%(ec2_obj.instance_id, msg_suffix))
+            logger.debug("Found cloudwatch metrics in redis cache for %s, and data.shape[0] = %i"%(ec2_obj.instance_id, df_cache.shape[0]))
             return myreturn(df_cache)
 
         # if no cache, then download
@@ -214,8 +213,7 @@ class MainManager:
         if self.cache_man.isReady():
           df_cache = self.cache_man.get(cache_key)
           if df_cache is not None:
-            msg_suffix = ", but data is empty" if df_cache.shape[0]==0 else ""
-            logger.debug("Found datadog metrics in redis cache for %s%s"%(ec2_obj.instance_id, msg_suffix))
+            logger.debug("Found datadog metrics in redis cache for %s, and data.shape[0] = %i"%(ec2_obj.instance_id, df_cache.shape[0]))
             return myreturn(df_cache)
 
         # if no cache, then download

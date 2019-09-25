@@ -91,7 +91,7 @@ class OptimizerListener:
     # continue with datadog data
     ram_maxmax = ddg_df.ram_used_max.max()
     ram_maxavg = ddg_df.ram_used_max.mean()
-    ram_avg_max = ddg_df.ram_used_avg.max()
+    ram_avgmax = ddg_df.ram_used_avg.max()
     ram_c1, ram_c2 = self._xxx_to_classification(ram_maxmax, ram_maxavg, ram_avgmax)
 
     # consolidate ram with cpu
@@ -171,7 +171,8 @@ class OptimizerListener:
 
     # display
     df_sort = df_all.sort_values(['savings'], ascending=True)
-    df_sort.dropna(subset=['recommended_type'], inplace=True)
+    # Edit 2019-09-25 just show the full list. Will add filtering later. This way it's less ambiguous when all instances are "Normal"
+    # df_sort.dropna(subset=['recommended_type'], inplace=True)
     
     # if no recommendations
     if df_sort.shape[0]==0:

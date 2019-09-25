@@ -10,6 +10,7 @@ set env vars
     export DATADOG_APP_KEY=...
     
 Run tests
+    pip3 install pytest
     pytest datadogManager.py
 """
 
@@ -65,7 +66,7 @@ class DatadogAssistant:
         # query language
         # https://docs.datadoghq.com/graphing/functions/
         # Use minimum so that cpu_used will be the maximum
-        query = 'system.cpu.idle{%s}.rollup(min,%i)'%(self.host_id, SECONDS_IN_ONE_DAY)
+        query = 'system.cpu.idle{host:%s}.rollup(min,%i)'%(self.host_id, SECONDS_IN_ONE_DAY)
         col_i = 'cpu_idle_min'
         df = self._get_metrics_core(query, col_i)
         # calculate cpu used as 100 - cpu_idle
@@ -75,7 +76,7 @@ class DatadogAssistant:
         
     def get_metrics_cpu_avg(self):
         # repeat for average
-        query = 'system.cpu.idle{%s}.rollup(avg,%i)'%(self.host_id, SECONDS_IN_ONE_DAY)
+        query = 'system.cpu.idle{host:%s}.rollup(avg,%i)'%(self.host_id, SECONDS_IN_ONE_DAY)
         col_i = 'cpu_idle_avg'
         df = self._get_metrics_core(query, col_i)
         df['cpu_used_avg'] = 100 - df.cpu_idle_avg
@@ -84,7 +85,7 @@ class DatadogAssistant:
 
     def get_metrics_ram_max(self):
         # query language, check note above in get_metrics_cpu
-        query = 'system.mem.free{%s}.rollup(min,%i)'%(self.host_id, SECONDS_IN_ONE_DAY)
+        query = 'system.mem.free{host:%s}.rollup(min,%i)'%(self.host_id, SECONDS_IN_ONE_DAY)
         col_i = 'ram_free_min'
         df =  self._get_metrics_core(query, col_i)
         memory_total = self._get_meta()['memory_total']
@@ -95,7 +96,7 @@ class DatadogAssistant:
 
     def get_metrics_ram_avg(self):
         # query language, check note above in get_metrics_cpu
-        query = 'system.mem.free{%s}.rollup(avg,%i)'%(self.host_id, SECONDS_IN_ONE_DAY)
+        query = 'system.mem.free{host:%s}.rollup(avg,%i)'%(self.host_id, SECONDS_IN_ONE_DAY)
         col_i = 'ram_free_avg'
         df =  self._get_metrics_core(query, col_i)
         memory_total = self._get_meta()['memory_total']
@@ -143,19 +144,3 @@ class DatadogManager:
         )
         df_all = df_all[['ts_dt', 'cpu_used_max', 'cpu_used_avg', 'ram_used_max', 'ram_used_avg']]
         return df_all
-        
-
-
-        
-#---------------------
-# tests
-
-def test_datadogman_1():
-    ddg = DatadogManager()
-    host_id='i-0f31feed76f7fb07c'
-    df_all = ddg.get_metrics_all(host_id=host_id)
-    assert df_all.shape[0] > 0
-    #import pdb
-    #pdb.set_trace()
-    #print(df_all.head())
-

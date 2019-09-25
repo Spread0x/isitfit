@@ -2,7 +2,11 @@ Version latest (0.5.0?, 2019-09-24?)
 
 - ...
 - enh: readme docs for examples was not up-to-date with monthly savings in `--optimize`. Updated.
-- feat: add datadog integration (this is a major change and requires rigorous testing)
+- feat: add datadog integration
+- bugfix: moved the try/finally from the `__main__` section in `cli.py` to the `cli()` function
+- enh: moved test for datadogManager to separate file
+- bugfix: querying from datadog for a single host was missing the `host:` prefix
+- enh: stop filtering the optimize output for only non-normal classification
 
 
 Version 0.4.5 (2019-09-24)
