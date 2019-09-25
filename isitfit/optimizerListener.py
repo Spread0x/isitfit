@@ -114,12 +114,18 @@ class OptimizerListener:
     #print(ec2_obj.instance_id)
     ec2_c1, ec2_c2 = self._ec2df_to_classification(ec2_df, ddg_df)
 
+    taglist = ec2_obj.tags
+    if mm.filter_tags is not None:
+      f_tn = mm.filter_tags.lower()
+      # similar to the isitfit.mainManager.tagsContain function, but filtering the tags themselves
+      taglist = [x for x in taglist if (f_tn in x['Key'].lower()) or (f_tn in x['Value'].lower())]
+
     self.ec2_classes.append({
       'instance_id': ec2_obj.instance_id,
       'instance_type': ec2_obj.instance_type,
       'classification_1': ec2_c1,
       'classification_2': ec2_c2,
-      'tags': "\n".join(["%s = %s"%(x['Key'], x['Value']) for x in ec2_obj.tags])
+      'tags': "\n".join(["%s = %s"%(x['Key'], x['Value']) for x in taglist])
     })
 
     if self.n!=0:

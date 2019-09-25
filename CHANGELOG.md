@@ -5,6 +5,7 @@ Version latest (0.5.0?, 2019-09-24?)
 - feat: add `--filter-tags` option
 - enh: display n ec2 analysed
 - enh: move out the call to listeners from inside `handle_ec2_obj`
+- enh: when filtering by tags, also filter the tags themselves
 
 
 Version 0.5.0 (2019-09-25)
