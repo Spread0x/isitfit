@@ -29,11 +29,12 @@ def display_footer():
 
 
 @click.command()
-@click.option('--debug', is_flag=True)
-@click.option('--version', is_flag=True)
-@click.option('--optimize', is_flag=True)
-@click.option('--n', default=0, help='number of ec2 optimizations to find before stopping. Use 0 for getting all optimizations')
-def cli(debug, version, optimize, n):
+@click.option('--debug', is_flag=True, help='Display more details to help with debugging')
+@click.option('--version', is_flag=True, help='Show the installed version')
+@click.option('--optimize', is_flag=True, help='Generate recommendations of optimal EC2 sizes')
+@click.option('--n', default=0, help='number of underused ec2 optimizations to find before stopping. Skip to get all optimizations')
+@click.option('--filter-tags', default=None, help='filter instances for only those carrying this value in the tag name or value')
+def cli(debug, version, optimize, n, filter_tags):
 
     if version:
       print('isitfit version %s'%isitfit_version)
@@ -52,7 +53,7 @@ def cli(debug, version, optimize, n):
       ul = UtilizationListener()
       ol = OptimizerListener(n)
       ddg = DatadogManager()
-      mm = MainManager(ddg)
+      mm = MainManager(ddg, filter_tags)
 
       # utilization listeners
       if not optimize:

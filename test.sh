@@ -32,6 +32,13 @@ AWS_DEFAULT_REGION=eu-central-1 isitfit --optimize
 echo "Test 6: optimize with n=1"
 isitfit --optimize --n=1
 
+echo "Test 7: {analyse,optimize} filter-tags {ffa,inexistant}"
+isitfit --optimize --filter-tags=ffa
+isitfit --filter-tags=ffa
+
+isitfit --optimize --filter-tags=inexistant
+isitfit --filter-tags=inexistant
+
 # done
 # `set -x` doesn't let the script reach this point in case of any error
 echo "Tests completed"

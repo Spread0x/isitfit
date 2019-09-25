@@ -134,6 +134,11 @@ class OptimizerListener:
   def after_all(self, n_ec2, mm):
     df_all = pd.DataFrame(self.ec2_classes)
 
+    # if no data
+    if df_all.shape[0]==0:
+      logger.info(colored("No EC2 instances found", "red"))
+      return
+
     # merge current type hourly cost
     map_cost = mm.df_cat[['API Name', 'cost_hourly']]
     df_all = df_all.merge(map_cost, left_on='instance_type', right_on='API Name', how='left').drop(['API Name'], axis=1)
@@ -189,20 +194,20 @@ class OptimizerListener:
     #logger.info(self.thresholds)
     #logger.info("")
     logger.info(colored("Recommended %s: %0.0f $ (over the next 3 months)"%(sum_comment, sum_val), sum_color))
-
-    if self.n!=0:
-      logger.info(colored("This table has been filtered for only the 1st %i scan results"%self.n, "cyan"))
-
-    logger.info("")
     logger.info("")
 
     with pd.option_context("display.max_columns", 10):
+      logger.info("Details")
       if df_sort.shape[0]<=10:
-        logger.info("Details")
         logger.info(df2tabulate(df_sort))
       else:
-        logger.info("Top savings (down-sizable):")
         logger.info(df2tabulate(df_sort.head(n=5)))
-        logger.info("Bottom savings (up-sizable):")
+        logger.info("...")
         logger.info(df2tabulate(df_sort.tail(n=5)))
+        logger.info("")
+        logger.info(colored("Table originally with %i rows is truncated for top and bottom 5 only."%df_sort.shape[0], "cyan"))
+        logger.info(colored("Consider filtering it with --n=x for the 1st x results or --filter-tags=foo using a value from your own EC2 tags.", "cyan"))
+
+    if self.n!=0:
+      logger.info(colored("This table has been filtered for only the 1st %i underused results"%self.n, "cyan"))
 

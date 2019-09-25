@@ -34,8 +34,17 @@ def myreturn(df_xxx):
       return None # this means that the data was found in cache, but it was empty (meaning aws returned no data)
 
 
+def tagsContain(f_tn, ec2_obj):
+  for t in ec2_obj.tags:
+    for k in ['Key', 'Value']:
+      if f_tn in t[k].lower():
+        return True
+
+  return False
+
+
 class MainManager:
-    def __init__(self, ddg):
+    def __init__(self, ddg, filter_tags):
         # boto3 ec2 and cloudwatch data
         self.ec2_resource = boto3.resource('ec2')
         self.cloudwatch_resource = boto3.resource('cloudwatch')
@@ -59,6 +68,8 @@ class MainManager:
         # datadog manager
         self.ddg = ddg
 
+        # filtering by tags
+        self.filter_tags = filter_tags
 
 
     def add_listener(self, event, listener):
@@ -76,7 +87,7 @@ class MainManager:
 
         # 0th pass to count
         n_ec2 = len(list(self.ec2_resource.instances.all()))
-        logger.warning("Found %i EC2 instances"%n_ec2)
+        logger.warning("Found a total of %i EC2 instances"%n_ec2)
 
         if n_ec2==0:
           return
@@ -238,6 +249,13 @@ class MainManager:
 
     def _handle_ec2obj(self, ec2_obj):
         # logger.debug("%s, %s"%(ec2_obj.instance_id, ec2_obj.instance_type))
+
+        # if filters requested, check that this instance passes
+        if self.filter_tags is not None:
+          f_tn = self.filter_tags.lower()
+          passesFilter = tagsContain(f_tn, ec2_obj)
+          if not passesFilter:
+            return None
 
         # pandas series of CPU utilization, daily max, for 90 days
         df_metrics = self._cloudwatch_metrics_cached(ec2_obj)

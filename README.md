@@ -75,7 +75,14 @@ For reference:
 * CWAU <= 30% is underused
 ```
 
-Find the first 3 recommended type changes
+Find all recommended type changes
+
+```
+> isitfit --optimize
+...
+```
+
+Find only the first 2 underused instances
 
 ```
 > isitfit --optimize --n=2
@@ -84,20 +91,29 @@ Recommended savings: -74 $ (over next 3 months)
 This table has been filtered for only the 1st 2 scan results
 
 Details
-+---------------------+-----------------+--------------------+------------------------------+-----------+--------------------+-----------+
-| instance_id         | instance_type   | classification_1   | classification_2             |   cost_3m | recommended_type   |   savings |
-+---------------------+-----------------+--------------------+------------------------------+-----------+--------------------+-----------|
-| i-069a7808addd143c7 | t2.medium       | Underused          | Burstable, hourly resolution |       118 | t2.small           |      -59  |
-| i-02432bc7          | t2.micro        | Underused          |                              |        30 | t2.nano            |      -15  |
-+---------------------+-----------------+--------------------+------------------------------+---------------+--------------------+-----------+
++---------------------+-----------------+--------------------+------------------------------------+-----------+--------------------+-----------+--------------------------------------------------+
+| instance_id         | instance_type   | classification_1   | classification_2                   |   cost_3m | recommended_type   |   savings | tags                                             |
+|---------------------+-----------------+--------------------+------------------------------------+-----------+--------------------+-----------+--------------------------------------------------|
+| i-069a7808addd143c7 | t2.medium       | Underused          | Burstable intraday, No memory data |       117 | t2.small           |       -59 | Name = ******                                    |
+| i-34ca2fc2          | t2.nano         | Normal             | No memory data                     |        14 |                    |         0 | opsworks:layer:php-app = PHP App Server          |
+|                     |                 |                    |                                    |           |                    |           | opsworks:stack = ******************              |
+|                     |                 |                    |                                    |           |                    |           | opsworks:instance = ********************         |
+|                     |                 |                    |                                    |           |                    |           | Name = *************                             |
++---------------------+-----------------+--------------------+------------------------------------+-----------+--------------------+-----------+--------------------------------------------------+
 ```
 
-Find all recommended type changes
+Filter optimizations for a particular tag name or tag value
 
 ```
-> isitfit --optimize
-...
+> isitfit --optimize --filter-tags=foo
 ```
+
+Apply the same filtering of tag name/value to the cost-weighted average utilization
+
+```
+> isitfit --filter-tags=foo
+```
+
 
 
 ### Example 2: Using a non-default awscli profile
