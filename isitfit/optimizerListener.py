@@ -57,7 +57,7 @@ class OptimizerListener:
     # i.e. daily data shows few large spikes
     thres = self.thresholds['burst']
     if xxx_maxmax >= thres['high'] and xxx_avgmax <= thres['low'] and xxx_maxavg <= thres['low']:
-      return 'Underused', 'Burstable, daily resolution'
+      return 'Underused', 'Burstable daily'
 
     # check rightsizing
     # i.e. no special spikes in daily data
@@ -70,7 +70,7 @@ class OptimizerListener:
     elif xxx_maxmax >= thres['high'] and xxx_avgmax >= thres['high'] and xxx_maxavg >= thres['high']:
       return 'Overused', None
     elif xxx_maxmax >= thres['high'] and xxx_avgmax >= thres['high'] and xxx_maxavg <= thres['low']:
-      return 'Underused', 'Burstable, hourly resolution'
+      return 'Underused', 'Burstable intraday'
 
     return 'Normal', None
 
@@ -118,7 +118,8 @@ class OptimizerListener:
       'instance_id': ec2_obj.instance_id,
       'instance_type': ec2_obj.instance_type,
       'classification_1': ec2_c1,
-      'classification_2': ec2_c2
+      'classification_2': ec2_c2,
+      'tags': "\n".join(["%s = %s"%(x['Key'], x['Value']) for x in ec2_obj.tags])
     })
 
     if self.n!=0:
@@ -128,8 +129,6 @@ class OptimizerListener:
         self.after_all(None, mm)
         import sys
         sys.exit(0)
-
-
 
 
   def after_all(self, n_ec2, mm):
@@ -156,7 +155,9 @@ class OptimizerListener:
     df_all['recommended_type'] = df_all.apply(class2recommendedType, axis=1)
     df_all['savings'] = df_all.apply(class2recommendedCost, axis=1)
     df_all['savings'] = df_all.savings.fillna(value=0).astype(int)
-    df_all = df_all[['instance_id', 'instance_type', 'classification_1', 'classification_2', 'cost_3m', 'recommended_type', 'savings']]
+
+    # keep a subset of columns
+    df_all = df_all[['instance_id', 'instance_type', 'classification_1', 'classification_2', 'cost_3m', 'recommended_type', 'savings', 'tags']]
 
     # display
     #df_all = df_all.set_index('classification_1')

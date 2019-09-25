@@ -1,6 +1,7 @@
 Version latest (0.5.0?, 2019-09-24?)
 
 - ...
+- enh: display an instance's tags in the optimization table
 
 
 Version 0.5.0 (2019-09-25)
