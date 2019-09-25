@@ -1,6 +1,9 @@
 Version latest (0.5.0?, 2019-09-24?)
 
 - ...
+- enh: merge datadog dataframe into cloudwatch dataframe and start using it in the CWAU calculation
+    - for workloads that require higher RAM than CPU, this increases the CWAU to account for the higher RAM
+    - it still would punish the low CPU utilization, but at least it's taking both into account now
 
 
 Version 0.5.1 (2019-09-25)

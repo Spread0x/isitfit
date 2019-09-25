@@ -27,7 +27,15 @@ class UtilizationListener:
     """
     # results: 2 numbers: capacity (USD), used (USD)
     res_capacity = (ec2_df.nhours*ec2_df.cost_hourly).sum()
-    res_used     = (ec2_df.nhours*ec2_df.cost_hourly*ec2_df.Average/100).sum()
+
+    if 'ram_used_avg.datadog' in ec2_df.columns:
+      # use both the CPU Average from cloudwatch and the RAM average from datadog
+      utilization_factor = ec2_df[['Average', 'ram_used_avg.datadog']].mean(axis=1, skipna=True)
+    else:
+      # use only the CPU average from cloudwatch
+      utilization_factor = ec2_df.Average
+
+    res_used     = (ec2_df.nhours*ec2_df.cost_hourly*utilization_factor/100).sum()
     #logger.debug("res_capacity=%s, res_used=%s"%(res_capacity, res_used))
 
     self.sum_capacity += res_capacity

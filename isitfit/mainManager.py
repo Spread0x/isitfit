@@ -222,7 +222,9 @@ class MainManager:
         # before returning, convert dateutil timezone to pytz
         # for https://github.com/pandas-dev/pandas/issues/25423
         # via https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.dt.tz_convert.html
-        df_cw3['Timestamp'] = df_cw3.Timestamp.dt.tz_convert(pytz.utc)
+        # Edit 2019-09-25 Instead of keeping the full timestamp, just truncate to date, especially that this is just daily data
+        # df_cw3['Timestamp'] = df_cw3.Timestamp.dt.tz_convert(pytz.utc)
+        df_cw3['Timestamp'] = df_cw3.Timestamp.dt.date
 
         # done
         return df_cw3
@@ -276,6 +278,11 @@ class MainManager:
         if df_type_ts1 is None:
           raise NoCloudtrailException("No cloudtrail data for %s"%ec2_obj.instance_id)
 
+        # this is redundant with the implementation in _cloudwatch_metrics_core,
+        # and it's here just in case the cached redis version is not a date,
+        # but it's not really worth it to make a full refresh of the cache for this
+        df_metrics['Timestamp'] = df_metrics.Timestamp.dt.date
+
         # convert type timeseries to the same timeframes as pcpu and n5mn
         #if ec2_obj.instance_id=='i-069a7808addd143c7':
         ec2_df = mergeSeriesOnTimestampRange(df_metrics, df_type_ts1)
@@ -301,5 +308,13 @@ class MainManager:
         # check if we can get datadog data
         ddg_df = self._get_ddg_cached(ec2_obj)
         # print("ddg data", ddg_df)
+
+        if ddg_df is not None:
+          # convert from datetime to date to be able to merge with ec2_df
+          ddg_df['ts_dt'] = ddg_df.ts_dt.dt.date
+          # append the datadog suffix
+          ddg_df = ddg_df.add_suffix('.datadog')
+          # merge
+          ec2_df = ec2_df.merge(ddg_df, how='outer', left_on='Timestamp', right_on='ts_dt.datadog')
 
         return ec2_df, ddg_df
