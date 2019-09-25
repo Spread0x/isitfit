@@ -65,9 +65,10 @@ Field                            Value
 -------------------------------  -----------
 Analysis start date              2019-06-07
 Analysis end date                2019-09-05
-Number of EC2 machines           8
-Billed cost                      165.42 $
-Used cost                        9.16 $
+EC2 machines (total)             8
+EC2 machines (analysed)          3
+Billed cost                      165 $
+Used cost                        9 $
 CWAU = Used / Billed * 100       6 %
 
 For reference:
