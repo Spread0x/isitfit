@@ -3,6 +3,11 @@ Version latest (0.5.0?, 2019-09-24?)
 - ...
 
 
+Version 0.5.4 (2019-09-25)
+
+- bugfix: sloppy release before checking test results :/
+
+
 Version 0.5.3 (2019-09-25)
 
 - enh: separate consolidation of all results from displaying the consolidation
