@@ -1,6 +1,10 @@
 Version latest (0.5.0?, 2019-09-24?)
 
 - ...
+
+
+Version 0.5.0 (2019-09-25)
+
 - enh: readme docs for examples was not up-to-date with monthly savings in `--optimize`. Updated.
 - feat: add datadog integration
 - bugfix: moved the try/finally from the `__main__` section in `cli.py` to the `cli()` function
