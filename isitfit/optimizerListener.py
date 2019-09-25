@@ -3,6 +3,9 @@ logger = logging.getLogger('isitfit')
 
 import pandas as pd
 from tabulate import tabulate
+import tempfile
+import csv
+from collections import OrderedDict
 
 # https://pypi.org/project/termcolor/
 from termcolor import colored
@@ -54,6 +57,15 @@ class OptimizerListener:
     # members that will contain the results of the optimization
     self.df_sort = None
     self.sum_val = None
+
+    # for csv streaming
+    self.csv_fn = None
+    self.csv_fh = None
+    self.csv_writer = None
+
+  
+  def __exit__(self):
+    self.csv_fh.close()
 
 
   def _xxx_to_classification(self, xxx_maxmax, xxx_maxavg, xxx_avgmax):
@@ -112,11 +124,23 @@ class OptimizerListener:
     return 'Underused', out_c2
 
 
+  def handle_pre(self):
+      # a csv file handle to which to stream results
+      self.csv_fn = tempfile.NamedTemporaryFile(prefix='isitfit-', suffix='.csv', delete=False)
+      logger.info(colored("Intermediate results will be streamed to %s"%self.csv_fn.name, "cyan"))
+      self.csv_fh = open(self.csv_fn.name, 'w')
+      self.csv_writer = csv.writer(self.csv_fh)
 
 
   def per_ec2(self, ec2_obj, ec2_df, mm, ddg_df):
     #print(ec2_obj.instance_id)
     ec2_c1, ec2_c2 = self._ec2df_to_classification(ec2_df, ddg_df)
+
+    ec2_name = [x for x in ec2_obj.tags if x['Key']=='Name']
+    if len(ec2_name)>0:
+      ec2_name = ec2_name[0]['Value']
+    else:
+      ec2_name = None
 
     taglist = ec2_obj.tags
     if mm.filter_tags is not None:
@@ -124,14 +148,30 @@ class OptimizerListener:
       # similar to the isitfit.mainManager.tagsContain function, but filtering the tags themselves
       taglist = [x for x in taglist if (f_tn in x['Key'].lower()) or (f_tn in x['Value'].lower())]
 
-    self.ec2_classes.append({
-      'instance_id': ec2_obj.instance_id,
-      'instance_type': ec2_obj.instance_type,
-      'classification_1': ec2_c1,
-      'classification_2': ec2_c2,
-      'tags': "\n".join(["%s = %s"%(x['Key'], x['Value']) for x in taglist])
-    })
+    taglist = ["%s = %s"%(x['Key'], x['Value']) for x in taglist]
+    taglist = "\n".join(taglist)
 
+    ec2_res = OrderedDict()
+    ec2_res['instance_id'] = ec2_obj.instance_id
+    ec2_res['instance_type'] = ec2_obj.instance_type
+    ec2_res['classification_1'] = ec2_c1
+    ec2_res['classification_2'] = ec2_c2
+    ec2_res['tags'] = taglist
+
+    # write csv header
+    if len(self.ec2_classes)==0:
+      self.csv_writer.writerow(['name'] + [k for k,v in ec2_res.items() if k!='tags'])# save header
+
+    # save intermediate result to csv file
+    # Try to stick to 1 row per instance
+    # Drop the tags because they're too much to include
+    csv_row = [ec2_name] + [v.replace("\n", ";") for k,v in ec2_res.items() if k!='tags']
+    self.csv_writer.writerow(csv_row)
+
+    # gathering results
+    self.ec2_classes.append(ec2_res)
+
+    # check if should return early
     if self.n!=0:
       sub_underused = [x for x in self.ec2_classes if x['classification_1']=='Underused']
       if len(sub_underused) >= self.n:
@@ -146,7 +186,8 @@ class OptimizerListener:
 
     # if no data
     if df_all.shape[0]==0:
-      logger.info(colored("No EC2 instances found", "red"))
+      self.df_sort = None
+      self.sum_val = None
       return
 
     # merge current type hourly cost
@@ -191,6 +232,10 @@ class OptimizerListener:
 
 
   def display_all(self, *args, **kwargs):
+    if self.df_sort is None:
+      logger.info(colored("No EC2 instances found", "red"))
+      return
+
     # display
     # Edit 2019-09-25 just show the full list. Will add filtering later. This way it's less ambiguous when all instances are "Normal"
     # self.df_sort.dropna(subset=['recommended_type'], inplace=True)

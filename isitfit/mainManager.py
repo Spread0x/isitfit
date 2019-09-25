@@ -63,7 +63,7 @@ class MainManager:
         self.cloudtrail_manager = CloudtrailEc2typeManager(cloudtrail_client, dt_now_d, self.cache_man)
 
         # listeners post ec2 data fetch and post all activities
-        self.listeners = {'ec2': [], 'all': []}
+        self.listeners = {'pre':[], 'ec2': [], 'all': []}
 
         # datadog manager
         self.ddg = ddg
@@ -91,6 +91,10 @@ class MainManager:
 
         if n_ec2_total==0:
           return
+
+        # call listeners
+        for l in self.listeners['pre']:
+          l()
 
         # download ec2 catalog: 2 columns: ec2 type, ec2 cost per hour
         self.df_cat = ec2_catalog()

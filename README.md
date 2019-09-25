@@ -114,6 +114,10 @@ Apply the same filtering of tag name/value to the cost-weighted average utilizat
 > isitfit --filter-tags=foo
 ```
 
+Intermediate results of the optimization are streamed to a csv file.
+The filename is indicated in the command output as `Results will be streamed to /tmp/isitfit-9t0x0jj7.csv`.
+This is useful to start processing results while the optimization is running.
+
 
 
 ### Example 2: Using a non-default awscli profile
