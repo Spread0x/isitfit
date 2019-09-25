@@ -1,6 +1,10 @@
 Version latest (0.5.0?, 2019-09-24?)
 
 - ...
+
+
+Version 0.5.3 (2019-09-25)
+
 - enh: separate consolidation of all results from displaying the consolidation
 - feat: stream intermediate results to csv during the optimization
 - feat: save optimization final output to csv
