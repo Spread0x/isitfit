@@ -86,17 +86,17 @@ class MainManager:
           self.cache_man.connect()
 
         # 0th pass to count
-        n_ec2 = len(list(self.ec2_resource.instances.all()))
-        logger.warning("Found a total of %i EC2 instances"%n_ec2)
+        n_ec2_total = len(list(self.ec2_resource.instances.all()))
+        logger.warning("Found a total of %i EC2 instances"%n_ec2_total)
 
-        if n_ec2==0:
+        if n_ec2_total==0:
           return
 
         # download ec2 catalog: 2 columns: ec2 type, ec2 cost per hour
         self.df_cat = ec2_catalog()
 
         # get cloudtail ec2 type changes for all instances
-        self.cloudtrail_manager.init_data(self.ec2_resource.instances.all(), n_ec2)
+        self.cloudtrail_manager.init_data(self.ec2_resource.instances.all(), n_ec2_total)
 
         # iterate over all ec2 instances
         sum_capacity = 0
@@ -104,7 +104,7 @@ class MainManager:
         df_all = []
         ec2_noCloudwatch = []
         ec2_noCloudtrail = []
-        for ec2_obj in tqdm(self.ec2_resource.instances.all(), total=n_ec2, desc="Second pass through EC2 instances", initial=1):
+        for ec2_obj in tqdm(self.ec2_resource.instances.all(), total=n_ec2_total, desc="Second pass through EC2 instances", initial=1):
           try:
             self._handle_ec2obj(ec2_obj)
           except NoCloudwatchException:
@@ -130,7 +130,7 @@ class MainManager:
           logger.info("")
 
         for l in self.listeners['all']:
-          l(n_ec2, self)
+          l(n_ec2_total, self)
 
         logger.info("")
         logger.info("")

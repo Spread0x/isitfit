@@ -35,7 +35,7 @@ class UtilizationListener:
     self.df_all.append({'instance_id': ec2_obj.instance_id, 'capacity': res_capacity, 'used': res_used})
 
 
-  def after_all(self, n_ec2, mm):
+  def after_all(self, n_ec2_total, mm):
     # for debugging
     df_all = pd.DataFrame(self.df_all)
     logger.debug("\ncapacity/used per instance")
@@ -58,7 +58,7 @@ class UtilizationListener:
     table = [
       ["Start date", "%s"%dt_start],
       ["End date", "%s"%dt_end],
-      ["EC2 machines", "%i"%n_ec2],
+      ["EC2 machines (total)", "%i"%n_ec2_total],
       [colored("Billed cost", 'cyan'), colored("%0.0f $"%self.sum_capacity, 'cyan')],
       [colored("Used cost", 'cyan'), colored("%0.0f $"%self.sum_used, 'cyan')],
       [colored("CWAU (Used/Billed)", cwau_color), colored("%0.0f %%"%cwau_val, cwau_color)],
