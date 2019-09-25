@@ -15,6 +15,7 @@ class UtilizationListener:
     self.sum_capacity = 0
     self.sum_used = 0
     self.df_all = []
+    self.table = None # will contain the final table after calling `after_all`
 
 
   def per_ec2(self, ec2_obj, ec2_df, mm, ddg_df):
@@ -63,7 +64,7 @@ class UtilizationListener:
     dt_start = mm.StartTime.strftime("%Y-%m-%d")
     dt_end   = mm.EndTime.strftime("%Y-%m-%d")
     
-    table = [
+    self.table = [
       ["Start date", "%s"%dt_start],
       ["End date", "%s"%dt_end],
       ["EC2 machines (total)", "%i"%n_ec2_total],
@@ -72,11 +73,13 @@ class UtilizationListener:
       [colored("Used cost", 'cyan'), colored("%0.0f $"%self.sum_used, 'cyan')],
       [colored("CWAU (Used/Billed)", cwau_color), colored("%0.0f %%"%cwau_val, cwau_color)],
     ]
-    
+
+
+  def display_all(self, *args, **kwargs):
     # logger.info("Summary:")
     logger.info("Cost-Weighted Average Utilization (CWAU) of the AWS EC2 account:")
     logger.info("")
-    logger.info(tabulate(table, headers=['Field', 'Value']))
+    logger.info(tabulate(self.table, headers=['Field', 'Value']))
     logger.info("")
     logger.info("For reference:")
     logger.info(colored("* CWAU >= 70% is well optimized", 'green'))

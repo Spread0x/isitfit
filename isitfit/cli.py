@@ -59,9 +59,12 @@ def cli(debug, version, optimize, n, filter_tags):
       if not optimize:
         mm.add_listener('ec2', ul.per_ec2)
         mm.add_listener('all', ul.after_all)
+        mm.add_listener('all', ul.display_all)
       else:
         mm.add_listener('ec2', ol.per_ec2)
         mm.add_listener('all', ol.after_all)
+        mm.add_listener('all', ol.display_all)
+
 
       # start download data and processing
       logger.info("Fetching history...")
@@ -69,6 +72,7 @@ def cli(debug, version, optimize, n, filter_tags):
 
     finally:
       display_footer()
+
 
 if __name__ == '__main__':
   cli()

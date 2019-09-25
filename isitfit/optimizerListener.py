@@ -51,6 +51,10 @@ class OptimizerListener:
     self.thresholds = thresholds
     self.ec2_classes = []
 
+    # members that will contain the results of the optimization
+    self.df_sort = None
+    self.sum_val = None
+
 
   def _xxx_to_classification(self, xxx_maxmax, xxx_maxavg, xxx_avgmax):
     # check if good to convert to burstable or lambda
@@ -181,37 +185,41 @@ class OptimizerListener:
     #
     #  logger.info("\n")
 
+    # main results
+    self.df_sort = df_all.sort_values(['savings'], ascending=True)
+    self.sum_val = df_all.savings.sum()
+
+
+  def display_all(self, *args, **kwargs):
     # display
-    df_sort = df_all.sort_values(['savings'], ascending=True)
     # Edit 2019-09-25 just show the full list. Will add filtering later. This way it's less ambiguous when all instances are "Normal"
-    # df_sort.dropna(subset=['recommended_type'], inplace=True)
+    # self.df_sort.dropna(subset=['recommended_type'], inplace=True)
     
     # if no recommendations
-    if df_sort.shape[0]==0:
+    if self.df_sort.shape[0]==0:
       logger.info(colored("No optimizations from isitfit for this AWS EC2 account", "red"))
       return
     
     # if there are recommendations, show them
-    sum_val = df_all.savings.sum()
-    sum_comment = "extra cost" if sum_val>0 else "savings"
-    sum_color = "red" if sum_val>0 else "green"
+    sum_comment = "extra cost" if self.sum_val>0 else "savings"
+    sum_color = "red" if self.sum_val>0 else "green"
 
     #logger.info("Optimization based on the following CPU thresholds:")
     #logger.info(self.thresholds)
     #logger.info("")
-    logger.info(colored("Recommended %s: %0.0f $ (over the next 3 months)"%(sum_comment, sum_val), sum_color))
+    logger.info(colored("Recommended %s: %0.0f $ (over the next 3 months)"%(sum_comment, self.sum_val), sum_color))
     logger.info("")
 
     with pd.option_context("display.max_columns", 10):
       logger.info("Details")
-      if df_sort.shape[0]<=10:
-        logger.info(df2tabulate(df_sort))
+      if self.df_sort.shape[0]<=10:
+        logger.info(df2tabulate(self.df_sort))
       else:
-        logger.info(df2tabulate(df_sort.head(n=5)))
+        logger.info(df2tabulate(self.df_sort.head(n=5)))
         logger.info("...")
-        logger.info(df2tabulate(df_sort.tail(n=5)))
+        logger.info(df2tabulate(self.df_sort.tail(n=5)))
         logger.info("")
-        logger.info(colored("Table originally with %i rows is truncated for top and bottom 5 only."%df_sort.shape[0], "cyan"))
+        logger.info(colored("Table originally with %i rows is truncated for top and bottom 5 only."%self.df_sort.shape[0], "cyan"))
         logger.info(colored("Consider filtering it with --n=x for the 1st x results or --filter-tags=foo using a value from your own EC2 tags.", "cyan"))
 
     if self.n!=0:
