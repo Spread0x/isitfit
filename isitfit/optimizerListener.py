@@ -126,7 +126,7 @@ class OptimizerListener:
       sub_underused = [x for x in self.ec2_classes if x['classification_1']=='Underused']
       if len(sub_underused) >= self.n:
         # break early
-        self.after_all(None, mm)
+        self.after_all(None, mm, None)
         import sys
         sys.exit(0)
 
