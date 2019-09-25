@@ -1,6 +1,10 @@
 Version latest (0.5.0?, 2019-09-24?)
 
 - ...
+
+
+Version 0.5.1 (2019-09-25)
+
 - enh: display an instance's tags in the optimization table
 - feat: add `--filter-tags` option
 - enh: display n ec2 analysed
