@@ -232,6 +232,9 @@ class OptimizerListener:
 
 
   def storecsv_all(self, *args, **kwargs):
+      if self.df_sort is None:
+        return
+
       csv_fn = tempfile.NamedTemporaryFile(prefix='isitfit-full-', suffix='.csv', delete=False)
       logger.info(colored("Saving final results to %s"%csv_fn.name, "cyan"))
       with open(csv_fn.name, 'w') as fh:

@@ -100,6 +100,8 @@ Details
 |                     |                 |                    |                                    |           |                    |           | opsworks:instance = ********************         |
 |                     |                 |                    |                                    |           |                    |           | Name = *************                             |
 +---------------------+-----------------+--------------------+------------------------------------+-----------+--------------------+-----------+--------------------------------------------------+
+Saving final results to /tmp/isitfit-full-41o1b4o8.csv
+Save complete
 ```
 
 Filter optimizations for a particular tag name or tag value
