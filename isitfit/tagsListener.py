@@ -22,6 +22,7 @@ class TagsListener:
     ec2_all = self.ec2_resource.instances.all()
     for ec2_obj in tqdm(ec2_all, total=n_ec2_total, desc=desc, initial=1):
       tags_dict = {x['Key']: x['Value'] for x in ec2_obj.tags}
+      tags_dict['instance_id'] = ec2_obj.instance_id
       self.tags_list.append(tags_dict)
 
   def dump(self):
@@ -34,7 +35,9 @@ class TagsListener:
     with tempfile.NamedTemporaryFile(prefix='isitfit-tags-', suffix='.csv', delete=False) as fh:
       logger.info("Converting tags list into dataframe")
       df = pd.DataFrame(self.tags_list)
-      df.sort_index(axis=1)  # sort columns
+      df = df.rename(columns={'instance_id': '_0_instance_id', 'Name': '_1_Name'}) # trick to keep instance ID and name as the first columns
+      df = df.sort_index(axis=1)  # sort columns
+      df = df.rename(columns={'_0_instance_id': 'instance_id', '_1_Name': 'Name'}) # undo trick
 
       logger.info(colored("Dumping data into %s"%fh.name, "cyan"))
       df.to_csv(fh.name, index=False)
