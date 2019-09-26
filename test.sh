@@ -45,6 +45,9 @@ isitfit --filter-tags=ffa
 isitfit --optimize --filter-tags=inexistant
 isitfit --filter-tags=inexistant
 
+echo "Test 8: tags dump"
+isitfit tags dump
+
 # done
 # `set -x` doesn't let the script reach this point in case of any error
 echo "Tests completed"
