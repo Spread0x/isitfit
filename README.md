@@ -278,6 +278,11 @@ The relevant source code is [here](https://github.com/autofitcloud/isitfit/blob/
 Check `CHANGELOG.md`
 
 
+## Roadmap
+
+Check the public trello board [here](https://trello.com/b/RVlHtytL/isitfit)
+
+
 ## License
 
 Apache License 2.0. Check file `LICENSE`
