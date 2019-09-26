@@ -44,7 +44,7 @@ def tagsContain(f_tn, ec2_obj):
 
 
 class MainManager:
-    def __init__(self, ddg, filter_tags):
+    def __init__(self, ddg=None, filter_tags=None):
         # boto3 ec2 and cloudwatch data
         self.ec2_resource = boto3.resource('ec2')
         self.cloudwatch_resource = boto3.resource('cloudwatch')
@@ -236,6 +236,9 @@ class MainManager:
 
     def _get_ddg_cached(self, ec2_obj):
         # check if we can get datadog data
+        if not self.ddg:
+          return None
+
         if not self.ddg.is_configured():
           return None
 

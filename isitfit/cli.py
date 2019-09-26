@@ -22,14 +22,14 @@ def display_footer():
 #atexit.register(display_footer)
 
 
-@click.command()
+@click.group(invoke_without_command=True)
 @click.option('--debug', is_flag=True, help='Display more details to help with debugging')
 @click.option('--version', is_flag=True, help='Show the installed version')
 @click.option('--optimize', is_flag=True, help='Generate recommendations of optimal EC2 sizes')
 @click.option('--n', default=0, help='number of underused ec2 optimizations to find before stopping. Skip to get all optimizations')
 @click.option('--filter-tags', default=None, help='filter instances for only those carrying this value in the tag name or value')
-def cli(debug, version, optimize, n, filter_tags):
-
+@click.pass_context
+def cli(ctx, debug, version, optimize, n, filter_tags):
     if version:
       print('isitfit version %s'%isitfit_version)
       return
@@ -40,6 +40,11 @@ def cli(debug, version, optimize, n, filter_tags):
     logger.addHandler(ch)
     logger.setLevel(logLevel)
 
+    # do not continue with the remaining code here
+    # if a command is invoked, eg `isitfit tags`
+    ctx.ensure_object(dict)
+    if ctx.invoked_subcommand is not None:
+      return
 
     #logger.info("Is it fit?")
     try:
@@ -76,6 +81,23 @@ def cli(debug, version, optimize, n, filter_tags):
     finally:
       display_footer()
 
+#-----------------------
+
+@cli.group(help="Explore EC2 tags", invoke_without_command=False)
+@click.pass_context
+def tags(ctx):
+  from .tagsListener import TagsListener
+  tl = TagsListener()
+  tl.fetch()
+  ctx.obj['tl'] = tl
+
+@tags.command(help="Dump EC2 tags in tabular form into a csv file")
+@click.pass_context
+def dump(ctx):
+  ctx.obj['tl'].dump()
+  display_footer()
+
+#-----------------------
 
 if __name__ == '__main__':
   cli()

@@ -12,10 +12,14 @@ A simple command-line tool to check if an AWS EC2 account is fit or underused.
 - [Installation](#installation)
 - [Usage](#usage)
   - [Pre-requisites](#pre-requisites)
-  - [Example 1: basic usage](#example-1-basic-usage)
-  - [Example 2: Using a non-default awscli profile](#example-2-using-a-non-default-awscli-profile)
-  - [Example 3: caching results with redis](#example-3-caching-results-with-redis)
-  - [Example 4: datadog integration](#example-4-datadog-integration)
+  - [Display version](#display-version)
+  - [Cost-weighted average utilization](#cost-weighted-average-utilization)
+  - [Recommended optimizations](#recommended-optimizations)
+  - [Filtering on tags](#filtering-on-tags)
+  - [Dumping tags to CSV](#dumping-tags-to-csv)
+  - [Non-default awscli profile](#non-default-awscli-profile)
+  - [Caching results with redis](#caching-results-with-redis)
+  - [Datadog integration](#datadog-integration)
 - [What does Underused mean?](#what-does-underused-mean)
 - [Changelog](#changelog)
 - [License](#license)
@@ -48,7 +52,7 @@ The keys should belong to a user/role with the following minimal policies:
 If you have a Datadog account, check [Example 4: datadog integration](#example-4-datadog-integration)
 
 
-### Example 1: basic usage
+### Display version
 
 Check the version of `isitfit`
 
@@ -56,12 +60,12 @@ Check the version of `isitfit`
 isitfit --version
 ```
 
-Calculate AWS EC2 used-to-billed cost
+### Cost-weighted average utilization
+
+Calculate AWS EC2 Cost-Weighted Average Utilization
 
 ```
 > isitfit
-
-Cost-Weighted Average Utilization (CWAU) of the AWS EC2 account:
 
 Field                            Value
 -------------------------------  -----------
@@ -77,6 +81,8 @@ For reference:
 * CWAU >= 70% is well optimized
 * CWAU <= 30% is underused
 ```
+
+### Recommended optimizations
 
 Find all recommended type changes
 
@@ -120,6 +126,8 @@ Details
 ...
 ```
 
+### Filtering on tags
+
 Filter optimizations for a particular tag name or tag value
 
 ```
@@ -142,10 +150,26 @@ Used cost                        0 $
 CWAU = Used / Billed * 100       0 %
 ```
 
+### Dumping tags to CSV
+
+To dump the EC2 tags in tabular format into a CSV file:
+
+```
+> isitfit tags dump
+
+Counting EC2 instances
+Found a total of 8 EC2 instances
+Scanning EC2 instances: 9it [00:01,  8.72it/s]                                                                                                                                                              
+Converting tags list into dataframe
+Dumping data into /tmp/isitfit-tags-9vgd_bzy.csv
+Done
+Consider `pip3 install visidata` and then `vd /tmp/isitfit-tags-9vgd_bzy.csv` for further filtering or exploration.
+More details about visidata at http://visidata.org/
+```
 
 
 
-### Example 2: Using a non-default awscli profile
+### Non-default awscli profile
 
 To specify a particular profile from `~/.aws/credentials`, set the `AWS_PROFILE` and `AWS_DEFAULT_REGION` environment variables.
 
@@ -162,7 +186,7 @@ isitfit --debug
 ```
 
 
-### Example 3: caching results with redis
+### Caching results with redis
 
 Caching in `isitfit` makes re-runs more efficient.
 
@@ -199,7 +223,7 @@ redis-cli -n 0 flushdb
 Consider saving the environment variables in the `~/.bashrc` file.
 
 
-### Example 4: datadog integration
+### Datadog integration
 
 Get your datadog API key and APP key from [datadog/integrations/API](https://app.datadoghq.com/account/settings#api).
 

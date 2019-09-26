@@ -1,6 +1,7 @@
 Version latest (0.5.0?, 2019-09-24?)
 
 - ...
+- feat: `isitfit tags dump` new command to dump csv of tags for use with visidata or spreadsheet editor
 
 
 Version 0.5.5 (2019-09-26)
