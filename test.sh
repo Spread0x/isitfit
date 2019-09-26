@@ -7,12 +7,18 @@ set -x
 ISITFIT_REDIS_HOST=localhost
 ISITFIT_REDIS_PORT=6379
 ISITFIT_REDIS_DB=0
+
+# clear caching
+rm -rf /tmp/isitfit_ec2info.cache
 redis-cli -n $ISITFIT_REDIS_DB flushdb #  || echo "redis db clear failed" (eg db number out of range)
 
 
 # start
-echo "Test 0: version"
+echo "Test 0a: version runs ok"
 isitfit --version
+
+echo "Test 0b: version takes less than 1 sec (visual check ATM)"
+time isitfit --version
 
 echo "Test 1: default profile (shadiakiki1986@gmail.com@amazonaws.com)"
 isitfit

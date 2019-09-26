@@ -1,4 +1,3 @@
-import numpy as np
 def mergeSeriesOnTimestampRange(df_cpu, df_type):
   """
   Upsamples df_type to df_cpu.
@@ -9,6 +8,8 @@ def mergeSeriesOnTimestampRange(df_cpu, df_type):
     Returns
       pd.Series({'time': [1,2,3,4], 'field_1': [5,6,7,8], 'field_2': ['a','a','b','b']})
   """
+  import numpy as np
+
   df_cpu['instanceType'] = None
   # assume df_type is sorted in decreasing EventTime order (very important)
   # NB: since some instances are not present in the cloudtrail (for which we append artificially the "now" type)
@@ -30,12 +31,11 @@ def mergeSeriesOnTimestampRange(df_cpu, df_type):
 
 
 
-import requests
-from cachecontrol import CacheControl
-from cachecontrol.caches.file_cache import FileCache
-import json
-import pandas as pd
 def ec2_catalog():
+    import requests
+    from cachecontrol import CacheControl
+    from cachecontrol.caches.file_cache import FileCache
+
     import logging
     logger = logging.getLogger('isitfit')
     logger.debug("Downloading ec2 catalog (cached to local file)")
@@ -52,8 +52,10 @@ def ec2_catalog():
     r = cached_sess.request('get', URL)
 
     # read catalog, copy from ec2op-cli/ec2op/optimizer/cwDailyMaxMaxCpu
+    import json
     j = json.dumps(r.json(), indent=4, sort_keys=True)
-    df = pd.read_json(j, orient='split')
+    from pandas import read_json
+    df = read_json(j, orient='split')
     
     # Edit 2019-09-13 no need to subsample the columns at this stage
     # df = df[['API Name', 'Linux On Demand cost']]

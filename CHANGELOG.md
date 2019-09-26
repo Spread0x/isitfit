@@ -1,6 +1,8 @@
 Version latest (0.5.0?, 2019-09-24?)
 
 - ...
+- enh: moving imports to shave on load time when `isitfit --version` is called (down from 5 seconds to 0.7 seconds)
+- enh: testing script now removes the ec2 catalog cache so that downloading the URL is also tested
 
 
 Version 0.5.4 (2019-09-25)
