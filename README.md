@@ -203,7 +203,7 @@ Get your datadog API key and APP key from [datadog/integrations/API](https://app
 
 Set them to the environment variables `DATADOG_API_KEY` and `DATADOG_APP_KEY` as documented [here](https://github.com/DataDog/datadogpy#environment-variables).
 
-Then run isitfit as usual, eg `isitfit` or `isitfit --optimize`
+Then run isitfit as usual.
 
 For example
 
