@@ -288,10 +288,11 @@ doctoc README.md
 
 ## Support
 
-I built `isitfit` as part of the workflow behind [AutofitCloud](https://autofitcloud.com), the early-stage startup that I'm founding, seeking to cut cloud waste on our planet.
+I built `isitfit` as part of the workflow behind [AutofitCloud](https://autofitcloud.com),
+the early-stage startup that I'm founding, seeking to cut cloud waste on our planet  🌎.
 
 If you like `isitfit` and would like to see it developed further,
-please support me by signing up at https://autofitcloud.com
+sign up for a pilot project at https://autofitcloud.com
 
 Over and out!
 
