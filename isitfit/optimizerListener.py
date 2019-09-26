@@ -39,6 +39,17 @@ def class2recommendedCost(r):
   return None
 
 
+def ec2obj_to_name(ec2_obj):
+    if ec2_obj.tags is None:
+      return None
+
+    ec2_name = [x for x in ec2_obj.tags if x['Key']=='Name']
+    if len(ec2_name)==0:
+      return None
+
+    return ec2_name[0]['Value']
+
+
 class OptimizerListener:
 
   def __init__(self, n, thresholds = None):
@@ -136,11 +147,7 @@ class OptimizerListener:
     #print(ec2_obj.instance_id)
     ec2_c1, ec2_c2 = self._ec2df_to_classification(ec2_df, ddg_df)
 
-    ec2_name = [x for x in ec2_obj.tags if x['Key']=='Name']
-    if len(ec2_name)>0:
-      ec2_name = ec2_name[0]['Value']
-    else:
-      ec2_name = None
+    ec2_name = ec2obj_to_name(ec2_obj)
 
     taglist = ec2_obj.tags
     if mm.filter_tags is not None:
@@ -238,7 +245,7 @@ class OptimizerListener:
       csv_fn = tempfile.NamedTemporaryFile(prefix='isitfit-full-', suffix='.csv', delete=False)
       logger.info(colored("Saving final results to %s"%csv_fn.name, "cyan"))
       with open(csv_fn.name, 'w') as fh:
-        self.df_sort.to_csv(fh)
+        self.df_sort.to_csv(fh, index=False)
         logger.info(colored("Save complete", "cyan"))
 
 

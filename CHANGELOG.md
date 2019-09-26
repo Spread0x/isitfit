@@ -3,6 +3,10 @@ Version latest (0.5.0?, 2019-09-24?)
 - ...
 
 
+Version 0.6.2 (2019-09-26)
+
+- bugfix: if no tags nor name, the optimize code was failing. Closes #5
+
 Version 0.6.1 (2019-09-26)
 
 - bugfix: had forgotten the instance ID in the tags dump (oops)
