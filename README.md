@@ -97,6 +97,12 @@ Saving final results to /tmp/isitfit-full-41o1b4o8.csv
 Save complete
 ```
 
+Notice that the full final results are saved to a csv file, indicated in the line under the table: `Saving final results to /tmp/isitfit-full-...csv`
+
+Also, intermediate results of the optimization are streamed to a csv file during the optimization.
+The filename is indicated in the command output, before the table, as `Results will be streamed to /tmp/isitfit-9t0x0jj7.csv`.
+This is useful to start processing results while the optimization is running.
+
 Find only the first 1 underused instances
 
 ```
@@ -121,12 +127,19 @@ Filter optimizations for a particular tag name or tag value
 Apply the same filtering of tag name/value to the cost-weighted average utilization
 
 ```
-> isitfit --filter-tags=foo
+> isitfit --filter-tags=inexistant
+
+Field                            Value
+-------------------------------  -----------
+Analysis start date              2019-06-07
+Analysis end date                2019-09-05
+EC2 machines (total)             8
+EC2 machines (analysed)          0
+Billed cost                      0 $
+Used cost                        0 $
+CWAU = Used / Billed * 100       0 %
 ```
 
-Intermediate results of the optimization are streamed to a csv file.
-The filename is indicated in the command output as `Results will be streamed to /tmp/isitfit-9t0x0jj7.csv`.
-This is useful to start processing results while the optimization is running.
 
 
 
