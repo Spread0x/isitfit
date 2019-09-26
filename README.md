@@ -12,6 +12,7 @@ A simple command-line tool to check if an AWS EC2 account is fit or underused.
 - [Installation](#installation)
 - [Usage](#usage)
   - [Pre-requisites](#pre-requisites)
+  - [Synopsis](#synopsis)
   - [Display version](#display-version)
   - [Cost-weighted average utilization](#cost-weighted-average-utilization)
   - [Recommended optimizations](#recommended-optimizations)
@@ -22,6 +23,7 @@ A simple command-line tool to check if an AWS EC2 account is fit or underused.
   - [Datadog integration](#datadog-integration)
 - [What does Underused mean?](#what-does-underused-mean)
 - [Changelog](#changelog)
+- [Roadmap](#roadmap)
 - [License](#license)
 - [Dev notes](#dev-notes)
 - [Support](#support)
@@ -50,6 +52,16 @@ The keys should belong to a user/role with the following minimal policies:
 `AmazonEC2ReadOnlyAccess, CloudWatchReadOnlyAccess`
 
 If you have a Datadog account, check [Example 4: datadog integration](#example-4-datadog-integration)
+
+
+### Synopsis
+
+To get help hints in the command-line use the `--help`
+```
+> isitfit --help
+> isitfit tags --help
+> isitfit tags dump --help
+```
 
 
 ### Display version
