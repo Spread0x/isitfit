@@ -1,12 +1,20 @@
+Semantic versioning
+
+
 Version latest (0.5.0?, 2019-09-24?)
 
 - ...
+
+
+Version 0.7.0 (2019-09-27)
+
 - feat: `isitfit tags suggest` will generate some tags that are implied from the instance names
 
 
 Version 0.6.2 (2019-09-26)
 
 - bugfix: if no tags nor name, the optimize code was failing. Closes #5
+
 
 Version 0.6.1 (2019-09-26)
 
