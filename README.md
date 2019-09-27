@@ -162,6 +162,20 @@ Used cost                        0 $
 CWAU = Used / Billed * 100       0 %
 ```
 
+### Generating suggested tags
+
+This generates some tags that are implied from the instance name.
+
+For example, if there are 3 instances that share the word "app" in their names, then "app" is used as a suggested tag.
+
+This helps to squeeze some information out of the instance names to add some tags for convenient filtering.
+
+To use this:
+
+```
+isitfit tags suggest
+```
+
 ### Dumping tags to CSV
 
 To dump the EC2 tags in tabular format into a CSV file:

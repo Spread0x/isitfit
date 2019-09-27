@@ -1,6 +1,7 @@
 Version latest (0.5.0?, 2019-09-24?)
 
 - ...
+- feat: `isitfit tags suggest` will generate some tags that are implied from the instance names
 
 
 Version 0.6.2 (2019-09-26)
