@@ -17,6 +17,7 @@ A simple command-line tool to check if an AWS EC2 account is fit or underused.
   - [Cost-weighted average utilization](#cost-weighted-average-utilization)
   - [Recommended optimizations](#recommended-optimizations)
   - [Filtering on tags](#filtering-on-tags)
+  - [Generating suggested tags](#generating-suggested-tags)
   - [Dumping tags to CSV](#dumping-tags-to-csv)
   - [Non-default awscli profile](#non-default-awscli-profile)
   - [Caching results with redis](#caching-results-with-redis)
