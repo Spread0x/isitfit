@@ -14,8 +14,9 @@ pyarrow==0.14.1
 
 # not a direct dependency in the source code
 # but required to configure the environment
-# Including the version because it will fetch the corresponding boto3
-# Will also automatically install the necessary boto3==1.9.234
-awscli==1.16.244
+# These 2 versions go hand-in-hand.
+# Not sure why boto3 doesn't get installed when awscli is included
+awscli==1.16.248
+boto3==1.9.238
 
 datadog==0.30.0

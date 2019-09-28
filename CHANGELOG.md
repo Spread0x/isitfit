@@ -6,6 +6,11 @@ Version latest (0.5.0?, 2019-09-24?)
 - ...
 
 
+Version 0.7.1 (2019-09-27)
+
+- bugfix: add boto3 as dependency
+
+
 Version 0.7.0 (2019-09-27)
 
 - feat: `isitfit tags suggest` will generate some tags that are implied from the instance names
