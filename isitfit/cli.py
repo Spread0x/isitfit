@@ -85,30 +85,33 @@ def cli(ctx, debug, version, optimize, n, filter_tags):
 #-----------------------
 
 @cli.group(help="Explore EC2 tags", invoke_without_command=False)
-@click.pass_context
-def tags(ctx):
-  from .tagsListener import TagsListener
-  tl = TagsListener()
-  ctx.obj['tl'] = tl
+def tags():
+  pass
 
 
-MAX_ROWS = 10
-MAX_COLS = 5
 
 @tags.command(help="Generate new tags suggested by isitfit for each EC2 instance")
+@click.option('--advanced', is_flag=True, help='Get advanced suggestions of tags. Requires login')
 @click.pass_context
-def suggest(ctx):
-  from .tagsListener import dump_df_to_csv
-  tl = ctx.obj['tl']
-  tags_df = tl.fetch(onlyNames=True)
-  suggested_df = tl.suggest(tags_df)
+def suggest(ctx, advanced):
 
-  logger.info("")
-  logger.info("Suggested tags:")
-  logger.info(suggested_df.head(n=MAX_ROWS))
-  if suggested_df.shape[0] > MAX_ROWS:
-    logger.info("...")
-    dump_df_to_csv(suggested_df, 'isitfit-tags-suggest-')
+  tl = None
+  if not advanced:
+    from .tagsSuggestBasic import TagsSuggestBasic
+    tl = TagsSuggestBasic()
+  else:
+    from .tagsSuggestAdvanced import TagsSuggestAdvanced
+    tl = TagsSuggestAdvanced()
+
+  try:
+    tl.prepare()
+    tl.fetch()
+    tl.suggest()
+    tl.display()
+  except ValueError as e:
+    logger.error("Error: %s"%str(e))
+    import sys
+    sys.exit(1)
 
   display_footer()
 
@@ -116,18 +119,16 @@ def suggest(ctx):
 @tags.command(help="Dump existing EC2 tags in tabular form into a csv file")
 @click.pass_context
 def dump(ctx):
-  from .tagsListener import dump_df_to_csv
-  tl = ctx.obj['tl']
-  tags_df = tl.fetch(onlyNames=False)
+  from .tagsDump import TagsDump
+  tl = TagsDump()
 
-  logger.info("")
-  logger.info("Dumped tags:")
-  logger.info(tags_df.head(n=MAX_ROWS))
-  if tags_df.shape[0] > MAX_ROWS or tags_df.shape[1] > MAX_COLS:
-    logger.info("..." if tags_df.shape[0] > MAX_ROWS else "")
-    dump_df_to_csv(tags_df, 'isitfit-tags-dump-')
+  tl.fetch()
+  tl.suggest() # not really suggesting. Just dumping to csv
+  tl.display()
 
   display_footer()
+
+
 
 #-----------------------
 
