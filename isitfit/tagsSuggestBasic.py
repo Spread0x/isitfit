@@ -23,11 +23,19 @@ def display_df(title, df, csv_fn, shape):
     from tabulate import tabulate
     logger.info("")
     logger.info(title)
+
+    if shape[0]==0:
+      logger.info("None")
+      return
+
     df_show = df.head(n=MAX_ROWS)
     df_show = df_show.applymap(lambda c: (c[:MAX_STRING]+'...' if len(c)>=MAX_STRING else c) if type(c)==str else c)
 
     logger.info(tabulate(df_show, headers='keys', tablefmt='psql', showindex=False))
     if shape[0] <= MAX_ROWS and shape[1] <= MAX_COLS:
+      return
+
+    if csv_fn is None:
       return
 
     # https://pypi.org/project/termcolor/
@@ -95,6 +103,7 @@ class TagsSuggestBasic:
       tags_implier = TagsImplierMain(self.tags_df)
       self.suggested_df = tags_implier.imply()
       self.csv_fn = dump_df_to_csv(self.suggested_df, 'isitfit-tags-suggest-')
+      self.suggested_shape = self.suggested_df.shape
 
 
   def display(self):
@@ -102,5 +111,5 @@ class TagsSuggestBasic:
       "Suggested tags:",
       self.suggested_df,
       self.csv_fn,
-      self.suggested_df.shape
+      self.suggested_shape
     )

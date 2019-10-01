@@ -7,6 +7,7 @@ Version latest (0.5.0?, 2019-09-24?)
 - feat: major refactor of tags classes so that they inherit from each other
     - cleaner code :)
 - feat: start on `isitfit tags suggest --advanced` that uploads ec2 names for further advanced processing
+  - this currently successfully uploads csv to s3 and waits on sqs, but nothing is listening ATM to reply
 
 
 Version 0.7.1 (2019-09-27)
