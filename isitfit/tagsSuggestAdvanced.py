@@ -3,6 +3,7 @@ logger = logging.getLogger('isitfit')
 
 from .tagsSuggestBasic import TagsSuggestBasic
 import os
+import requests
 
 BUCKET_NAME='isitfit-cli'
 
@@ -19,19 +20,19 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
 
   def prepare(self):
     logger.info("Advanced suggestion of tags")
-    r_ping = self._tags_ping()
-    if not 'status' in r_ping:
-      raise ValueError("Failed to ping the remote: %s"%r_ping)
+    r_register = self._register()
+    if not 'status' in r_register:
+      raise ValueError("Failed to ping the remote: %s"%r_register)
 
     # TODO implement later
     logger.info("tags ping complete")
-    print(r_ping)
-    logger.info("Can use s3: %s"%r_ping['s3_arn'])
-    logger.info("Can use sqs: %s"%r_ping['sqs_url'])
-    self.r_ping = r_ping
+    print(r_register)
+    logger.info("Can use s3: %s"%r_register['s3_arn'])
+    logger.info("Can use sqs: %s"%r_register['sqs_url'])
+    self.r_register = r_register
 
     # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs.html#SQS.Queue.receive_messages
-    self.sqs_q = self.sqs_res.Queue(self.r_ping['sqs_url'])
+    self.sqs_q = self.sqs_res.Queue(self.r_register['sqs_url'])
 
 
 
@@ -41,9 +42,9 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
     logger.info("Uploading ec2 names to s3")
     with tempfile.NamedTemporaryFile(suffix='csv', prefix='isitfit-ec2names-', delete=True) as fh:
       self.tags_df.to_csv(fh.name, index=False)
-      s3_path = os.path.join(self.r_ping['s3_arn'], 'tags_request.csv')
+      s3_path = os.path.join(self.r_sts['Account'], self.r_sts['UserId'], 'tags_request.csv')
       self.s3_client.put_object(Bucket=BUCKET_NAME, Key=s3_path, Body=fh.name)
-      self.sqs_q.send_message(MessageBody='ec2names uploaded')
+      self._tags_suggest()
 
     # now listen on sqs
     # https://github.com/jegesh/python-sqs-listener/blob/master/sqs_listener/__init__.py#L123
@@ -68,7 +69,7 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
         for m in messages['Messages']:
           if m['Body'] == 'tags processed':
             with tempfile.NamedTemporaryFilename(suffix='csv', prefix='isitfit-tags-suggestAdvanced-', delete=False) as fh:
-              s3_path = os.path.join(self.r_ping['s3_arn'], 'tags_suggested.csv')
+              s3_path = os.path.join(self.r_register['s3_arn'], 'tags_suggested.csv')
               response = self.s3_client.get_object(Bucket=BUCKET_NAME, Key=s3_path)
               fh.write(response['Body'].read())
               self.suggested_df = pd.read_csv(fh.name, nrows=MAX_ROWS)
@@ -86,18 +87,29 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
     self.csv_fn = None
 
 
-  def _tags_ping(self):
-      import requests
+  def _register(self):
       # URL = 'https://klrek4vqid.execute-api.us-east-1.amazonaws.com/dev/tags/ping'
-      URL = 'https://klrek4vqid.execute-api.us-east-1.amazonaws.com/dev/register'
-      import boto3
-      sts = boto3.client('sts')
-      r_sts = sts.get_caller_identity()
-      del r_sts['ResponseMetadata']
+      URL = 'https://0yr0yj7h52.execute-api.us-east-1.amazonaws.com/dev/register'
+      self.r_sts = self.sts.get_caller_identity()
+      del self.r_sts['ResponseMetadata']
       # eg {'UserId': 'AIDA6F3WEM7AXY6Y4VWDC', 'Account': '974668457921', 'Arn': 'arn:aws:iam::974668457921:user/shadi'}
 
-      r_ping = requests.request('post', URL, json=r_sts)
+      r_register = requests.request('post', URL, json=self.r_sts)
       # https://stackoverflow.com/questions/18810777/how-do-i-read-a-response-from-python-requests
       import json
-      r2 = json.loads(r_ping.text)
+      r2 = json.loads(r_register.text)
+      return r2
+
+
+  def _tags_suggest(self):
+      # URL = 'https://klrek4vqid.execute-api.us-east-1.amazonaws.com/dev/tags/ping'
+      URL = 'https://0yr0yj7h52.execute-api.us-east-1.amazonaws.com/dev/tags/suggest'
+      load_send = {}
+      load_send.update(self.r_sts)
+      load_send['s3_key_suffix'] = 'tag_request.csv'
+      load_send['sqs_url'] = self.r_register['sqs_url']
+      r_tagsSuggest = requests.request('post', URL, json=load_send)
+      # https://stackoverflow.com/questions/18810777/how-do-i-read-a-response-from-python-requests
+      import json
+      r2 = json.loads(r_tagsSuggest.text)
       return r2
