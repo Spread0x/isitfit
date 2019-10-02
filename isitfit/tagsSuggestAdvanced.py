@@ -4,6 +4,7 @@ logger = logging.getLogger('isitfit')
 from .tagsSuggestBasic import TagsSuggestBasic
 import os
 import requests
+import json
 
 BUCKET_NAME='isitfit-cli'
 
@@ -19,21 +20,17 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
 
 
   def prepare(self):
-    logger.info("Advanced suggestion of tags")
-    r_register = self._register()
-    if not 'status' in r_register:
-      raise ValueError("Failed to ping the remote: %s"%r_register)
+    self.r_register = self._register()
+    if not 'status' in self.r_register:
+      raise ValueError("Failed to ping the remote: %s"%self.r_register)
 
     # TODO implement later
-    logger.info("tags ping complete")
-    print(r_register)
-    logger.info("Can use s3: %s"%r_register['s3_arn'])
-    logger.info("Can use sqs: %s"%r_register['sqs_url'])
-    self.r_register = r_register
+    # print(self.r_register)
+    logger.info("Will use s3 arn: %s"%self.r_register['s3_arn'])
+    logger.info("Will use sqs url: %s"%self.r_register['sqs_url'])
 
     # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs.html#SQS.Queue.receive_messages
     self.sqs_q = self.sqs_res.Queue(self.r_register['sqs_url'])
-
 
 
   def suggest(self):
@@ -42,9 +39,12 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
     logger.info("Uploading ec2 names to s3")
     with tempfile.NamedTemporaryFile(suffix='csv', prefix='isitfit-ec2names-', delete=True) as fh:
       self.tags_df.to_csv(fh.name, index=False)
-      s3_path = os.path.join(self.r_sts['Account'], self.r_sts['UserId'], 'tags_request.csv')
+      self.s3_key_suffix = 'tags_request.csv'
+      s3_path = os.path.join(self.r_sts['Account'], self.r_sts['UserId'], self.s3_key_suffix)
       self.s3_client.put_object(Bucket=BUCKET_NAME, Key=s3_path, Body=fh.name)
-      self._tags_suggest()
+
+    # POST /tags/suggest
+    self._tags_suggest()
 
     # now listen on sqs
     # https://github.com/jegesh/python-sqs-listener/blob/master/sqs_listener/__init__.py#L123
@@ -88,6 +88,8 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
 
 
   def _register(self):
+      logger.info("POST /register")
+
       # URL = 'https://klrek4vqid.execute-api.us-east-1.amazonaws.com/dev/tags/ping'
       URL = 'https://0yr0yj7h52.execute-api.us-east-1.amazonaws.com/dev/register'
       self.r_sts = self.sts.get_caller_identity()
@@ -96,20 +98,29 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
 
       r_register = requests.request('post', URL, json=self.r_sts)
       # https://stackoverflow.com/questions/18810777/how-do-i-read-a-response-from-python-requests
-      import json
       r2 = json.loads(r_register.text)
       return r2
 
 
   def _tags_suggest(self):
+      logger.info("POST /tags/suggest")
+
       # URL = 'https://klrek4vqid.execute-api.us-east-1.amazonaws.com/dev/tags/ping'
       URL = 'https://0yr0yj7h52.execute-api.us-east-1.amazonaws.com/dev/tags/suggest'
       load_send = {}
       load_send.update(self.r_sts)
-      load_send['s3_key_suffix'] = 'tag_request.csv'
+      load_send['s3_key_suffix'] = self.s3_key_suffix
       load_send['sqs_url'] = self.r_register['sqs_url']
       r_tagsSuggest = requests.request('post', URL, json=load_send)
       # https://stackoverflow.com/questions/18810777/how-do-i-read-a-response-from-python-requests
-      import json
       r2 = json.loads(r_tagsSuggest.text)
+
+      if 'error' in r2:
+        print(r2)
+        raise ValueError('Serverside error: %s'%r2['error'])
+
+      if 'message' in r2:
+        print(r2)
+        raise ValueError('Serverside error: %s'%r2['message'])
+
       return r2
