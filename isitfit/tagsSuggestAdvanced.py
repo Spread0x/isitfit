@@ -7,6 +7,7 @@ import requests
 import json
 
 BUCKET_NAME='isitfit-cli'
+BASE_URL = 'https://r0ju8gtgtk.execute-api.us-east-1.amazonaws.com'
 
 class TagsSuggestAdvanced(TagsSuggestBasic):
 
@@ -51,6 +52,7 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
     logger.info("Waiting for results on SQS")
     MAX_RETRIES = 5
     i_retry = 0
+    any_found = False
     import time
     while i_retry < MAX_RETRIES:
       i_retry += 1
@@ -61,13 +63,22 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
 
       logger.info("Check sqs messages (Retry %i/%i)"%(i_retry, MAX_RETRIES))
       messages = self.sqs_q.receive_messages(
+        AttributeNames=['SentTimestamp'],
         QueueUrl=self.sqs_q.url,
         MaxNumberOfMessages=10
       )
-      if 'Messages' in messages:
-        logger.info("{} messages received".format(len(messages['Messages'])))
-        for m in messages['Messages']:
-          if m['Body'] == 'tags processed':
+      logger.info("{} messages received".format(len(messages)))
+      import datetime as dt
+      for m in messages:
+          any_found = True
+          sentTime = "-"
+          if m.attributes is not None:
+            sentTime = m.attributes['SentTimestamp']
+            sentTime = dt.datetime.utcfromtimestamp(int(sentTime)/1000).strftime("%Y/%m/%d %H:%M:%S")
+
+          logger.info("Message: %s: %s"%(sentTime, m.body))
+          m.delete()
+          if m.body == 'tags processed':
             with tempfile.NamedTemporaryFilename(suffix='csv', prefix='isitfit-tags-suggestAdvanced-', delete=False) as fh:
               s3_path = os.path.join(self.r_register['s3_arn'], 'tags_suggested.csv')
               response = self.s3_client.get_object(Bucket=BUCKET_NAME, Key=s3_path)
@@ -80,7 +91,11 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
               return
 
     # if nothing returned on sqs
-    logger.error("Absolute radio silence on sqs :(")
+    if not any_found:
+      logger.error("Absolute radio silence on sqs :(")
+
+    # either no sqs messages,
+    # or found some sqs messages, but none were for tags request fulfilled
     import pandas as pd
     self.suggested_df = pd.DataFrame()
     self.suggested_shape = [0,4]
@@ -89,9 +104,7 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
 
   def _register(self):
       logger.info("POST /register")
-
-      # URL = 'https://klrek4vqid.execute-api.us-east-1.amazonaws.com/dev/tags/ping'
-      URL = 'https://0yr0yj7h52.execute-api.us-east-1.amazonaws.com/dev/register'
+      URL = '%s/dev/register'%BASE_URL
       self.r_sts = self.sts.get_caller_identity()
       del self.r_sts['ResponseMetadata']
       # eg {'UserId': 'AIDA6F3WEM7AXY6Y4VWDC', 'Account': '974668457921', 'Arn': 'arn:aws:iam::974668457921:user/shadi'}
@@ -104,9 +117,7 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
 
   def _tags_suggest(self):
       logger.info("POST /tags/suggest")
-
-      # URL = 'https://klrek4vqid.execute-api.us-east-1.amazonaws.com/dev/tags/ping'
-      URL = 'https://0yr0yj7h52.execute-api.us-east-1.amazonaws.com/dev/tags/suggest'
+      URL = '%s/dev/tags/suggest'%BASE_URL
       load_send = {}
       load_send.update(self.r_sts)
       load_send['s3_key_suffix'] = self.s3_key_suffix
