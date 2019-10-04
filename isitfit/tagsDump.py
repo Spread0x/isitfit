@@ -21,5 +21,6 @@ class TagsDump(TagsSuggestBasic):
       "Dumped tags:",
       self.tags_df,
       self.csv_fn,
-      self.tags_df.shape
+      self.tags_df.shape,
+      logger
     )

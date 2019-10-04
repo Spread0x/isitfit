@@ -6,6 +6,12 @@ Version latest (0.5.0?, 2019-09-24?)
 - ...
 
 
+Version 0.8.4 (2019-10-04)
+
+- hotfix: still had bug with display df hotfix
+  - why do I release before testing!?!?
+
+
 Version 0.8.3 (2019-10-04)
 
 - hotfix: wrong import for `display_df`
