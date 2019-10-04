@@ -16,7 +16,7 @@ class TagsDump(TagsSuggestBasic):
 
 
   def display(self):
-    from .tagsSuggestBasic import display_df
+    from .utils import display_df
     display_df(
       "Dumped tags:",
       self.tags_df,

@@ -45,11 +45,17 @@ isitfit --filter-tags=ffa
 isitfit --optimize --filter-tags=inexistant
 isitfit --filter-tags=inexistant
 
-echo "Test 8.1: tags dump"
-isitfit tags dump
+echo "Test 8.1: tags dump on 0 ec2"
+AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=us-east-1 isitfit tags dump
 
-echo "Test 8.2: tags suggest"
-isitfit tags suggest
+echo "Test 8.2: tags dump on shadi account"
+AWS_PROFILE=shadi AWS_DEFAULT_REGION=us-west-2 isitfit tags dump
+
+echo "Test 8.3: tags suggest on 0 ec2"
+AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=us-east-1 isitfit tags suggest
+
+echo "Test 8.4: tags suggest on shadi account"
+AWS_PROFILE=shadi AWS_DEFAULT_REGION=us-west-2 isitfit tags suggest
 
 # done
 # `set -x` doesn't let the script reach this point in case of any error
