@@ -30,10 +30,10 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
 
     # TODO implement later
     # print(self.r_register)
-    logger.info("Will use s3 arn: %s"%self.r_register['s3_arn'])
-    logger.info("Will use sqs url: %s"%self.r_register['sqs_url'])
-    logger.info("Note that account number 974668457921 is AutofitCloud, the company behind isitfit.")
-    logger.info("For more info, visit https://autofitcloud.com")
+    logger.debug("Granted access to s3 arn: %s"%self.r_register['s3_arn'])
+    logger.debug("Granted access to sqs url: %s"%self.r_register['sqs_url'])
+    logger.debug("Note that account number 974668457921 is AutofitCloud, the company behind isitfit.")
+    logger.debug("For more info, visit https://autofitcloud.com/privacy")
 
     # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs.html#SQS.Queue.receive_messages
     self.sqs_q = self.sqs_res.Queue(self.r_register['sqs_url'])
@@ -61,19 +61,22 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
 
     # now listen on sqs
     # https://github.com/jegesh/python-sqs-listener/blob/master/sqs_listener/__init__.py#L123
-    logger.info("Waiting for results on SQS")
+    logger.info("Waiting for results")
     MAX_RETRIES = 5
     i_retry = 0
     any_found = False
     import time
+    n_secs = 5
     while i_retry < MAX_RETRIES:
       i_retry += 1
 
-      n_secs = 5
-      #logger.info("Sleep %i seconds"%n_secs)
-      time.sleep(n_secs)
+      if i_retry == 1:
+        time.sleep(1)
+      else:
+        #logger.info("Sleep %i seconds"%n_secs)
+        time.sleep(n_secs)
 
-      logger.info("Check sqs messages (Retry %i/%i)"%(i_retry, MAX_RETRIES))
+      logger.debug("Check sqs messages (Retry %i/%i)"%(i_retry, MAX_RETRIES))
       messages = self.sqs_q.receive_messages(
         AttributeNames=['SentTimestamp'],
         QueueUrl=self.sqs_q.url,
@@ -117,8 +120,8 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
           m.delete()
 
           # process messages
+          logger.info("Server message: %s"%m.body_decoded['status'])
           if m.body_decoded['status'] != 'calculation complete':
-            logger.info(m.body_decoded['status'])
             continue
 
           if m.body_decoded['status'] == 'calculation complete':
@@ -131,6 +134,7 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
             with tempfile.NamedTemporaryFile(suffix='.csv', prefix='isitfit-tags-suggestAdvanced-', delete=False) as fh:
               self.csv_fn = fh.name
               s3_path = os.path.join(self.r_register['s3_keyPrefix'], m.body_decoded['s3_key_suffix'])
+              logger.info("Downloading tag suggestions from isitfit server")
               logger.debug("Getting s3 file %s"%s3_path)
               logger.debug("Saving it into %s"%fh.name)
               response = self.s3_client.get_object(Bucket=self.r_register['s3_bucketName'], Key=s3_path)
@@ -162,7 +166,8 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
 
 
   def _register(self):
-      logger.info("POST /register")
+      logger.info("Requesting access to isitfit server S3 and SQS")
+      logger.debug("POST /register")
       URL = '%s/dev/register'%BASE_URL
       self.r_sts = self.sts.get_caller_identity()
       del self.r_sts['ResponseMetadata']
@@ -197,7 +202,8 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
 
 
   def _tags_suggest(self):
-      logger.info("POST /tags/suggest")
+      logger.info("Requesting tag suggestions from isitfit server")
+      logger.debug("POST /tags/suggest")
       URL = '%s/dev/tags/suggest'%BASE_URL
       load_send = {}
       load_send.update(self.r_sts)
