@@ -127,9 +127,14 @@ def dump(ctx):
   from .tagsDump import TagsDump
   tl = TagsDump()
 
-  tl.fetch()
-  tl.suggest() # not really suggesting. Just dumping to csv
-  tl.display()
+  try:
+    tl.fetch()
+    tl.suggest() # not really suggesting. Just dumping to csv
+    tl.display()
+  except ValueError as e:
+    logger.error("Error: %s"%str(e))
+    import sys
+    sys.exit(1)
 
   display_footer()
 

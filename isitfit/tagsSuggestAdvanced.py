@@ -1,7 +1,8 @@
 import logging
 logger = logging.getLogger('isitfit')
 
-from .tagsSuggestBasic import TagsSuggestBasic, MAX_ROWS
+from .tagsSuggestBasic import TagsSuggestBasic
+from .utils import MAX_ROWS
 import os
 import requests
 import json

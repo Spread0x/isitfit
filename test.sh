@@ -21,7 +21,7 @@ echo "Test 0b: version takes less than 1 sec (visual check ATM)"
 time isitfit --version
 
 echo "Test 1: default profile (shadiakiki1986@gmail.com@amazonaws.com)"
-isitfit
+AWS_PROFILE=shadi AWS_DEFAULT_REGION=us-west-2 isitfit
 
 echo "Test 2: non-default profile (shadi@autofitcloud.com@amazonaws.com)"
 AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit

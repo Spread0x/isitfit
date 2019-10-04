@@ -6,6 +6,12 @@ Version latest (0.5.0?, 2019-09-24?)
 - ...
 
 
+Version 0.8.2 (2019-10-04)
+
+- hotfix: `isitfit tags dump` was not handling ValueError
+- hotfix: `MAX_ROWS` was moved to `utils` already, but had wrong import
+
+
 Version 0.8.1 (2019-10-04)
 
 - enh: use `isitfit-tags-suggestBasic-...csv` instead of `...suggest...` to highlight that an advanced suggestion is available
