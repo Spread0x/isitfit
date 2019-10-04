@@ -41,6 +41,11 @@ def cli(ctx, debug, version, optimize, n, filter_tags):
     logger.addHandler(ch)
     logger.setLevel(logLevel)
 
+    if debug:
+      logger.debug("Enabled debug level")
+      logger.debug("-------------------")
+
+
     # do not continue with the remaining code here
     # if a command is invoked, eg `isitfit tags`
     ctx.ensure_object(dict)

@@ -1,17 +1,18 @@
 import logging
 logger = logging.getLogger('isitfit')
 
-from .tagsSuggestBasic import TagsSuggestBasic
+from .tagsSuggestBasic import TagsSuggestBasic, MAX_ROWS
 import os
 import requests
 import json
 
-BUCKET_NAME='isitfit-cli'
 BASE_URL = 'https://r0ju8gtgtk.execute-api.us-east-1.amazonaws.com'
 
 class TagsSuggestAdvanced(TagsSuggestBasic):
 
   def __init__(self):
+    logger.debug("TagsSuggestAdvanced::constructor")
+
     # boto3 ec2 and cloudwatch data
     import boto3
     self.sts = boto3.client('sts')
@@ -21,7 +22,9 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
 
 
   def prepare(self):
-    self.r_register = self._register()
+    logger.debug("TagsSuggestAdvanced::prepare")
+
+    self._register()
     if not 'status' in self.r_register:
       raise ValueError("Failed to ping the remote: %s"%self.r_register)
 
@@ -37,14 +40,17 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
 
 
   def suggest(self):
+    logger.debug("TagsSuggestAdvanced::suggest")
+
     import tempfile
 
     logger.info("Uploading ec2 names to s3")
-    with tempfile.NamedTemporaryFile(suffix='csv', prefix='isitfit-ec2names-', delete=True) as fh:
+    with tempfile.NamedTemporaryFile(suffix='.csv', prefix='isitfit-ec2names-', delete=True) as fh:
+      logger.debug("Will use temporary file %s"%fh.name)
       self.tags_df.to_csv(fh.name, index=False)
       self.s3_key_suffix = 'tags_request.csv'
       s3_path = os.path.join(self.r_sts['Account'], self.r_sts['UserId'], self.s3_key_suffix)
-      self.s3_client.put_object(Bucket=BUCKET_NAME, Key=s3_path, Body=fh.name)
+      self.s3_client.put_object(Bucket=self.r_register['s3_bucketName'], Key=s3_path, Body=fh)
 
     # mark timestamp of request
     import datetime as dt
@@ -73,7 +79,7 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
         QueueUrl=self.sqs_q.url,
         MaxNumberOfMessages=10
       )
-      logger.info("{} messages received".format(len(messages)))
+      logger.debug("{} messages received".format(len(messages)))
       import datetime as dt
       for m in messages:
           any_found = True
@@ -121,17 +127,27 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
               logger.debug("(Missing s3_key_suffix key from body. Aborting)")
               return
 
-            with tempfile.NamedTemporaryFilename(suffix='csv', prefix='isitfit-tags-suggestAdvanced-', delete=False) as fh:
-              s3_path = self.r_register['s3_arn'].replace('*', m.body_decoded['s3_key_suffix'])
-              response = self.s3_client.get_object(Bucket=BUCKET_NAME, Key=s3_path)
+            self.csv_fn = None
+            with tempfile.NamedTemporaryFile(suffix='.csv', prefix='isitfit-tags-suggestAdvanced-', delete=False) as fh:
+              self.csv_fn = fh.name
+              s3_path = os.path.join(self.r_register['s3_keyPrefix'], m.body_decoded['s3_key_suffix'])
+              logger.debug("Getting s3 file %s"%s3_path)
+              logger.debug("Saving it into %s"%fh.name)
+              response = self.s3_client.get_object(Bucket=self.r_register['s3_bucketName'], Key=s3_path)
               fh.write(response['Body'].read())
-              self.suggested_df = pd.read_csv(fh.name, nrows=MAX_ROWS)
 
-              # count number of rows in csv
-              # https://stackoverflow.com/a/36973958/4126114
-              with open(fh.name) as f2:
-                  self.suggested_shape = [sum(1 for line in f2), 4] # 4 is just hardcoded number of columns that doesn't matter much
-              return
+            logger.debug("TagsSuggestAdvanced:suggest .. read_csv")
+            import pandas as pd
+            self.suggested_df = pd.read_csv(self.csv_fn, nrows=MAX_ROWS)
+
+            # count number of rows in csv
+            # https://stackoverflow.com/a/36973958/4126114
+            logger.debug("TagsSuggestAdvanced:suggest .. count_rows")
+            with open(fh.name) as f2:
+                self.suggested_shape = [sum(1 for line in f2), 4] # 4 is just hardcoded number of columns that doesn't matter much
+
+            logger.debug("TagsSuggestAdvanced:suggest .. done")
+            return
 
     # if nothing returned on sqs
     if not any_found:
@@ -152,10 +168,32 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
       del self.r_sts['ResponseMetadata']
       # eg {'UserId': 'AIDA6F3WEM7AXY6Y4VWDC', 'Account': '974668457921', 'Arn': 'arn:aws:iam::974668457921:user/shadi'}
 
-      r_register = requests.request('post', URL, json=self.r_sts)
+      r1 = requests.request('post', URL, json=self.r_sts)
+
       # https://stackoverflow.com/questions/18810777/how-do-i-read-a-response-from-python-requests
-      r2 = json.loads(r_register.text)
-      return r2
+      self.r_register = json.loads(r1.text)
+
+      # check for internal server error
+      if 'message' in self.r_register:
+        if self.r_register['message']=='Internal server error':
+          raise ValueError('Internal server error')
+
+      # check schema
+      from schema import Schema, Optional, SchemaError
+      register_schema = Schema({
+        'status': str,
+        's3_arn': str,
+        's3_bucketName': str,
+        's3_keyPrefix': str,
+        'sqs_url': str,
+        Optional(str): object
+      })
+      try:
+        register_schema.validate(self.r_register)
+      except SchemaError as e:
+        logger.error("Received response: %s"%r1.text)
+        raise ValueError("Invalid register response: %s"%str(e))
+
 
 
   def _tags_suggest(self):

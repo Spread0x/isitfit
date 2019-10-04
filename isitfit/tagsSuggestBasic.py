@@ -50,6 +50,7 @@ def display_df(title, df, csv_fn, shape):
 class TagsSuggestBasic:
 
   def __init__(self):
+    logger.debug("TagsSuggestBasic::constructor")
     # boto3 ec2 and cloudwatch data
     import boto3
     self.ec2_resource = boto3.resource('ec2')
@@ -57,6 +58,7 @@ class TagsSuggestBasic:
     self.tags_df = None
 
   def prepare(self):
+    logger.debug("TagsSuggestBasic::prepare")
     pass
 
   def tags_to_dict(self, ec2_obj):
@@ -64,6 +66,7 @@ class TagsSuggestBasic:
     return tags_dict
 
   def fetch(self):
+    logger.debug("TagsSuggestBasic::fetch")
     logger.info("Counting EC2 instances")
     n_ec2_total = len(list(self.ec2_resource.instances.all()))
     msg_total = "Found a total of %i EC2 instances"%n_ec2_total
@@ -100,6 +103,7 @@ class TagsSuggestBasic:
 
 
   def suggest(self):
+      logger.debug("TagsSuggestBasic::suggest")
       logger.info("Generating suggested tags")
       from .tagsImplier import TagsImplierMain
       tags_implier = TagsImplierMain(self.tags_df)
@@ -109,6 +113,7 @@ class TagsSuggestBasic:
 
 
   def display(self):
+    logger.debug("TagsSuggestBasic::display")
     display_df(
       "Suggested tags:",
       self.suggested_df,

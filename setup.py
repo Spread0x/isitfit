@@ -44,7 +44,8 @@ setup(
         'awscli==1.16.248',
         'boto3==1.9.238',
 
-        'datadog==0.30.0'
+        'datadog==0.30.0',
+        'schema==0.7.1'
     ],
     entry_points='''
         [console_scripts]

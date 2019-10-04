@@ -10,9 +10,17 @@ Version latest (0.5.0?, 2019-09-24?)
   - this currently successfully uploads csv to s3 and waits on sqs, but nothing is listening ATM to reply
   - now that I have 2 endpoints (`register` and `tags/suggest`), I'm trying to get the suggest endpoint to function (ie start listening)
   - fix sqs messages reading and factored out base url
+  - enh: bucket name in tags suggest advanced to be from register output
+  - bugfix: tempfile suffix to include the "."
+  - bugfix: upload of csv fixed. Was only saving filename, now saving dataframe
+  - bugfix: download of result of advanced tag suggestion was not properly downloading
+  - enh: more --debug output
+  - enh: start using "schema" package similar to isitfit-server
+  - enh: add to readme the `isitfit tags suggest --advanced` feature, with a link to the privacy policy
+  - bugfix: skip messages in sqs queue that are not for tags suggest and auto-drop stale ones (eg from before the request timing)
+
 - bugfix: raise error on 0 ec2 instances when `isitfit tags suggest [--advanced]`
-- enh: add to readme the `isitfit tags suggest --advanced` feature, with a link to the privacy policy
-- bugfix: skip messages in sqs queue that are not for tags suggest and auto-drop stale ones (eg from before the request timing)
+- enh: stderr message showing "enabled debug level"
 
 
 Version 0.7.1 (2019-09-27)
