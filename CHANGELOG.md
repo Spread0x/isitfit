@@ -4,6 +4,10 @@ Semantic versioning
 Version latest (0.5.0?, 2019-09-24?)
 
 - ...
+
+
+Version 0.8.0 (2019-10-04)
+
 - feat: major refactor of tags classes so that they inherit from each other
     - cleaner code :)
 - feat: start on `isitfit tags suggest --advanced` that uploads ec2 names for further advanced processing
