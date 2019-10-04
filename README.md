@@ -165,17 +165,40 @@ CWAU = Used / Billed * 100       0 %
 
 ### Generating suggested tags
 
+#### Basic
+
 This generates some tags that are implied from the instance name.
 
 For example, if there are 3 instances that share the word "app" in their names, then "app" is used as a suggested tag.
 
 This helps to squeeze some information out of the instance names to add some tags for convenient filtering.
 
-To use this:
+The algorithm runs locally on your own machine.
+
+To use it:
 
 ```
 isitfit tags suggest
+isitfit --debug tags suggest
 ```
+
+#### Advanced
+
+For more advanced tag suggestions, the `--advanced` option will
+send the EC2 instance names to [AutofitCloud](https://autofitcloud.com)'s servers,
+run more sophisticated algorithms for generating tag suggestions,
+and push back the results to your terminal.
+
+To use it:
+
+```
+isitfit tags suggest --advanced
+isitfit --debug tags suggest --advanced
+```
+
+AutofitCloud is the company behind `isitfit`.
+You can find our privacy policy at https://www.autofitcloud.com/privacy
+
 
 ### Dumping tags to CSV
 

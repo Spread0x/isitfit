@@ -11,6 +11,8 @@ Version latest (0.5.0?, 2019-09-24?)
   - now that I have 2 endpoints (`register` and `tags/suggest`), I'm trying to get the suggest endpoint to function (ie start listening)
   - fix sqs messages reading and factored out base url
 - bugfix: raise error on 0 ec2 instances when `isitfit tags suggest [--advanced]`
+- enh: add to readme the `isitfit tags suggest --advanced` feature, with a link to the privacy policy
+- bugfix: skip messages in sqs queue that are not for tags suggest and auto-drop stale ones (eg from before the request timing)
 
 
 Version 0.7.1 (2019-09-27)

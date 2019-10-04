@@ -29,6 +29,8 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
     # print(self.r_register)
     logger.info("Will use s3 arn: %s"%self.r_register['s3_arn'])
     logger.info("Will use sqs url: %s"%self.r_register['sqs_url'])
+    logger.info("Note that account number 974668457921 is AutofitCloud, the company behind isitfit.")
+    logger.info("For more info, visit https://autofitcloud.com")
 
     # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs.html#SQS.Queue.receive_messages
     self.sqs_q = self.sqs_res.Queue(self.r_register['sqs_url'])
@@ -43,6 +45,10 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
       self.s3_key_suffix = 'tags_request.csv'
       s3_path = os.path.join(self.r_sts['Account'], self.r_sts['UserId'], self.s3_key_suffix)
       self.s3_client.put_object(Bucket=BUCKET_NAME, Key=s3_path, Body=fh.name)
+
+    # mark timestamp of request
+    import datetime as dt
+    dt_now = dt.datetime.utcnow() #.strftime('%s')
 
     # POST /tags/suggest
     self._tags_suggest()
@@ -71,19 +77,56 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
       import datetime as dt
       for m in messages:
           any_found = True
-          sentTime = "-"
+          sentTime_dt = None
+          sentTime_str = "-"
           if m.attributes is not None:
-            sentTime = m.attributes['SentTimestamp']
-            sentTime = dt.datetime.utcfromtimestamp(int(sentTime)/1000).strftime("%Y/%m/%d %H:%M:%S")
+            sentTime_dt = m.attributes['SentTimestamp']
+            sentTime_dt = dt.datetime.utcfromtimestamp(int(sentTime_dt)/1000)
+            sentTime_str = sentTime_dt.strftime("%Y/%m/%d %H:%M:%S")
 
-          logger.info("Message: %s: %s"%(sentTime, m.body))
+          logger.debug("Message: %s: %s"%(sentTime_str, m.body))
+
+          try:
+            m.body_decoded = json.loads(m.body)
+          except json.decoder.JSONDecodeError as e:
+            logger.debug("(Invalid message with non-json body. Skipping)")
+            continue
+
+          if 'type' not in m.body_decoded:
+            # print("FOOOOOOOOOO")
+            logger.debug("(Message body missing key 'type'. Skipping)")
+            continue
+
+          if m.body_decoded['type'] != 'tags suggest':
+            logger.debug("(Message topic = %s != tags suggest. Skipping)")
+            continue
+
+          if (sentTime_dt < dt_now):
+              logger.debug("(Stale message. Dropping and skipping)")
+              m.delete()
+              continue
+
+          # all "tags suggest" messages are removed from the queue
+          logger.debug("(Message is ok. Will process. Removing from queue)")
           m.delete()
-          if m.body == 'tags processed':
+
+          # process messages
+          if m.body_decoded['status'] != 'calculation complete':
+            logger.info(m.body_decoded['status'])
+            continue
+
+          if m.body_decoded['status'] == 'calculation complete':
+            # upon calculation complete message
+            if 's3_key_suffix' not in m.body_decoded:
+              logger.debug("(Missing s3_key_suffix key from body. Aborting)")
+              return
+
             with tempfile.NamedTemporaryFilename(suffix='csv', prefix='isitfit-tags-suggestAdvanced-', delete=False) as fh:
-              s3_path = os.path.join(self.r_register['s3_arn'], 'tags_suggested.csv')
+              s3_path = self.r_register['s3_arn'].replace('*', m.body_decoded['s3_key_suffix'])
               response = self.s3_client.get_object(Bucket=BUCKET_NAME, Key=s3_path)
               fh.write(response['Body'].read())
               self.suggested_df = pd.read_csv(fh.name, nrows=MAX_ROWS)
+
               # count number of rows in csv
               # https://stackoverflow.com/a/36973958/4126114
               with open(fh.name) as f2:
