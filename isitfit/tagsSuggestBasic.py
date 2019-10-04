@@ -15,37 +15,6 @@ def dump_df_to_csv(df_dump, csv_prefix):
       return fh.name
 
 
-MAX_ROWS = 10
-MAX_COLS = 5
-MAX_STRING = 20
-
-def display_df(title, df, csv_fn, shape):
-    from tabulate import tabulate
-    logger.info("")
-    logger.info(title)
-
-    if shape[0]==0:
-      logger.info("None")
-      return
-
-    df_show = df.head(n=MAX_ROWS)
-    df_show = df_show.applymap(lambda c: (c[:MAX_STRING]+'...' if len(c)>=MAX_STRING else c) if type(c)==str else c)
-
-    logger.info(tabulate(df_show, headers='keys', tablefmt='psql', showindex=False))
-    if shape[0] <= MAX_ROWS and shape[1] <= MAX_COLS:
-      return
-
-    if csv_fn is None:
-      return
-
-    # https://pypi.org/project/termcolor/
-    from termcolor import colored
-
-    logger.info("...")
-    logger.info(colored("Consider `pip3 install visidata` and then `vd %s` for further filtering or exploration."%csv_fn,"cyan"))
-    logger.info(colored("More details about visidata at http://visidata.org/","cyan"))
-
-
 
 class TagsSuggestBasic:
 
@@ -114,9 +83,11 @@ class TagsSuggestBasic:
 
   def display(self):
     logger.debug("TagsSuggestBasic::display")
+    from .utils import display_df
     display_df(
       "Suggested tags:",
       self.suggested_df,
       self.csv_fn,
-      self.suggested_shape
+      self.suggested_shape,
+      logger
     )

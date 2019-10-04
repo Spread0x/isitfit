@@ -45,7 +45,8 @@ setup(
         'boto3==1.9.238',
 
         'datadog==0.30.0',
-        'schema==0.7.1'
+        'schema==0.7.1',
+        'visidata==1.5.2'
     ],
     entry_points='''
         [console_scripts]

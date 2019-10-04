@@ -70,7 +70,8 @@ class OptimizerListener:
     self.sum_val = None
 
     # for csv streaming
-    self.csv_fn = None
+    self.csv_fn_intermediate = None
+    self.csv_fn_final = None
     self.csv_fh = None
     self.csv_writer = None
 
@@ -137,9 +138,9 @@ class OptimizerListener:
 
   def handle_pre(self):
       # a csv file handle to which to stream results
-      self.csv_fn = tempfile.NamedTemporaryFile(prefix='isitfit-intermediate-', suffix='.csv', delete=False)
-      logger.info(colored("Intermediate results will be streamed to %s"%self.csv_fn.name, "cyan"))
-      self.csv_fh = open(self.csv_fn.name, 'w')
+      self.csv_fn_intermediate = tempfile.NamedTemporaryFile(prefix='isitfit-intermediate-', suffix='.csv', delete=False)
+      logger.info(colored("Intermediate results will be streamed to %s"%self.csv_fn_intermediate.name, "cyan"))
+      self.csv_fh = open(self.csv_fn_intermediate.name, 'w')
       self.csv_writer = csv.writer(self.csv_fh)
 
 
@@ -242,11 +243,11 @@ class OptimizerListener:
       if self.df_sort is None:
         return
 
-      csv_fn = tempfile.NamedTemporaryFile(prefix='isitfit-full-', suffix='.csv', delete=False)
-      logger.info(colored("Saving final results to %s"%csv_fn.name, "cyan"))
-      with open(csv_fn.name, 'w') as fh:
-        self.df_sort.to_csv(fh, index=False)
-        logger.info(colored("Save complete", "cyan"))
+      with tempfile.NamedTemporaryFile(prefix='isitfit-full-', suffix='.csv', delete=False) as  csv_fh_final:
+        self.csv_fn_final = csv_fh_final.name
+        logger.debug(colored("Saving final results to %s"%csv_fh_final.name, "cyan"))
+        self.df_sort.to_csv(csv_fh_final.name, index=False)
+        logger.debug(colored("Save complete", "cyan"))
 
 
   def display_all(self, *args, **kwargs):
@@ -273,17 +274,27 @@ class OptimizerListener:
     logger.info(colored("Recommended %s: %0.0f $ (over the next 3 months)"%(sum_comment, self.sum_val), sum_color))
     logger.info("")
 
-    with pd.option_context("display.max_columns", 10):
-      logger.info("Details")
-      if self.df_sort.shape[0]<=10:
-        logger.info(df2tabulate(self.df_sort))
-      else:
-        logger.info(df2tabulate(self.df_sort.head(n=5)))
-        logger.info("...")
-        logger.info(df2tabulate(self.df_sort.tail(n=5)))
-        logger.info("")
-        logger.info(colored("Table originally with %i rows is truncated for top and bottom 5 only."%self.df_sort.shape[0], "cyan"))
-        logger.info(colored("Consider filtering it with --n=x for the 1st x results or --filter-tags=foo using a value from your own EC2 tags.", "cyan"))
+    # display dataframe
+    from .utils import display_df
+    display_df(
+      "Recommended EC2 size changes",
+      self.df_sort,
+      self.csv_fn_final,
+      self.df_sort.shape,
+      logger
+    )
+
+#    with pd.option_context("display.max_columns", 10):
+#      logger.info("Details")
+#      if self.df_sort.shape[0]<=10:
+#        logger.info(df2tabulate(self.df_sort))
+#      else:
+#        logger.info(df2tabulate(self.df_sort.head(n=5)))
+#        logger.info("...")
+#        logger.info(df2tabulate(self.df_sort.tail(n=5)))
+#        logger.info("")
+#        logger.info(colored("Table originally with %i rows is truncated for top and bottom 5 only."%self.df_sort.shape[0], "cyan"))
+#        logger.info(colored("Consider filtering it with --n=x for the 1st x results or --filter-tags=foo using a value from your own EC2 tags.", "cyan"))
 
     if self.n!=0:
       logger.info(colored("This table has been filtered for only the 1st %i underused results"%self.n, "cyan"))
