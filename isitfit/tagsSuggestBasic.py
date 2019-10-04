@@ -66,9 +66,11 @@ class TagsSuggestBasic:
   def fetch(self):
     logger.info("Counting EC2 instances")
     n_ec2_total = len(list(self.ec2_resource.instances.all()))
-    logger.warning("Found a total of %i EC2 instances"%n_ec2_total)
+    msg_total = "Found a total of %i EC2 instances"%n_ec2_total
     if n_ec2_total==0:
-      return
+      raise ValueError(msg_total)
+
+    logger.warning(msg_total)
 
     self.tags_list = []
     from tqdm import tqdm

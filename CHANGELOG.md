@@ -10,6 +10,7 @@ Version latest (0.5.0?, 2019-09-24?)
   - this currently successfully uploads csv to s3 and waits on sqs, but nothing is listening ATM to reply
   - now that I have 2 endpoints (`register` and `tags/suggest`), I'm trying to get the suggest endpoint to function (ie start listening)
   - fix sqs messages reading and factored out base url
+- bugfix: raise error on 0 ec2 instances when `isitfit tags suggest [--advanced]`
 
 
 Version 0.7.1 (2019-09-27)
