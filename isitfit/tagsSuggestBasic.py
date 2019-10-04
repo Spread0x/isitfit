@@ -108,7 +108,7 @@ class TagsSuggestBasic:
       from .tagsImplier import TagsImplierMain
       tags_implier = TagsImplierMain(self.tags_df)
       self.suggested_df = tags_implier.imply()
-      self.csv_fn = dump_df_to_csv(self.suggested_df, 'isitfit-tags-suggest-')
+      self.csv_fn = dump_df_to_csv(self.suggested_df, 'isitfit-tags-suggestBasic-')
       self.suggested_shape = self.suggested_df.shape
 
 
