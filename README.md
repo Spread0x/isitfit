@@ -184,6 +184,8 @@ isitfit --debug tags suggest
 
 #### Advanced
 
+*(Work in progress. Check [here](https://trello.com/c/eKZawuvm/12-advanced-tag-suggestions) for status)*
+
 For more advanced tag suggestions, the `--advanced` option will
 send the EC2 instance names to [AutofitCloud](https://autofitcloud.com)'s servers,
 run more sophisticated algorithms for generating tag suggestions,
