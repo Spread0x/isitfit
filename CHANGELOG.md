@@ -4,6 +4,10 @@ Semantic versioning
 Version latest (0.5.0?, 2019-09-24?)
 
 - ...
+
+
+Version 0.8.1 (2019-10-04)
+
 - enh: use `isitfit-tags-suggestBasic-...csv` instead of `...suggest...` to highlight that an advanced suggestion is available
 - feat: can open results table of `isitfit --optimize` with visidata directly
 
