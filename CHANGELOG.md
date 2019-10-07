@@ -4,6 +4,10 @@ Semantic versioning
 Version latest (0.5.0?, 2019-09-24?)
 
 - ...
+
+
+Version 0.9.0 (2019-10-07)
+
 - enh: replace ValueError with IsitfitError
 - feat: `isitfit tags push csv_filename`
 
