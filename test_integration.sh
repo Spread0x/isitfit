@@ -59,6 +59,12 @@ AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=us-east-1 isitfit tags suggest || ec
 echo "Test 8.4: tags suggest on shadi account"
 AWS_PROFILE=shadi AWS_DEFAULT_REGION=us-west-2 isitfit tags suggest
 
+echo "Test 8.5: tags push on autofitcloud account"
+AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit --debug tags push testFixture-tagsPush-2-newTag.csv --not-dry-run
+AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit --debug tags push testFixture-tagsPush-3-renameTag.csv --not-dry-run
+AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit --debug tags push testFixture-tagsPush-1-noChange.csv --not-dry-run
+
+
 # done
 # `set -x` doesn't let the script reach this point in case of any error
 echo "Tests completed"

@@ -5,6 +5,7 @@ Version latest (0.5.0?, 2019-09-24?)
 
 - ...
 - enh: replace ValueError with IsitfitError
+- feat: `isitfit tags push csv_filename`
 
 
 Version 0.8.4 (2019-10-04)

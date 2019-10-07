@@ -147,6 +147,29 @@ def dump(ctx):
 
 
 
+@tags.command(help="Push EC2 tags from csv file")
+@click.argument('csv_filename') #, help='Path to CSV file holding tags to be pushed. Should match format from `isitfit tags dump`')
+@click.option('--not-dry-run', is_flag=True, help='True for dry run (simulated push)')
+def push(csv_filename, not_dry_run):
+  from .tagsPush import TagsPush
+  from .utils import IsitfitError
+
+  tp = TagsPush(csv_filename)
+  try:
+    tp.read_csv()
+    tp.validateTagsFile()
+    tp.pullLatest()
+    tp.diffLatest()
+    tp.processPush(not not_dry_run)
+  except IsitfitError as e:
+    logger.error("Error: %s"%str(e))
+    import sys
+    sys.exit(1)
+
+  display_footer()
+
+
+
 #-----------------------
 
 if __name__ == '__main__':

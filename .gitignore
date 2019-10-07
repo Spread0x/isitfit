@@ -3,3 +3,4 @@ __pycache__
 isitfit.egg-info
 build
 dist
+isitfit/loginManager.py.bkp

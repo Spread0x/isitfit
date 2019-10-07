@@ -54,6 +54,10 @@ The keys should belong to a user/role with the following minimal policies:
 
 If you have a Datadog account, check [Example 4: datadog integration](#example-4-datadog-integration)
 
+For pushing tags, the user/role will also need to have the following existing policy:
+
+`ResourceGroupsandTagEditorFullAccess`
+
 
 ### Synopsis
 
@@ -219,6 +223,30 @@ Consider `pip3 install visidata` and then `vd /tmp/isitfit-tags-9vgd_bzy.csv` fo
 More details about visidata at http://visidata.org/
 ```
 
+### Pushing tags from CSV
+
+To push EC2 tags from a CSV file:
+
+1. Attached the policy `ResourceGroupsandTagEditorFullAccess` to the user/role executing `isitfit`
+
+2. Export a tags dump (csv file)
+
+```
+> isitfit tags dump
+```
+
+3. Edit the csv file
+4. Simulate the push of the edited csv
+
+```
+> isitfit tags push path/to/csv
+```
+
+5. Perform actual push to AWS EC2
+
+```
+> isitfit tags push path/to/csv --not-dry-run
+```
 
 
 ### Non-default awscli profile
@@ -358,13 +386,24 @@ twine upload dist/*
 Got pypi badge from
 https://badge.fury.io/for/py/git-remote-aws
 
-Run my local tests with `./test.sh`
+Run my local tests with
+
+```
+./test_integration.sh # integration
+pytest isitfit/test_* # unit
+```
 
 Update README TOC with
 
 ```
 npm install -g doctoc
 doctoc README.md
+```
+
+Install dev requirements
+
+```
+pip3 install -r requirements_dev.txt
 ```
 
 
