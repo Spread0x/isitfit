@@ -409,6 +409,18 @@ Install dev requirements
 pip3 install -r requirements_dev.txt
 ```
 
+New release
+
+```
+update version in isitfit/__init__.py
+update version in changelog
+commit with 'version bump 0.1.0'
+git tag 0.1.0
+git push origin 0.1.0
+git push github 0.1.0
+and then follow steps above to publish to pypi
+```
+
 
 
 ## Support
