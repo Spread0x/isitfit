@@ -6,6 +6,7 @@ from .utils import MAX_ROWS
 import os
 import requests
 import json
+from .utils import IsitfitError
 
 BASE_URL = 'https://r0ju8gtgtk.execute-api.us-east-1.amazonaws.com'
 
@@ -27,7 +28,7 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
 
     self._register()
     if not 'status' in self.r_register:
-      raise ValueError("Failed to ping the remote: %s"%self.r_register)
+      raise IsitfitError("Failed to ping the remote: %s"%self.r_register)
 
     # TODO implement later
     # print(self.r_register)
@@ -182,7 +183,7 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
       # check for internal server error
       if 'message' in self.r_register:
         if self.r_register['message']=='Internal server error':
-          raise ValueError('Internal server error')
+          raise IsitfitError('Internal server error')
 
       # check schema
       from schema import Schema, Optional, SchemaError
@@ -198,7 +199,7 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
         register_schema.validate(self.r_register)
       except SchemaError as e:
         logger.error("Received response: %s"%r1.text)
-        raise ValueError("Invalid register response: %s"%str(e))
+        raise IsitfitError("Invalid register response: %s"%str(e))
 
 
 
@@ -216,10 +217,10 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
 
       if 'error' in r2:
         print(r2)
-        raise ValueError('Serverside error: %s'%r2['error'])
+        raise IsitfitError('Serverside error: %s'%r2['error'])
 
       if 'message' in r2:
         print(r2)
-        raise ValueError('Serverside error: %s'%r2['message'])
+        raise IsitfitError('Serverside error: %s'%r2['message'])
 
       return r2

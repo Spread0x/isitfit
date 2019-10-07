@@ -121,3 +121,7 @@ def display_df(title, df, csv_fn, shape, logger):
 
     # done
     return
+
+
+class IsitfitError(Exception):
+  pass

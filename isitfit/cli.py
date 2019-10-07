@@ -53,6 +53,7 @@ def cli(ctx, debug, version, optimize, n, filter_tags):
       return
 
     #logger.info("Is it fit?")
+    from .utils import IsitfitError
     try:
       logger.info("Initializing...")
 
@@ -84,6 +85,11 @@ def cli(ctx, debug, version, optimize, n, filter_tags):
       logger.info("Fetching history...")
       mm.get_ifi()
 
+    except IsitfitError as e_info:
+      logger.error("Error: %s"%str(e_info))
+      import sys
+      sys.exit(1)
+
     finally:
       display_footer()
 
@@ -99,7 +105,7 @@ def tags():
 @click.option('--advanced', is_flag=True, help='Get advanced suggestions of tags. Requires login')
 @click.pass_context
 def suggest(ctx, advanced):
-
+  from .utils import IsitfitError
   tl = None
   if not advanced:
     from .tagsSuggestBasic import TagsSuggestBasic
@@ -113,7 +119,7 @@ def suggest(ctx, advanced):
     tl.fetch()
     tl.suggest()
     tl.display()
-  except ValueError as e:
+  except IsitfitError as e:
     logger.error("Error: %s"%str(e))
     import sys
     sys.exit(1)
@@ -125,13 +131,14 @@ def suggest(ctx, advanced):
 @click.pass_context
 def dump(ctx):
   from .tagsDump import TagsDump
+  from .utils import IsitfitError
   tl = TagsDump()
 
   try:
     tl.fetch()
     tl.suggest() # not really suggesting. Just dumping to csv
     tl.display()
-  except ValueError as e:
+  except IsitfitError as e:
     logger.error("Error: %s"%str(e))
     import sys
     sys.exit(1)

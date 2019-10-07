@@ -14,9 +14,9 @@ redis-cli -n $ISITFIT_REDIS_DB flushdb #  || echo "redis db clear failed" (eg db
 
 
 # start
-echo "Test 0a: version runs ok"
-isitfit --version
-
+#echo "Test 0a: version runs ok"
+#isitfit --version
+#
 echo "Test 0b: version takes less than 1 sec (visual check ATM)"
 time isitfit --version
 
@@ -27,12 +27,14 @@ echo "Test 2: non-default profile (shadi@autofitcloud.com@amazonaws.com)"
 AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit
 
 echo "Test 3: default profile in region with 0 ec2 instances"
+# Note, unlike isitfit tags dump which returns a non-0 code if 0 ec2 found, this one just returns 0
 AWS_DEFAULT_REGION=eu-central-1 isitfit
 
 echo "Test 4: optimize with default profile"
 isitfit --optimize
 
 echo "Test 5: optimize in region with 0 ec2 instances"
+# Note, unlike isitfit tags dump which returns a non-0 code if 0 ec2 found, this one just returns 0
 AWS_DEFAULT_REGION=eu-central-1 isitfit --optimize
 
 echo "Test 6: optimize with n=1"
@@ -46,13 +48,13 @@ isitfit --optimize --filter-tags=inexistant
 isitfit --filter-tags=inexistant
 
 echo "Test 8.1: tags dump on 0 ec2"
-AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=us-east-1 isitfit tags dump
+AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=us-east-1 isitfit tags dump || echo "expected to fail"
 
 echo "Test 8.2: tags dump on shadi account"
 AWS_PROFILE=shadi AWS_DEFAULT_REGION=us-west-2 isitfit tags dump
 
 echo "Test 8.3: tags suggest on 0 ec2"
-AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=us-east-1 isitfit tags suggest
+AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=us-east-1 isitfit tags suggest || echo "expected to fail"
 
 echo "Test 8.4: tags suggest on shadi account"
 AWS_PROFILE=shadi AWS_DEFAULT_REGION=us-west-2 isitfit tags suggest
