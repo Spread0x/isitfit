@@ -38,7 +38,7 @@ setup(
         'tqdm==4.32.2',
 
         'redis==3.3.8',
-        'pyarrow==0.14.1',
+        'pyarrow==0.15.0',
 
         # check note in requirements.txt
         'awscli==1.16.248',

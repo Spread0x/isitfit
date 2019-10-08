@@ -6,6 +6,11 @@ Version latest (0.5.0?, 2019-09-24?)
 - ...
 
 
+Version 0.9.1 (2019-10-08)
+
+- bugfix: pyarrow upgraded to 0.15.0 after report in #6
+
+
 Version 0.9.0 (2019-10-07)
 
 - enh: replace ValueError with IsitfitError
