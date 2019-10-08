@@ -125,3 +125,30 @@ def display_df(title, df, csv_fn, shape, logger):
 
 class IsitfitError(Exception):
   pass
+
+
+
+def prompt_upgrade(pkg_name, current_version):
+  """
+  check if current version is out-of-date
+  https://github.com/alexmojaki/outdated
+
+  copied from https://github.com/WhatsApp/WADebug/blob/958ac37be804cc732ae514d4872b93d19d197a5c/wadebug/cli.py#L40
+  """
+
+  from outdated import check_outdated
+
+  is_outdated, latest_version = check_outdated(pkg_name, current_version)
+  # is_outdated = True # FIXME for debugging
+  if is_outdated:
+    import click
+    msg_outdated = """The current version of {pkg_name} ({current_version}) is out of date.
+Run `pip3 install {pkg_name} --upgrade` 
+to upgrade to the latest version ({latest_version})\n
+"""
+    msg_outdated = msg_outdated.format(
+        pkg_name=pkg_name, current_version=current_version, latest_version=latest_version
+      )
+    click.secho(msg_outdated, fg="yellow")
+  
+  return is_outdated

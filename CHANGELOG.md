@@ -4,6 +4,7 @@ Semantic versioning
 Version latest (0.5.0?, 2019-09-24?)
 
 - ...
+- feat: check latest version with `outdated` and ask users to upgrade
 
 
 Version 0.9.1 (2019-10-08)

@@ -1,5 +1,8 @@
 # RuntimeError: Click will abort further execution because Python 3 was configured to use ASCII as encoding for the environment. 
 # Consult https://click.palletsprojects.com/en/7.x/python3/ for mitigation steps.
+# 
+# Edit 2019-10-08: whatsapp's wadebug uses "click.disable_unicode_literals_warning = True"
+# Ref: https://github.com/WhatsApp/WADebug/blob/958ac37be804cc732ae514d4872b93d19d197a5c/wadebug/cli.py#L23
 from .utils import mysetlocale
 mysetlocale()
 
@@ -45,6 +48,12 @@ def cli(ctx, debug, version, optimize, n, filter_tags):
       logger.debug("Enabled debug level")
       logger.debug("-------------------")
 
+    # check if current version is out-of-date
+    from .utils import prompt_upgrade
+    is_outdated = prompt_upgrade('isitfit', isitfit_version)
+    if is_outdated:
+      import sys
+      sys.exit(1)
 
     # do not continue with the remaining code here
     # if a command is invoked, eg `isitfit tags`

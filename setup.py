@@ -46,7 +46,8 @@ setup(
 
         'datadog==0.30.0',
         'schema==0.7.1',
-        'visidata==1.5.2'
+        'visidata==1.5.2',
+        'outdated==0.2.0'
     ],
     entry_points='''
         [console_scripts]
