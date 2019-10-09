@@ -151,23 +151,13 @@ Details
 Filter optimizations for a particular tag name or tag value
 
 ```
-> isitfit --optimize --filter-tags=foo
+> isitfit --optimize --filter-tags=inexistant
 ```
 
 Apply the same filtering of tag name/value to the cost-weighted average utilization
 
 ```
 > isitfit --filter-tags=inexistant
-
-Field                            Value
--------------------------------  -----------
-Analysis start date              2019-06-07
-Analysis end date                2019-09-05
-EC2 machines (total)             8
-EC2 machines (analysed)          0
-Billed cost                      0 $
-Used cost                        0 $
-CWAU = Used / Billed * 100       0 %
 ```
 
 ### Generating suggested tags
