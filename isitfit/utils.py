@@ -138,7 +138,15 @@ def prompt_upgrade(pkg_name, current_version):
 
   from outdated import check_outdated
 
-  is_outdated, latest_version = check_outdated(pkg_name, current_version)
+  is_outdated = False
+  try:
+    is_outdated, latest_version = check_outdated(pkg_name, current_version)
+  except ValueError as error:
+    # catch case of "ValueError: Version 0.10.0 is greater than the latest version on PyPI: 0.9.1"
+    # This would happen on my dev machine
+    if not "is greater than" in str(error):
+      raise
+
   # is_outdated = True # FIXME for debugging
   if is_outdated:
     import click
@@ -199,8 +207,9 @@ def ping_matomo(action_name):
 
   # build action url
   # https://stackoverflow.com/questions/9718541/reconstructing-absolute-urls-from-relative-urls-on-a-page#comment51058834_9718651
+  from . import isitfit_version
   action_base = "https://cli.isitfit.io"
-  action_url = urljoin(action_base, action_name)
+  action_url = urljoin(action_base, isitfit_version+action_name)
 
   # https://stackoverflow.com/a/39144239/4126114
   req_i = {
