@@ -52,8 +52,9 @@ def cli(ctx, debug, version, optimize, n, filter_tags):
     from .utils import prompt_upgrade
     is_outdated = prompt_upgrade('isitfit', isitfit_version)
     if is_outdated:
-      import sys
-      sys.exit(1)
+      # Give the user some time to read the message and possibly update
+      import time
+      time.sleep(3)
 
     # do not continue with the remaining code here
     # if a command is invoked, eg `isitfit tags`
