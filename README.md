@@ -176,7 +176,6 @@ To use it:
 
 ```
 isitfit tags suggest
-isitfit --debug tags suggest
 ```
 
 #### Advanced
@@ -192,7 +191,6 @@ To use it:
 
 ```
 isitfit tags suggest --advanced
-isitfit --debug tags suggest --advanced
 ```
 
 AutofitCloud is the company behind `isitfit`.
