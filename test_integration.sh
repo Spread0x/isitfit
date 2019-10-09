@@ -64,6 +64,8 @@ AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit --debug tags pu
 AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit --debug tags push testFixture-tagsPush-3-renameTag.csv --not-dry-run
 AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit --debug tags push testFixture-tagsPush-1-noChange.csv --not-dry-run
 
+echo "Test 9: user shadi doesnt have access to SQS of user autofitcloud (not as provider of isitfit-api)"
+AWS_PROFILE=shadi aws sqs send-message --queue-url "https://sqs.us-east-1.amazonaws.com/974668457921/isitfit-cli-974668457921-AIDA6F3WEM7AXY6Y4VWDC.fifo" --message-body bla || echo "expected to fail"
 
 # done
 # `set -x` doesn't let the script reach this point in case of any error
