@@ -62,6 +62,10 @@ def cli(ctx, debug, version, optimize, n, filter_tags):
     if ctx.invoked_subcommand is not None:
       return
 
+    # gather anonymous usage statistics
+    from .utils import ping_matomo
+    ping_matomo("/")
+
     #logger.info("Is it fit?")
     from .utils import IsitfitError
     try:
@@ -115,6 +119,10 @@ def tags():
 @click.option('--advanced', is_flag=True, help='Get advanced suggestions of tags. Requires login')
 @click.pass_context
 def suggest(ctx, advanced):
+  # gather anonymous usage statistics
+  from .utils import ping_matomo
+  ping_matomo("/tags/suggest")
+
   from .utils import IsitfitError
   tl = None
   if not advanced:
@@ -140,6 +148,10 @@ def suggest(ctx, advanced):
 @tags.command(help="Dump existing EC2 tags in tabular form into a csv file")
 @click.pass_context
 def dump(ctx):
+  # gather anonymous usage statistics
+  from .utils import ping_matomo
+  ping_matomo("/tags/dump")
+
   from .tagsDump import TagsDump
   from .utils import IsitfitError
   tl = TagsDump()
@@ -161,6 +173,10 @@ def dump(ctx):
 @click.argument('csv_filename') #, help='Path to CSV file holding tags to be pushed. Should match format from `isitfit tags dump`')
 @click.option('--not-dry-run', is_flag=True, help='True for dry run (simulated push)')
 def push(csv_filename, not_dry_run):
+  # gather anonymous usage statistics
+  from .utils import ping_matomo
+  ping_matomo("/tags/push")
+
   from .tagsPush import TagsPush
   from .utils import IsitfitError
 
