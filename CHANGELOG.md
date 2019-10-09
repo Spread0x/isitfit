@@ -6,7 +6,7 @@ Version latest (0.5.0?, 2019-09-24?)
 - ...
 
 
-Version 0.10.0 (2019-10-09)
+Version 0.10.1 (2019-10-09)
 
 - feat: check latest version with `outdated` and ask users to upgrade
 - feat: use custom domain api.isitfit.io instead of amazonaws endpoint for `isitfit tags suggest --advanced`
