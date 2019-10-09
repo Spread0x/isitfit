@@ -5,6 +5,7 @@ Version latest (0.5.0?, 2019-09-24?)
 
 - ...
 - feat: check latest version with `outdated` and ask users to upgrade
+- feat: use custom domain api.isitfit.io instead of amazonaws endpoint
 
 
 Version 0.9.1 (2019-10-08)

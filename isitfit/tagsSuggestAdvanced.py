@@ -7,8 +7,10 @@ import os
 import requests
 import json
 from .utils import IsitfitError
+import urllib.parse
 
-BASE_URL = 'https://r0ju8gtgtk.execute-api.us-east-1.amazonaws.com'
+#BASE_URL = 'https://r0ju8gtgtk.execute-api.us-east-1.amazonaws.com/dev/'
+BASE_URL = 'https://api.isitfit.io/v0/'
 
 class TagsSuggestAdvanced(TagsSuggestBasic):
 
@@ -168,9 +170,12 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
 
 
   def _register(self):
-      logger.info("Requesting access to isitfit server S3 and SQS")
-      logger.debug("POST /register")
-      URL = '%s/dev/register'%BASE_URL
+      logger.info("Logging into server")
+
+      # https://stackoverflow.com/a/8223955/4126114
+      URL = urllib.parse.urljoin(BASE_URL, './register')
+      logger.debug("POST %s"%URL)
+
       self.r_sts = self.sts.get_caller_identity()
       del self.r_sts['ResponseMetadata']
       # eg {'UserId': 'AIDA6F3WEM7AXY6Y4VWDC', 'Account': '974668457921', 'Arn': 'arn:aws:iam::974668457921:user/shadi'}
@@ -205,8 +210,11 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
 
   def _tags_suggest(self):
       logger.info("Requesting tag suggestions from isitfit server")
-      logger.debug("POST /tags/suggest")
-      URL = '%s/dev/tags/suggest'%BASE_URL
+
+      # https://stackoverflow.com/a/8223955/4126114
+      URL = urllib.parse.urljoin(BASE_URL, './tags/suggest')
+      logger.debug("POST %s"%URL)
+
       load_send = {}
       load_send.update(self.r_sts)
       load_send['s3_key_suffix'] = self.s3_key_suffix
