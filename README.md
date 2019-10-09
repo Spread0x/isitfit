@@ -160,6 +160,51 @@ Apply the same filtering of tag name/value to the cost-weighted average utilizat
 > isitfit --filter-tags=inexistant
 ```
 
+
+### Dumping tags to CSV
+
+To dump the EC2 tags in tabular format into a CSV file:
+
+```
+> isitfit tags dump
+
+Counting EC2 instances
+Found a total of 8 EC2 instances
+Scanning EC2 instances: 9it [00:01,  8.72it/s]                                                                                                                                                              
+Converting tags list into dataframe
+Dumping data into /tmp/isitfit-tags-9vgd_bzy.csv
+Done
+Consider `pip3 install visidata` and then `vd /tmp/isitfit-tags-9vgd_bzy.csv` for further filtering or exploration.
+More details about visidata at http://visidata.org/
+```
+
+
+### Pushing tags from CSV
+
+To push EC2 tags from a CSV file:
+
+1. Attached the policy `ResourceGroupsandTagEditorFullAccess` to the user/role executing `isitfit`
+
+2. Export a tags dump (csv file)
+
+```
+> isitfit tags dump
+```
+
+3. Edit the csv file
+4. Simulate the push of the edited csv
+
+```
+> isitfit tags push path/to/csv
+```
+
+5. Perform actual push to AWS EC2
+
+```
+> isitfit tags push path/to/csv --not-dry-run
+```
+
+
 ### Generating suggested tags
 
 #### Basic
@@ -195,49 +240,6 @@ isitfit tags suggest --advanced
 
 AutofitCloud is the company behind `isitfit`.
 You can find our privacy policy at https://www.autofitcloud.com/privacy
-
-
-### Dumping tags to CSV
-
-To dump the EC2 tags in tabular format into a CSV file:
-
-```
-> isitfit tags dump
-
-Counting EC2 instances
-Found a total of 8 EC2 instances
-Scanning EC2 instances: 9it [00:01,  8.72it/s]                                                                                                                                                              
-Converting tags list into dataframe
-Dumping data into /tmp/isitfit-tags-9vgd_bzy.csv
-Done
-Consider `pip3 install visidata` and then `vd /tmp/isitfit-tags-9vgd_bzy.csv` for further filtering or exploration.
-More details about visidata at http://visidata.org/
-```
-
-### Pushing tags from CSV
-
-To push EC2 tags from a CSV file:
-
-1. Attached the policy `ResourceGroupsandTagEditorFullAccess` to the user/role executing `isitfit`
-
-2. Export a tags dump (csv file)
-
-```
-> isitfit tags dump
-```
-
-3. Edit the csv file
-4. Simulate the push of the edited csv
-
-```
-> isitfit tags push path/to/csv
-```
-
-5. Perform actual push to AWS EC2
-
-```
-> isitfit tags push path/to/csv --not-dry-run
-```
 
 
 ### Non-default awscli profile
