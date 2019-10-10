@@ -376,12 +376,26 @@ Check `CHANGELOG.md`
 Apache License 2.0. Check file `LICENSE`
 
 
+
+
 ## Dev notes
 
-Local editable installation
+### Testing
+
+Check `isitfit/tests/README.md`
+
+
+### Packaging to pypi
+
+New release
 
 ```
-pip3 install -e .
+update version in isitfit/__init__.py
+update version in changelog
+commit with 'version bump 0.1.0'
+git tag 0.1.0
+git push origin 0.1.0
+git push github 0.1.0
 ```
 
 publish to pypi
@@ -394,11 +408,13 @@ twine upload dist/*
 Got pypi badge from
 https://badge.fury.io/for/py/git-remote-aws
 
-Run my local tests with
+
+### Developing
+
+Local editable installation
 
 ```
-./test_integration.sh # integration
-pytest isitfit/test_* # unit
+pip3 install -e .
 ```
 
 Update README TOC with
@@ -412,18 +428,6 @@ Install dev requirements
 
 ```
 pip3 install -r requirements_dev.txt
-```
-
-New release
-
-```
-update version in isitfit/__init__.py
-update version in changelog
-commit with 'version bump 0.1.0'
-git tag 0.1.0
-git push origin 0.1.0
-git push github 0.1.0
-and then follow steps above to publish to pypi
 ```
 
 
