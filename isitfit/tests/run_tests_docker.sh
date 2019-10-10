@@ -10,6 +10,12 @@ set -e
 docker build ../.. -t isitfit
 
 ###############################
+# unit tests
+docker run --name isitfit_test \
+           --rm \
+           isitfit \
+           bash -c "cd /code && pytest"
+
 # live tests
 
 # Note that even if isitfit exits with non-0 return code, the docker run still exits with 0 return code
