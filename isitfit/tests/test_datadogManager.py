@@ -1,4 +1,4 @@
-from .datadogManager import DatadogManager
+from ..datadogManager import DatadogManager
 
 def test_datadogman_1():
     ddg = DatadogManager()
