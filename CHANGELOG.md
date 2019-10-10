@@ -4,6 +4,8 @@ Semantic versioning
 Version latest (0.5.0?, 2019-09-24?)
 
 - ...
+- enh: move tests into `isitfit/tests`
+- enh: add dockerfile to test in clean environment
 
 
 Version 0.10.1 (2019-10-09)
