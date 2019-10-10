@@ -26,8 +26,8 @@ A simple command-line tool to check if an AWS EC2 account is fit or underused.
   - [Caching results with redis](#caching-results-with-redis)
   - [Datadog integration](#datadog-integration)
 - [What does Underused mean?](#what-does-underused-mean)
+- [Statistics and Usage Tracking](#statistics-and-usage-tracking)
 - [Changelog](#changelog)
-- [Roadmap](#roadmap)
 - [License](#license)
 - [Dev notes](#dev-notes)
 - [Support](#support)
@@ -369,11 +369,6 @@ isitfit tags push
 ## Changelog
 
 Check `CHANGELOG.md`
-
-
-## Roadmap
-
-Check the public trello board [here](https://trello.com/b/RVlHtytL/isitfit)
 
 
 ## License
