@@ -228,8 +228,8 @@ isitfit tags suggest
 *(Work in progress. Check [here](https://trello.com/c/eKZawuvm/12-advanced-tag-suggestions) for status)*
 
 For more advanced tag suggestions, the `--advanced` option will
-send the EC2 instance names to [AutofitCloud](https://autofitcloud.com)'s servers,
-run more sophisticated algorithms for generating tag suggestions,
+send the EC2 instance names to the `isitfit` server-side API,
+run more sophisticated algorithms there for generating tag suggestions,
 and push back the results to your terminal.
 
 To use it:
@@ -237,9 +237,6 @@ To use it:
 ```
 isitfit tags suggest --advanced
 ```
-
-AutofitCloud is the company behind `isitfit`.
-You can find our privacy policy at https://www.autofitcloud.com/privacy
 
 
 ### Non-default awscli profile
@@ -344,6 +341,29 @@ Sizing is simply a rule that says: "If underused, recommend the next smaller ins
 
 The relevant source code is [here](https://github.com/autofitcloud/isitfit/blob/master/isitfit/optimizerListener.py#L69)
 
+
+## Statistics and Usage Tracking
+
+`isitfit` seeks to be driven by usage and demand of our community.
+We want to understand what users are doing by collecting various events and usage data,
+and we will use this data to iterate and improve `isitfit` based on this gained insight.
+This includes things like the installed version of `isitfit`,
+the commands being used, and the operating system.
+
+We do not use event payloads to collect any identifying information,
+and the data is used in aggregate to understand the community as a whole.
+
+Events we collect are:
+
+```
+isitfit
+isitfit --optimize
+isitfit tags suggest
+isitfit tags dump
+isitfit tags push
+```
+
+(Originally adapted from [serverless](https://serverless.com/framework/docs/providers/aws/cli-reference/slstats/))
 
 
 ## Changelog
