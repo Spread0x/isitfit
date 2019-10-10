@@ -64,7 +64,10 @@ def cli(ctx, debug, version, optimize, n, filter_tags):
 
     # gather anonymous usage statistics
     from .utils import ping_matomo
-    ping_matomo("/")
+    if optimize:
+      ping_matomo("/cost/optimize")
+    else:
+      ping_matomo("/cost/analyze")
 
     #logger.info("Is it fit?")
     from .utils import IsitfitError
