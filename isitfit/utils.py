@@ -163,39 +163,6 @@ to upgrade to the latest version ({latest_version})\n
 
 
 
-def get_myuid():
-  """
-  Create a UUID for each installation of isitfit
-  This also creates a .isitfit folder in the user's home directory
-  and caches the generated UUID in a txt file for re-use
-  """
-  # get home
-  import pathlib
-  p1_home = str(pathlib.Path.home())
-
-  # check dot folder
-  import os
-  p2_dot = os.path.join(p1_home, ".isitfit")
-  if not os.path.exists(p2_dot):
-    pathlib.Path(p2_dot).mkdir(exist_ok=True)
-
-  # check uid file within dot folder
-  p3_uidtxt = os.path.join(p2_dot, "uid.txt")
-  uuid_val = None
-  if not os.path.exists(p3_uidtxt):
-    import uuid
-    uuid_val = uuid.uuid4().hex
-    with open(p3_uidtxt, 'w') as fh:
-      fh.write(uuid_val)
-
-  # if not created above, read from file
-  if uuid_val is None:
-    with open(p3_uidtxt, 'r') as fh:
-      uuid_val = fh.read()
-
-  return uuid_val
-
-
 def ping_matomo(action_name):
   """
   Gather anonymous usage statistics
@@ -203,7 +170,8 @@ def ping_matomo(action_name):
   from urllib.parse import urljoin, urlencode
 
   # get uuid
-  uuid_val = get_myuid()
+  from .dotMan import DotMan
+  uuid_val = DotMan().get_myuid()
 
   # build action url
   # https://stackoverflow.com/questions/9718541/reconstructing-absolute-urls-from-relative-urls-on-a-page#comment51058834_9718651
