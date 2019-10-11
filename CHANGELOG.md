@@ -4,6 +4,10 @@ Semantic versioning
 Version latest (0.5.0?, 2019-09-24?)
 
 - ...
+
+
+Version 0.10.2 (2019-10-11)
+
 - enh: move tests into `isitfit/tests`
 - enh: add dockerfile to test in clean environment
 - enh: move DotMan to separate file (out of utils) with functional tests
