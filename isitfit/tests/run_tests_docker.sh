@@ -7,10 +7,12 @@
 set -e
 
 # build image
-docker build ../.. -t isitfit
+TEST_DIR=`dirname "$0"`
+docker build $TEST_DIR/../.. -t isitfit
 
 ###############################
 # unit tests
+# REMEMBER TO APPEND -it FOR RUNNING IN TERMINAL INTERACTIVE BASH SESSION
 docker run --name isitfit_test \
            --rm \
            isitfit \

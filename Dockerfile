@@ -5,8 +5,9 @@ MAINTAINER Shadi Akiki
 # https://github.com/kstaken/dockerfile-examples/blob/master/apache-php/Dockerfile
 # 
 # add openssh-client is for ssh keys, for using with pip install of private repo on gitlab
+# Note "redis" gets both server and cli
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip git jq && \
+    apt-get install -y python3 python3-pip git jq redis time && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -33,6 +34,9 @@ RUN python3 -m pew in isitfit \
     visidata==1.5.2 \
     outdated==0.2.0
 
+# for unit tests
+RUN python3 -m pew in isitfit pip install pytest
+
 # install moto for testing purposes
 # https://github.com/spulec/moto#stand-alone-server-mode
 # 2019-07-23 not used ATM in the docker file
@@ -41,6 +45,11 @@ RUN python3 -m pew in isitfit \
 # install isitfit package itself
 WORKDIR /code
 COPY . .
+RUN chmod +x /code/docker-entrypoint.sh
+
+# https://github.com/antirez/redis/issues/5055#issuecomment-405516849
+RUN sed -i "s/bind .*/bind 127.0.0.1/g" /etc/redis/redis.conf
+
 RUN python3 -m pew in isitfit pip3 install .
 
 # Some locale issues for click within docker
@@ -54,4 +63,5 @@ WORKDIR /workspace
 # Note: If CMD is used to provide default arguments for the ENTRYPOINT instruction,
 # both the CMD and ENTRYPOINT instructions should be specified with the JSON array format.
 # Copied from https://docs.docker.com/engine/reference/builder/
-ENTRYPOINT ["python3", "-m", "pew", "in", "isitfit"]
+# ENTRYPOINT ["python3", "-m", "pew", "in", "isitfit"]
+ENTRYPOINT ["/code/docker-entrypoint.sh"]
