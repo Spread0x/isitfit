@@ -2,4 +2,3 @@ instance_id,Name,aws:cloud9:environment,aws:cloud9:owner,aws:cloudformation:logi
 i-0c7c90d4271c3ea98,aws-cloud9-mvp-ec2op-9427685fad4c4dc7a17fe7bc94e8d3e9,9427685fad4c4dc7a17fe7bc94e8d3e9,974668457921,Instance,arn:aws:cloudformation:eu-central-1:974668457921:stack/aws-cloud9-mvp-ec2op-9427685fad4c4dc7a17fe7bc94e8d3e9/1a25e920-c321-11e9-b30b-0652a290d4c8,aws-cloud9-mvp-ec2op-9427685fad4c4dc7a17fe7bc94e8d3e9
 i-0fd6d8b37fb78b638,test excel addin with office.js,,,,,
 i-05e21b8a73a8e710a,ec2op labrat,,,,,
-i-086bee07191d20c92,aws-cloud9-test-isitfit-0-7-6acdfa570af5411ba0d809c93e31951f,6acdfa570af5411ba0d809c93e31951f,974668457921,Instance,arn:aws:cloudformation:eu-central-1:974668457921:stack/aws-cloud9-test-isitfit-0-7-6acdfa570af5411ba0d809c93e31951f/32ee71d0-e1f7-11e9-9840-0a43c0b04aee,aws-cloud9-test-isitfit-0-7-6acdfa570af5411ba0d809c93e31951f
