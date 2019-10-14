@@ -1,6 +1,6 @@
-from ..tags.tagsPush import TagsPush
+from ...tags.tagsPush import TagsPush
 import pytest
-from ..utils import IsitfitError
+from ...utils import IsitfitError
 
 def test_validateTagsFile_fail_empty():
   import tempfile

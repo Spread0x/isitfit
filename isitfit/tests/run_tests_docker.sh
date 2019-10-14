@@ -27,7 +27,13 @@ docker run --name isitfit_test \
            --rm \
            -v /home/ubuntu/.aws:/root/.aws \
            isitfit \
-           sh /code/isitfit/tests/test_integration.sh
+           sh /code/isitfit/tests/cost/test_integration.sh
+
+docker run --name isitfit_test \
+           --rm \
+           -v /home/ubuntu/.aws:/root/.aws \
+           isitfit \
+           sh /code/isitfit/tests/tags/test_integration.sh
 
 ###############################
 ## mocked test

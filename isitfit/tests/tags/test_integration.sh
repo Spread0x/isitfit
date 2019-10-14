@@ -3,17 +3,8 @@
 set -e
 set -x
 
-# set caching
-ISITFIT_REDIS_HOST=localhost
-ISITFIT_REDIS_PORT=6379
-ISITFIT_REDIS_DB=0
-
 # get dir of test script
 TEST_DIR=`dirname "$0"`
-
-# clear caching
-rm -rf /tmp/isitfit_ec2info.cache
-redis-cli -n $ISITFIT_REDIS_DB flushdb #  || echo "redis db clear failed" (eg db number out of range)
 
 # Set the UID to the one for testing (so as not to clutter matomo data)
 # This risks no longer testing the automatic creation of the folders
@@ -33,39 +24,6 @@ fi
 echo "bb5794d7e0294962bdefb47bab7ff0e0" > ~/.isitfit/uid.txt
 
 # start
-#echo "Test 0a: version runs ok"
-#isitfit --version
-#
-echo "Test 0b: version takes less than 1 sec (visual check ATM, 0.7s on local, 0.2s on ec2)"
-time isitfit --version
-
-echo "Test 1: default profile (shadiakiki1986@gmail.com@amazonaws.com)"
-AWS_PROFILE=shadi AWS_DEFAULT_REGION=us-west-2 isitfit
-
-echo "Test 2: non-default profile (shadi@autofitcloud.com@amazonaws.com)"
-AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit
-
-echo "Test 3: default profile in region with 0 ec2 instances"
-# Note, unlike isitfit tags dump which returns a non-0 code if 0 ec2 found, this one just returns 0
-AWS_DEFAULT_REGION=eu-central-1 isitfit
-
-echo "Test 4: optimize with default profile"
-isitfit --optimize
-
-echo "Test 5: optimize in region with 0 ec2 instances"
-# Note, unlike isitfit tags dump which returns a non-0 code if 0 ec2 found, this one just returns 0
-AWS_DEFAULT_REGION=eu-central-1 isitfit --optimize
-
-echo "Test 6: optimize with n=1"
-isitfit --optimize --n=1
-
-echo "Test 7: {analyse,optimize} filter-tags {ffa,inexistant}"
-isitfit --optimize --filter-tags=ffa
-isitfit --filter-tags=ffa
-
-isitfit --optimize --filter-tags=inexistant
-isitfit --filter-tags=inexistant
-
 echo "Test 8.1: tags dump on 0 ec2"
 AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=us-east-1 isitfit tags dump || echo "expected to fail"
 
