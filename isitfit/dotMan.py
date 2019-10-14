@@ -38,6 +38,7 @@ class DotMan:
     if uuid_val is None:
       with open(p3_uidtxt, 'r') as fh:
         uuid_val = fh.read()
+        uuid_val = uuid_val.strip() # strip the new-line or spaces if any
 
     # if re-entry due to invalid ID or not
     if is_reentry:

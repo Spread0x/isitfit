@@ -12,6 +12,22 @@ ISITFIT_REDIS_DB=0
 rm -rf /tmp/isitfit_ec2info.cache
 redis-cli -n $ISITFIT_REDIS_DB flushdb #  || echo "redis db clear failed" (eg db number out of range)
 
+# Set the UID to the one for testing (so as not to clutter matomo data)
+# This risks no longer testing the automatic creation of the folders
+# but that's already covered by the unit tests anyway
+if [ -f ~/.isitfit/uid.txt.bkpDuringTest ]; then
+  echo "It seems that a test run was aborted."
+  echo "Options:"
+  echo "- Restore the UID backup: mv ~/.isitfit/uid.txt.bkpDuringTest ~/.isitfit/uid.txt"
+  echo "- Remove the UID backup: rm ~/.isitfit/uid.txt.bkpDuringTest"
+  exit 1
+fi
+
+mkdir -p ~/.isitfit
+if [ -f ~/.isitfit/uid.txt ]; then
+  cp ~/.isitfit/uid.txt ~/.isitfit/uid.txt.bkpDuringTest
+fi
+echo "bb5794d7e0294962bdefb47bab7ff0e0" > ~/.isitfit/uid.txt
 
 # start
 #echo "Test 0a: version runs ok"
@@ -66,6 +82,12 @@ AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit --debug tags pu
 
 echo "Test 9: user shadi doesnt have access to SQS of user autofitcloud (not as provider of isitfit-api)"
 AWS_PROFILE=shadi aws sqs send-message --queue-url "https://sqs.us-east-1.amazonaws.com/974668457921/isitfit-cli-974668457921-AIDA6F3WEM7AXY6Y4VWDC.fifo" --message-body bla || echo "expected to fail"
+
+# restore the original UID
+if [ -f ~/.isitfit/uid.txt.bkpDuringTest ]; then
+  cp ~/.isitfit/uid.txt.bkpDuringTest ~/.isitfit/uid.txt
+  rm ~/.isitfit/uid.txt.bkpDuringTest
+fi
 
 # done
 # `set -x` doesn't let the script reach this point in case of any error
