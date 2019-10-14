@@ -22,8 +22,9 @@ from .. import isitfit_version
 
 @click.group(invoke_without_command=False)
 @click.option('--debug', is_flag=True, help='Display more details to help with debugging')
+@click.option('--email-to', default=None, help='email address to which to send results')
 @click.pass_context
-def cli_core(ctx, debug):
+def cli_core(ctx, debug, email_to):
 
     logLevel = logging.DEBUG if debug else logging.INFO
     ch = logging.StreamHandler()
@@ -42,6 +43,12 @@ def cli_core(ctx, debug):
       # Give the user some time to read the message and possibly update
       import time
       time.sleep(3)
+
+    # check if emailing requested
+    if email_to is not None:
+      ctx['email_to'] = email_to
+      raise Exception("TO BE IMPLEMENTED")
+
 
 ### After setting invoke_without_command=False, just commenting this out
 ###    # do not continue with the remaining code here
