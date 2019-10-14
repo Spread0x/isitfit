@@ -36,7 +36,7 @@ echo "bb5794d7e0294962bdefb47bab7ff0e0" > ~/.isitfit/uid.txt
 #echo "Test 0a: version runs ok"
 #isitfit --version
 #
-echo "Test 0b: version takes less than 1 sec (visual check ATM)"
+echo "Test 0b: version takes less than 1 sec (visual check ATM, 0.7s on local, 0.2s on ec2)"
 time isitfit --version
 
 echo "Test 1: default profile (shadiakiki1986@gmail.com@amazonaws.com)"
