@@ -1,4 +1,4 @@
-from ..tagsPush import TagsPush
+from ..tags.tagsPush import TagsPush
 import pytest
 from ..utils import IsitfitError
 

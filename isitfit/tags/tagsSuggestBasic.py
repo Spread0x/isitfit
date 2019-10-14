@@ -40,7 +40,7 @@ class TagsSuggestBasic:
     n_ec2_total = len(list(self.ec2_resource.instances.all()))
     msg_total = "Found a total of %i EC2 instances"%n_ec2_total
     if n_ec2_total==0:
-      from .utils import IsitfitError
+      from ..utils import IsitfitError
       raise IsitfitError(msg_total)
 
     logger.warning(msg_total)
@@ -84,7 +84,7 @@ class TagsSuggestBasic:
 
   def display(self):
     logger.debug("TagsSuggestBasic::display")
-    from .utils import display_df
+    from ..utils import display_df
     display_df(
       "Suggested tags:",
       self.suggested_df,

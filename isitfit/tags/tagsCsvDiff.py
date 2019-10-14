@@ -1,4 +1,4 @@
-from .utils import IsitfitError
+from ..utils import IsitfitError
 
 import logging
 logger = logging.getLogger('isitfit')

@@ -2,11 +2,11 @@ import logging
 logger = logging.getLogger('isitfit')
 
 from .tagsSuggestBasic import TagsSuggestBasic
-from .utils import MAX_ROWS
+from ..utils import MAX_ROWS
 import os
 import requests
 import json
-from .utils import IsitfitError
+from ..utils import IsitfitError
 import urllib.parse
 
 #BASE_URL = 'https://r0ju8gtgtk.execute-api.us-east-1.amazonaws.com/dev/'

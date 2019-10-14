@@ -146,10 +146,10 @@ def suggest(ctx, advanced):
   from .utils import IsitfitError
   tl = None
   if not advanced:
-    from .tagsSuggestBasic import TagsSuggestBasic
+    from .tags.tagsSuggestBasic import TagsSuggestBasic
     tl = TagsSuggestBasic()
   else:
-    from .tagsSuggestAdvanced import TagsSuggestAdvanced
+    from .tags.tagsSuggestAdvanced import TagsSuggestAdvanced
     tl = TagsSuggestAdvanced()
 
   try:
@@ -172,7 +172,7 @@ def dump(ctx):
   from .utils import ping_matomo
   ping_matomo("/tags/dump")
 
-  from .tagsDump import TagsDump
+  from .tags.tagsDump import TagsDump
   from .utils import IsitfitError
   tl = TagsDump()
 
@@ -197,7 +197,7 @@ def push(csv_filename, not_dry_run):
   from .utils import ping_matomo
   ping_matomo("/tags/push")
 
-  from .tagsPush import TagsPush
+  from .tags.tagsPush import TagsPush
   from .utils import IsitfitError
 
   tp = TagsPush(csv_filename)
