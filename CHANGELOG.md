@@ -8,6 +8,10 @@ Version latest (0.5.0?, 2019-09-24?)
 - enh: `isitfit version` and `isitfit --version` both show the version (in case a user uses any of the 2)
 - enh: move all cost-related code into `isitfit/cost`
 - enh: move all tags-related code into `isitfit/tags`
+- enh: drop support for the optionless `isitfit` and `isitfit --optimize` in favor of `isitfit cost analyze` and `isitfit cost optimize`
+  - this makes for a cleaner implementation of the CLI
+  - it might confuse some early users who read earlier documentation
+  - but I'd rather make this change earlier better than later
 
 
 Version 0.10.2 (2019-10-11)

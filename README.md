@@ -67,8 +67,8 @@ For pushing tags, the user/role will also need to have the following existing po
 To get help hints in the command-line use the `--help`
 ```
 > isitfit --help
-> isitfit tags --help
-> isitfit tags dump --help
+> isitfit cost --help
+> isitfit cost analyze --help
 ```
 
 
@@ -77,7 +77,7 @@ To get help hints in the command-line use the `--help`
 Check the version of `isitfit`
 
 ```
-isitfit --version
+isitfit version
 ```
 
 ### Cost-weighted average utilization
@@ -85,7 +85,7 @@ isitfit --version
 Calculate AWS EC2 Cost-Weighted Average Utilization
 
 ```
-> isitfit
+> isitfit cost analyze
 
 Field                            Value
 -------------------------------  -----------
@@ -107,7 +107,7 @@ For reference:
 Find all recommended type changes
 
 ```
-> isitfit --optimize
+> isitfit cost optimize
 
 Recommended savings: -74 $ (over next 3 months)
 
@@ -134,7 +134,7 @@ This is useful to start processing results while the optimization is running.
 Find only the first 1 underused instances
 
 ```
-> isitfit --optimize --n=1
+> isitfit cost optimize --n=1
 
 ...
 Details
@@ -151,13 +151,13 @@ Details
 Filter optimizations for a particular tag name or tag value
 
 ```
-> isitfit --optimize --filter-tags=inexistant
+> isitfit cost optimize --filter-tags=inexistant
 ```
 
 Apply the same filtering of tag name/value to the cost-weighted average utilization
 
 ```
-> isitfit --filter-tags=inexistant
+> isitfit cost analyze --filter-tags=inexistant
 ```
 
 
@@ -246,13 +246,13 @@ To specify a particular profile from `~/.aws/credentials`, set the `AWS_PROFILE`
 For example
 
 ```
-AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit
+AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit cost analyze
 ```
 
 To show higher verbosity, append `--debug` to any command call
 
 ```
-isitfit --debug
+isitfit --debug cost analyze
 ```
 
 
@@ -279,8 +279,8 @@ export ISITFIT_REDIS_DB=0
 Use isitfit as usual
 
 ```
-isitfit
-isitfit --optimize
+isitfit cost analyze
+isitfit cost optimize
 ```
 
 To clear the cache
@@ -306,8 +306,8 @@ For example
 ```
 export DATADOG_API_KEY=ABC1234
 export DATADOG_APP_KEY=ABC1234
-isitfit
-isitfit --optimize
+isitfit cost analyze
+isitfit cost optimize
 ```
 
 Again, consider saving the environment variables in the `~/.bashrc` file.
@@ -356,8 +356,8 @@ and the data is used in aggregate to understand the community as a whole.
 Events we collect are:
 
 ```
-isitfit
-isitfit --optimize
+isitfit cost analyze
+isitfit cost optimize
 isitfit tags suggest
 isitfit tags dump
 isitfit tags push

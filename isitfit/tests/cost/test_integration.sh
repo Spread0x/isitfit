@@ -34,34 +34,34 @@ echo "bb5794d7e0294962bdefb47bab7ff0e0" > ~/.isitfit/uid.txt
 #isitfit --version
 #
 echo "Test 0b: version takes less than 1 sec (visual check ATM, 0.7s on local, 0.2s on ec2)"
-time isitfit --version
+time isitfit version
 
 echo "Test 1: default profile (shadiakiki1986@gmail.com@amazonaws.com)"
-AWS_PROFILE=shadi AWS_DEFAULT_REGION=us-west-2 isitfit
+AWS_PROFILE=shadi AWS_DEFAULT_REGION=us-west-2 isitfit cost analyze
 
 echo "Test 2: non-default profile (shadi@autofitcloud.com@amazonaws.com)"
-AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit
+AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit cost analyze
 
 echo "Test 3: default profile in region with 0 ec2 instances"
 # Note, unlike isitfit tags dump which returns a non-0 code if 0 ec2 found, this one just returns 0
-AWS_DEFAULT_REGION=eu-central-1 isitfit
+AWS_DEFAULT_REGION=eu-central-1 isitfit cost analyze
 
 echo "Test 4: optimize with default profile"
-isitfit --optimize
+isitfit cost optimize
 
 echo "Test 5: optimize in region with 0 ec2 instances"
 # Note, unlike isitfit tags dump which returns a non-0 code if 0 ec2 found, this one just returns 0
-AWS_DEFAULT_REGION=eu-central-1 isitfit --optimize
+AWS_DEFAULT_REGION=eu-central-1 isitfit cost optimize
 
 echo "Test 6: optimize with n=1"
-isitfit --optimize --n=1
+isitfit cost optimize --n=1
 
 echo "Test 7: {analyse,optimize} filter-tags {ffa,inexistant}"
-isitfit --optimize --filter-tags=ffa
-isitfit --filter-tags=ffa
+isitfit cost optimize --filter-tags=ffa
+isitfit cost analyze --filter-tags=ffa
 
-isitfit --optimize --filter-tags=inexistant
-isitfit --filter-tags=inexistant
+isitfit cost optimize --filter-tags=inexistant
+isitfit cost analyze --filter-tags=inexistant
 
 
 # restore the original UID

@@ -51,6 +51,6 @@ setup(
     ],
     entry_points='''
         [console_scripts]
-        isitfit=isitfit.cli:cli
+        isitfit=isitfit.cli.core:cli_core
     ''',
 )
