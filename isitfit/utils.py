@@ -162,7 +162,8 @@ to upgrade to the latest version ({latest_version})\n
   return is_outdated
 
 
-
+# This import needs to stay here for the sake of the mock in test_utils
+import requests
 def ping_matomo(action_name):
   """
   Gather anonymous usage statistics
@@ -192,7 +193,6 @@ def ping_matomo(action_name):
   # use POST instead of GET to avoid arguments showing up in the clear
   # https://developer.matomo.org/api-reference/tracking-api
   MATOMO_URL = 'https://isitfit.matomo.cloud/piwik.php'
-  import requests
   try:
     response = requests.post(MATOMO_URL, json=payload)
   except requests.exceptions.ConnectionError as error:

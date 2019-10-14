@@ -275,7 +275,7 @@ class OptimizerListener:
     logger.info("")
 
     # display dataframe
-    from .utils import display_df
+    from ..utils import display_df
     display_df(
       "Recommended EC2 size changes",
       self.df_sort,

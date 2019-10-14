@@ -1,7 +1,7 @@
 # mocker fixture becomes available after installing pytest-mock
 # https://github.com/pytest-dev/pytest-mock
 def test_ping_matomo(mocker):
-  from ..utils import ping_matomo, requests
+  from ..utils import ping_matomo
   def mockreturn(url, json): return "foo"
   mocked_post = mocker.patch('isitfit.utils.requests.post', side_effect=mockreturn)
   ping_matomo("/test")

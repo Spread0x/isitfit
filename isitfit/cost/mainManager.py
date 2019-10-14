@@ -11,15 +11,13 @@ import logging
 logger = logging.getLogger('isitfit')
 
 
-from .utils import mergeSeriesOnTimestampRange, ec2_catalog
+from ..utils import mergeSeriesOnTimestampRange, ec2_catalog, IsitfitError
 from .cloudtrail_ec2type import Manager as CloudtrailEc2typeManager
 
 
 SECONDS_IN_ONE_DAY = 60*60*24 # 86400  # used for granularity (daily)
 MINUTES_IN_ONE_DAY = 60*24 # 1440
 N_DAYS=90
-
-from .utils import IsitfitError
 
 class NoCloudtrailException(Exception):
     pass

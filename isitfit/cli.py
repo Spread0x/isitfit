@@ -80,10 +80,10 @@ def cli(ctx, debug, version, optimize, n, filter_tags):
       logger.info("Initializing...")
 
       # moved these imports from outside the function to inside it so that `isitfit --version` wouldn't take 5 seconds due to the loading
-      from .mainManager import MainManager
-      from .utilizationListener import UtilizationListener
-      from .optimizerListener import OptimizerListener
-      from .datadogManager import DatadogManager
+      from .cost.mainManager import MainManager
+      from .cost.utilizationListener import UtilizationListener
+      from .cost.optimizerListener import OptimizerListener
+      from .cost.datadogManager import DatadogManager
 
       ul = UtilizationListener()
       ol = OptimizerListener(n)
