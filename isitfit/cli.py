@@ -35,7 +35,12 @@ def display_footer():
 @click.pass_context
 def cli(ctx, debug, version, optimize, n, filter_tags):
     if version:
-      print('isitfit version %s'%isitfit_version)
+      # I tried to use a paramter name version_option with the actual option being "version"
+      # as documented at 
+      # https://click.palletsprojects.com/en/5.x/parameters/#parameter-names
+      # but I couldn't get it to work.
+      # This would have simply invoked the "def version" command, but the "version_core" way works too anyway
+      version_core()
       return
 
     logLevel = logging.DEBUG if debug else logging.INFO
@@ -109,6 +114,17 @@ def cli(ctx, debug, version, optimize, n, filter_tags):
 
     finally:
       display_footer()
+
+#-----------------------
+
+def version_core():
+  print('isitfit version %s'%isitfit_version)
+
+@cli.command(help="Show isitfit version")
+def version():
+  # This is redundant with isitfit --version (just in case a user calls "isitfit version")
+  version_core()
+  return
 
 #-----------------------
 
