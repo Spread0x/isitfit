@@ -123,6 +123,7 @@ def version_core():
 @cli.command(help="Show isitfit version")
 def version():
   # This is redundant with isitfit --version (just in case a user calls "isitfit version")
+  # The idea is similar to `git version` and `git --version`
   version_core()
   return
 
