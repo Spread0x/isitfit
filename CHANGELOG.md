@@ -4,6 +4,7 @@ Semantic versioning
 Version latest (0.5.0?, 2019-09-24?)
 
 - ...
+- bugfix: matomo ping was being called from test, thus cluttering the stats with noise. Mocked out
 
 
 Version 0.10.2 (2019-10-11)
