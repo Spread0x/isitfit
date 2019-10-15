@@ -7,13 +7,15 @@ from ..utils import display_footer
 
 
 @click.group(help="Evaluate AWS EC2 costs", invoke_without_command=False)
-def cost():
+@click.pass_context
+def cost(ctx):
   pass
 
 
 @cost.command(help='Analyze AWS EC2 cost')
 @click.option('--filter-tags', default=None, help='filter instances for only those carrying this value in the tag name or value')
-def analyze(filter_tags):
+@click.pass_context
+def analyze(ctx, filter_tags):
     # gather anonymous usage statistics
     from ..utils import ping_matomo, IsitfitError
     ping_matomo("/cost/analyze")
@@ -40,6 +42,16 @@ def analyze(filter_tags):
       # start download data and processing
       logger.info("Fetching history...")
       mm.get_ifi()
+
+      # check if email requested
+      to_email = ctx.obj.get('to_email', None)
+      if to_email is not None:
+        from .emailMan import EmailMan
+        em = EmailMan(
+          dataType='cost analyze',
+          dataVal=ul.table
+        )
+        em.send(to_email)
 
     except IsitfitError as e_info:
       logger.error("Error: %s"%str(e_info))

@@ -23,9 +23,9 @@ from .. import isitfit_version
 @click.group(invoke_without_command=True)
 @click.option('--debug', is_flag=True, help='Display more details to help with debugging')
 @click.option('--optimize', is_flag=True, help='DEPRECATED: get cost optimization recommendations')
-@click.option('--email-to', default=None, help='email address to which to send results')
+@click.option('--to-email', default=None, help='email address to which to send results')
 @click.pass_context
-def cli_core(ctx, debug, optimize, email_to):
+def cli_core(ctx, debug, optimize, to_email):
 
     logLevel = logging.DEBUG if debug else logging.INFO
     ch = logging.StreamHandler()
@@ -46,8 +46,8 @@ def cli_core(ctx, debug, optimize, email_to):
       time.sleep(3)
 
     # check if emailing requested
-    if email_to is not None:
-      ctx['email_to'] = email_to
+    if to_email is not None:
+      ctx.obj['to_email'] = to_email
       raise Exception("TO BE IMPLEMENTED")
 
     # make sure that context is a dict
