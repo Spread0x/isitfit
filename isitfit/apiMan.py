@@ -32,7 +32,7 @@ class ApiMan:
       self.r_register = self.request(
         method='post',
         relative_url='./register',
-        json=self.r_sts,
+        payload_json=self.r_sts,
         response_schema=register_schema
       )
 
@@ -60,20 +60,20 @@ class ApiMan:
 
       # make actual request
       import requests
-      r1 = requests.request(method, absolute_url, payload_json=payload_json)
+      r1 = requests.request(method, absolute_url, json=payload_json)
 
       # https://stackoverflow.com/questions/18810777/how-do-i-read-a-response-from-python-requests
       import json
       r2 = json.loads(r1.text)
 
       # check for errors
-      from ..utils import IsitfitError
+      from .utils import IsitfitError
       if 'error' in r2:
         print(r2)
         raise IsitfitError('Serverside error: %s'%r2['error'])
 
       if 'message' in r2:
-        if self.r_register['message']=='Internal server error':
+        if r2['message']=='Internal server error':
           raise IsitfitError('Internal server error')
         else:
           print(r2)
