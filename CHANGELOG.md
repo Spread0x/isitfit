@@ -12,6 +12,7 @@ Version latest (0.5.0?, 2019-09-24?)
   - this makes for a cleaner implementation of the CLI
   - it might confuse some early users who read earlier documentation
   - but I'd rather make this change earlier better than later
+- enh: instead of showing a "option not found" error if `isitfit` or `isitfit --optimize` are used, show the user the new command syntax
 
 
 Version 0.10.2 (2019-10-11)

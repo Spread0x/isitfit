@@ -20,11 +20,12 @@ from .. import isitfit_version
 #import atexit
 #atexit.register(display_footer)
 
-@click.group(invoke_without_command=False)
+@click.group(invoke_without_command=True)
 @click.option('--debug', is_flag=True, help='Display more details to help with debugging')
+@click.option('--optimize', is_flag=True, help='DEPRECATED: get cost optimization recommendations')
 @click.option('--email-to', default=None, help='email address to which to send results')
 @click.pass_context
-def cli_core(ctx, debug, email_to):
+def cli_core(ctx, debug, optimize, email_to):
 
     logLevel = logging.DEBUG if debug else logging.INFO
     ch = logging.StreamHandler()
@@ -49,19 +50,33 @@ def cli_core(ctx, debug, email_to):
       ctx['email_to'] = email_to
       raise Exception("TO BE IMPLEMENTED")
 
+    # make sure that context is a dict
+    ctx.ensure_object(dict)
 
-### After setting invoke_without_command=False, just commenting this out
-###    # do not continue with the remaining code here
-###    # if a command is invoked, eg `isitfit tags`
-###    ctx.ensure_object(dict)
-###    if ctx.invoked_subcommand is not None:
-###      return
-###
-###    from .cost import analyze as cost_analyze, optimize as cost_optimize
-###    if optimize:
-###      ctx.invoke(cost_optimize, filter_tags=filter_tags, n=n)
-###    else:
-###      ctx.invoke(cost_analyze, filter_tags=filter_tags)
+    # After adding the separate command for "cost" (i.e. `isitfit cost analyze`)
+    # putting a note here to notify user of new usage
+    # Ideally, this code would be deprecated though
+
+    # if a command is invoked, eg `isitfit tags`, do not proceed
+    if ctx.invoked_subcommand is not None:
+      return
+
+    # if still used without subcommands, notify user of new usage
+    #from .cost import analyze as cost_analyze, optimize as cost_optimize
+    #if optimize:
+    #  ctx.invoke(cost_optimize, filter_tags=filter_tags, n=n)
+    #else:
+    #  ctx.invoke(cost_analyze, filter_tags=filter_tags)
+    if optimize:
+      click.secho("Deprecation note as of version 0.11:", fg='red')
+      click.secho("  Please use `isitfit cost optimize` instead of `isitfit --optimize`.", fg='red')
+    else:
+      click.secho("Deprecation note as of version 0.11:", fg='red')
+      click.secho("  Please use `isitfit cost analyze` instead of `isitfit` to calculate the cost-weighted utilization.", fg='red')
+
+    # just return non-0 code
+    import sys
+    sys.exit(1)
 
 
 from .tags import tags as cli_tags
