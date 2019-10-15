@@ -4,6 +4,10 @@ Semantic versioning
 Version latest (0.5.0?, 2019-09-24?)
 
 - ...
+
+
+Version 0.11.0 (2019-10-15)
+
 - bugfix: matomo ping was being called from test, thus cluttering the stats with noise. Mocked out
 - enh: `isitfit version` and `isitfit --version` both show the version (in case a user uses any of the 2)
 - enh: move all cost-related code into `isitfit/cost`
