@@ -33,34 +33,59 @@ class ApiMan:
         method='post',
         relative_url='./register',
         payload_json=self.r_sts,
-        response_schema=register_schema
+        response_schema=register_schema,
+        use_account_user_path=False # since /register is the absolute path (without account/user)
       )
 
       # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs.html#SQS.Queue.receive_messages
-      self.sqs_q = self.sqs_res.Queue(self.r_register['sqs_url'])
+      # region matches with the serverless.yml region
+      sqs_res = boto3.resource('sqs', region_name='us-east-1')
+      self.sqs_q = sqs_res.Queue(self.r_register['sqs_url'])
 
 
-  def request(self, method, relative_url, payload_json, response_schema):
+  def request(self, method, relative_url, payload_json, response_schema, use_account_user_path=True):
       """
       Wrapper to the URL request
       method - post
       relative_url - eg ./tags/suggest
       payload_json - "json" field for request call
       response_schema - optional schema to validate response
+      use_account_user_path - flag for self.register which can disable this as it doesn't have a account/user prefix in the URL
       """
       logger.debug("ApiMan::request")
 
       logger.info("Sending data to API")
-      logger.debug("%s %s"%(method, relative_url))
 
       # relative URL to absolute
       # https://stackoverflow.com/a/8223955/4126114
+      if use_account_user_path:
+        suffix_url='./%s/%s/%s'%(self.r_sts['Account'], self.r_sts['UserId'], relative_url)
+      else:
+        suffix_url = relative_url
+
       import urllib.parse
-      absolute_url = urllib.parse.urljoin(BASE_URL, relative_url)
+      absolute_url = urllib.parse.urljoin(BASE_URL, suffix_url)
+      logger.debug("%s %s"%(method, absolute_url))
+
+      # prepare to use AWS Sigv4 with requests
+      # https://stackoverflow.com/a/47252241/4126114
+      #
+      # use boto3 to collect credentials
+      # https://github.com/DavidMuller/aws-requests-auth#using-boto-to-automatically-gather-aws-credentials
+      #
+      # original aws post (not clear)
+      # https://docs.aws.amazon.com/general/latest/gr/sigv4-signed-request-examples.html
+      #
+      # clearer aws post
+      # https://aws.amazon.com/premiumsupport/knowledge-center/iam-authentication-api-gateway/
+      from aws_requests_auth.boto_utils import BotoAWSRequestsAuth
+      auth = BotoAWSRequestsAuth(aws_host='execute-api.us-east-1.apigateway.amazonaws.com',
+                                 aws_region='us-east-1',
+                                 aws_service='apigateway')
 
       # make actual request
       import requests
-      r1 = requests.request(method, absolute_url, json=payload_json)
+      r1 = requests.request(method, absolute_url, json=payload_json, auth=auth)
 
       # https://stackoverflow.com/questions/18810777/how-do-i-read-a-response-from-python-requests
       import json
@@ -70,14 +95,14 @@ class ApiMan:
       from .utils import IsitfitError
       if 'error' in r2:
         print(r2)
-        raise IsitfitError('Serverside error: %s'%r2['error'])
+        raise IsitfitError('Serverside error #1: %s'%r2['error'])
 
       if 'message' in r2:
         if r2['message']=='Internal server error':
           raise IsitfitError('Internal server error')
         else:
           print(r2)
-          raise IsitfitError('Serverside error: %s'%r2['message'])
+          raise IsitfitError('Serverside error #2: %s'%r2['message'])
 
       # every http transaction requires a SQS authenticated handshake
       # self._handshake_sqs()

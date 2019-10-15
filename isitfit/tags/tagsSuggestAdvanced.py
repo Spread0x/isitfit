@@ -14,7 +14,6 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
 
     # boto3 ec2 and cloudwatch data
     import boto3
-    self.sqs_res = boto3.resource('sqs', region_name='us-east-1') # region matches with the serverless.yml region
     self.s3_client  = boto3.client('s3' )
 
     # api manager

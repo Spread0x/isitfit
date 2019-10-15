@@ -28,3 +28,7 @@ datadog==0.30.0
 schema==0.7.1
 visidata==1.5.2
 outdated==0.2.0
+
+# for signing http requests with sigv4
+# and authentication with IAM to API Gateway
+aws-requests-auth==0.4.2
