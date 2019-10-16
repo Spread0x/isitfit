@@ -44,14 +44,14 @@ def analyze(ctx, filter_tags):
       mm.get_ifi()
 
       # check if email requested
-      to_email = ctx.obj.get('to_email', None)
-      if to_email is not None:
+      share_email = ctx.obj.get('share_email', None)
+      if share_email is not None:
         from .emailMan import EmailMan
         em = EmailMan(
           dataType='cost analyze',
           dataVal=ul.table
         )
-        em.send(to_email)
+        em.send(share_email)
 
     except IsitfitError as e_info:
       logger.error("Error: %s"%str(e_info))

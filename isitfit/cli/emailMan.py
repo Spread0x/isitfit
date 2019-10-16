@@ -7,18 +7,18 @@ class EmailMan:
     self.dataVal = dataVal
     self.api_man = ApiMan()
 
-  def send(self, to_email):
+  def send(self, share_email):
     # get resources available
     self.api_man.register()
 
     # submit http request
     self.api_man.request(
       method='post',
-      relative_url='./cost/analyze/email',
+      relative_url='./cost/analyze/share/email',
       payload_json={
         'dataType': self.dataType,
         'dataVal': self.dataVal,
-        'to_email': to_email
+        'share_email': share_email
       },
       response_schema=None
     )
