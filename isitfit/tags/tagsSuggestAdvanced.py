@@ -53,11 +53,11 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
       self.s3_client.put_object(Bucket=self.api_man.r_register['s3_bucketName'], Key=s3_path, Body=fh)
 
     # POST /tags/suggest
-    self._tags_suggest()
+    r2, dt_now = self._tags_suggest()
 
     # now listen on sqs
     any_found = False
-    for m in self.api_man.listen_sqs('tags suggest'):
+    for m in self.api_man.listen_sqs('tags suggest', dt_now):
       # if done
       if m is None: break
 
@@ -116,11 +116,13 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
       load_send['s3_key_suffix'] = self.s3_key_suffix
       load_send['sqs_url'] = self.api_man.r_register['sqs_url']
 
-      r2 = self.api_man.request(
+      # curl equivalent
+      # curl -X POST --data "foo=bar" https://api.isitfit.io/v0/974668457921/AIDA6F3WEM7AXY6Y4VWDC/tags/suggest
+      r2, dt_now = self.api_man.request(
         method='post',
         relative_url='./tags/suggest',
         payload_json=load_send,
         response_schema=None
       )
 
-      return r2
+      return r2, dt_now

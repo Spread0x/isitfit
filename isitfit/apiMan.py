@@ -29,12 +29,12 @@ class ApiMan:
       })
 
       # actual request
-      self.r_register = self.request(
+      self.r_register, dt_now = self.request(
         method='post',
         relative_url='./register',
         payload_json=self.r_sts,
         response_schema=register_schema,
-        use_account_user_path=False # since /register is the absolute path (without account/user)
+        authenticated_user_path=False # since /register is the absolute path (without account/user)
       )
 
       # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs.html#SQS.Queue.receive_messages
@@ -43,22 +43,20 @@ class ApiMan:
       self.sqs_q = sqs_res.Queue(self.r_register['sqs_url'])
 
 
-  def request(self, method, relative_url, payload_json, response_schema, use_account_user_path=True):
+  def request(self, method, relative_url, payload_json, response_schema, authenticated_user_path=True):
       """
       Wrapper to the URL request
       method - post
       relative_url - eg ./tags/suggest
       payload_json - "json" field for request call
       response_schema - optional schema to validate response
-      use_account_user_path - flag for self.register which can disable this as it doesn't have a account/user prefix in the URL
+      authenticated_user_path - flag for self.register which can disable this as it doesn't have a account/user prefix in the URL
       """
       logger.debug("ApiMan::request")
 
-      logger.info("Sending data to API")
-
       # relative URL to absolute
       # https://stackoverflow.com/a/8223955/4126114
-      if use_account_user_path:
+      if authenticated_user_path:
         suffix_url='./%s/%s/%s'%(self.r_sts['Account'], self.r_sts['UserId'], relative_url)
       else:
         suffix_url = relative_url
@@ -78,14 +76,22 @@ class ApiMan:
       #
       # clearer aws post
       # https://aws.amazon.com/premiumsupport/knowledge-center/iam-authentication-api-gateway/
-      from aws_requests_auth.boto_utils import BotoAWSRequestsAuth
-      auth = BotoAWSRequestsAuth(aws_host='execute-api.us-east-1.apigateway.amazonaws.com',
-                                 aws_region='us-east-1',
-                                 aws_service='apigateway')
+      auth = None
+      if authenticated_user_path:
+          from aws_requests_auth.boto_utils import BotoAWSRequestsAuth
+          auth = BotoAWSRequestsAuth(aws_host='api.isitfit.io',
+                                    aws_region='us-east-1',
+                                    aws_service='execute-api')
+
+      # mark timestamp right before request (used in listen_sqs for dropping stale messages)
+      import datetime as dt
+      dt_now = dt.datetime.utcnow() #.strftime('%s')
 
       # make actual request
       import requests
       r1 = requests.request(method, absolute_url, json=payload_json, auth=auth)
+      #logger.debug("python requests http request header:")
+      #logger.debug(r1.request.headers)
 
       # https://stackoverflow.com/questions/18810777/how-do-i-read-a-response-from-python-requests
       import json
@@ -94,14 +100,14 @@ class ApiMan:
       # check for errors
       from .utils import IsitfitError
       if 'error' in r2:
-        print(r2)
+        # print(r2)
         raise IsitfitError('Serverside error #1: %s'%r2['error'])
 
       if 'message' in r2:
         if r2['message']=='Internal server error':
           raise IsitfitError('Internal server error')
         else:
-          print(r2)
+          # print(r2)
           raise IsitfitError('Serverside error #2: %s'%r2['message'])
 
       # every http transaction requires a SQS authenticated handshake
@@ -109,7 +115,7 @@ class ApiMan:
 
       # if no schema provided
       if response_schema is None:
-        return r2
+        return r2, dt_now
 
       # check schema
       from schema import SchemaError
@@ -121,7 +127,7 @@ class ApiMan:
 
 
       # if all ok
-      return r2
+      return r2, dt_now
 
 
 #  def _handshake_sqs(self):
@@ -138,12 +144,13 @@ class ApiMan:
 #    raise IsitfitError("No handshake received")
 
 
-  def listen_sqs(self, expected_type):
+  def listen_sqs(self, expected_type, dt_now):
+    """
+    expected_type - value of field "type" in the SQS messages to target
+    dt_now - timestamp right before issuing the http that could have triggered the SQS messages
+             Used to drop "stale" messages from earlier/canceled runs
+    """
     # now listen on sqs
-
-    # mark timestamp of request
-    import datetime as dt
-    dt_now = dt.datetime.utcnow() #.strftime('%s')
 
     # https://github.com/jegesh/python-sqs-listener/blob/master/sqs_listener/__init__.py#L123
     logger.info("Waiting for results")
@@ -170,6 +177,7 @@ class ApiMan:
       )
       logger.debug("{} messages received".format(len(messages)))
       import datetime as dt
+      import json
       for m in messages:
           sentTime_dt = None
           sentTime_str = "-"
@@ -196,7 +204,7 @@ class ApiMan:
             continue
 
           if (sentTime_dt < dt_now):
-              logger.debug("(Stale message. Dropping and skipping)")
+              logger.debug("Stale message (msg = %s < now = %s). Dropping and skipping"%(sentTime_dt, dt_now))
               m.delete()
               continue
 
