@@ -1,7 +1,7 @@
 Semantic versioning
 
 
-Version latest (0.5.0?, 2019-09-24?)
+Version latest (0.11.1rc?, 2019-09-24?)
 
 - ...
 - enh: factor out code into `ApiMan` (for listening on SQS and calling AWS API Gateway endpoint) and new class EmailMan
