@@ -91,6 +91,33 @@ class MainManager:
         if n_ec2_total==0:
           return
 
+        # if more than 10 servers, recommend caching with redis
+        if n_ec2_total > 10 and not self.cache_man.isSetup():
+            from termcolor import colored
+            logger.warning(colored(
+"""Since the number of EC2 instances is %i,
+it is recommended to use redis for caching of downloaded CPU/memory metrics.
+To do so
+- install redis
+
+    [sudo] apt-get install redis-server
+
+- export environment variables
+
+    export ISITFIT_REDIS_HOST=localhost
+    export ISITFIT_REDIS_PORT=6379
+    export ISITFIT_REDIS_DB=0
+
+where ISITFIT_REDIS_DB is the ID of an unused database in redis.
+
+And finally re-run isitfit as usual.
+"""%n_ec2_total, "yellow"))
+            continue_wo_redis = input(colored('Would you like to continue without redis caching (not recommended)? yes/[no] ', 'cyan'))
+            if not (continue_wo_redis.lower() == 'yes' or continue_wo_redis.lower() == 'y'):
+                logger.warning("Aborting.")
+                return
+
+
         # call listeners
         for l in self.listeners['pre']:
           l()
@@ -182,8 +209,8 @@ class MainManager:
         Return a pandas series of CPU utilization, daily max, for 90 days
         """
         metrics_iterator = self.cloudwatch_resource.metrics.filter(
-            Namespace='AWS/EC2', 
-            MetricName='CPUUtilization', 
+            Namespace='AWS/EC2',
+            MetricName='CPUUtilization',
             Dimensions=[{'Name': 'InstanceId', 'Value': ec2_obj.instance_id}]
           )
         df_cw1 = []

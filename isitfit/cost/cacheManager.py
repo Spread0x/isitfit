@@ -10,7 +10,7 @@ class RedisPandas:
     self.redis_args = {}
     self.redis_client = None
     self.pyarrow_context = None
-    
+
   def fetch_envvars(self):
     # check redis parameters if set for caching
     import os
@@ -22,10 +22,11 @@ class RedisPandas:
       self.redis_args[k1] = os.getenv(k2, None)
 
   def isSetup(self):
-    return any(self.redis_args.values())
+    return all(self.redis_args.values())
 
   def connect(self):
     logger.info("Connecting to redis cache")
+    logger.debug(self.redis_args)
     import redis
     import pyarrow as pa
 

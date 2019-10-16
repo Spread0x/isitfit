@@ -9,6 +9,8 @@ Version latest (0.5.0?, 2019-09-24?)
 - feat: http requests to aws api gateway to be sigv4-signed with aws keys (in order to do clean authentication on http)
     - this alleviates the need to do further authentication via sqs for example (where sqs is limited to the source account by iam policy)
     - WIP
+- bugfix: redis cache to check *all* variables set
+- enh: when n ec2 > 10, prompt user to use redis caching
 
 
 Version 0.11.0 (2019-10-15)
