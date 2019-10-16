@@ -110,9 +110,6 @@ class ApiMan:
           # print(r2)
           raise IsitfitError('Serverside error #2: %s'%r2['message'])
 
-      # every http transaction requires a SQS authenticated handshake
-      # self._handshake_sqs()
-
       # if no schema provided
       if response_schema is None:
         return r2, dt_now
@@ -128,20 +125,6 @@ class ApiMan:
 
       # if all ok
       return r2, dt_now
-
-
-#  def _handshake_sqs(self):
-#    # listen
-#    for m in self.listen_sqs('handshake'):
-#      if m is not None:
-#        # respond with handshake
-#        self.sqs_q.send_message(MessageBody='handshake')
-#
-#      # exactly 1 message
-#      break
-#
-#    # if no handshake
-#    raise IsitfitError("No handshake received")
 
 
   def listen_sqs(self, expected_type, dt_now):
