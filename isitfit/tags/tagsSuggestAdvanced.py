@@ -12,10 +12,6 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
   def __init__(self):
     logger.debug("TagsSuggestAdvanced::constructor")
 
-    # boto3 ec2 and cloudwatch data
-    import boto3
-    self.s3_client  = boto3.client('s3' )
-
     # api manager
     self.api_man = ApiMan()
 
@@ -42,6 +38,9 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
   def suggest(self):
     logger.debug("TagsSuggestAdvanced::suggest")
 
+    # boto3 s3 client
+    s3_client  = self.api_man.boto3_session.client('s3' )
+
     import tempfile
 
     logger.info("Uploading ec2 names to s3")
@@ -50,7 +49,9 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
       self.tags_df.to_csv(fh.name, index=False)
       self.s3_key_suffix = 'tags_request.csv'
       s3_path = os.path.join(self.api_man.r_sts['Account'], self.api_man.r_sts['UserId'], self.s3_key_suffix)
-      self.s3_client.put_object(Bucket=self.api_man.r_register['s3_bucketName'], Key=s3_path, Body=fh)
+
+      logger.debug("s3 PUT bucket=%s path=%s"%(self.api_man.r_register['s3_bucketName'], s3_path))
+      s3_client.put_object(Bucket=self.api_man.r_register['s3_bucketName'], Key=s3_path, Body=fh)
 
     # POST /tags/suggest
     r2, dt_now = self._tags_suggest()
@@ -80,7 +81,7 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
           logger.info("Downloading tag suggestions from isitfit server")
           logger.debug("Getting s3 file %s"%s3_path)
           logger.debug("Saving it into %s"%fh.name)
-          response = self.s3_client.get_object(Bucket=self.api_man.r_register['s3_bucketName'], Key=s3_path)
+          response = s3_client.get_object(Bucket=self.api_man.r_register['s3_bucketName'], Key=s3_path)
           fh.write(response['Body'].read())
 
         logger.debug("TagsSuggestAdvanced:suggest .. read_csv")
@@ -112,7 +113,7 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
       logger.info("Requesting tag suggestions from isitfit server")
 
       load_send = {}
-      load_send.update(self.api_man.r_sts)
+      #load_send.update(self.api_man.r_sts)
       load_send['s3_key_suffix'] = self.s3_key_suffix
       load_send['sqs_url'] = self.api_man.r_register['sqs_url']
 
@@ -122,7 +123,8 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
         method='post',
         relative_url='./tags/suggest',
         payload_json=load_send,
-        response_schema=None
+        response_schema=None,
+        authenticated_user_path=True
       )
 
       return r2, dt_now

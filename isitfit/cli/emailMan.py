@@ -14,7 +14,7 @@ class EmailMan:
     # submit POST http request
     self.api_man.request(
       method='post',
-      relative_url='./cost/analyze/share/email',
+      relative_url='./share/email',
       payload_json={
         'dataType': self.dataType,
         'dataVal': self.dataVal,

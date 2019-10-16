@@ -5,6 +5,17 @@ logger = logging.getLogger('isitfit')
 #BASE_URL = 'https://r0ju8gtgtk.execute-api.us-east-1.amazonaws.com/dev/'
 BASE_URL = 'https://api.isitfit.io/v0/'
 
+
+from aws_requests_auth.boto_utils import BotoAWSRequestsAuth
+class MyBotoAWSRequestsAuth(BotoAWSRequestsAuth):
+    def __init__(self, boto_session=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # over-write the credentials until a PR is made to integrate this upstream
+        # https://github.com/DavidMuller/aws-requests-auth/blob/master/aws_requests_auth/boto_utils.py
+        if boto_session is None: boto_session = boto3.session.Session()
+        self._refreshable_credentials = boto_session.get_credentials()
+
+
 class ApiMan:
 
   def register(self):
@@ -25,6 +36,7 @@ class ApiMan:
         's3_bucketName': str,
         's3_keyPrefix': str,
         'sqs_url': str,
+        'role_arn': str,
         Optional(str): object
       })
 
@@ -37,9 +49,29 @@ class ApiMan:
         authenticated_user_path=False # since /register is the absolute path (without account/user)
       )
 
+      # get boto3 session using the assumed role
+      # for further use of aws resources from AutofitCloud
+      # eg API Gateway, S3, SQS
+      import time
+      time.sleep(3) # wait X second(s) for the role creation to be completed in AWS
+      sts_connection = boto3.client('sts')
+      acct_b = sts_connection.assume_role(
+                RoleArn=self.r_register['role_arn'],
+                #ExternalId=None, # TODO set external ID?
+                RoleSessionName="cross_acct_isitfit"
+      )
+      self.boto3_session =  boto3.session.Session(
+        aws_access_key_id=acct_b['Credentials']['AccessKeyId'],
+        aws_secret_access_key=acct_b['Credentials']['SecretAccessKey'],
+        aws_session_token=acct_b['Credentials']['SessionToken'],
+        # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs.html#SQS.Queue.receive_messages
+        # region matches with the serverless.yml region
+        region_name='us-east-1'
+      )
+
       # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs.html#SQS.Queue.receive_messages
       # region matches with the serverless.yml region
-      sqs_res = boto3.resource('sqs', region_name='us-east-1')
+      sqs_res = self.boto3_session.resource('sqs') # no need for region since already in boto session # , region_name='us-east-1')
       self.sqs_q = sqs_res.Queue(self.r_register['sqs_url'])
 
 
@@ -63,7 +95,8 @@ class ApiMan:
 
       import urllib.parse
       absolute_url = urllib.parse.urljoin(BASE_URL, suffix_url)
-      logger.debug("%s %s"%(method, absolute_url))
+      import json
+      logger.debug("%s %s %s"%(method, absolute_url, json.dumps(payload_json)))
 
       # prepare to use AWS Sigv4 with requests
       # https://stackoverflow.com/a/47252241/4126114
@@ -78,10 +111,12 @@ class ApiMan:
       # https://aws.amazon.com/premiumsupport/knowledge-center/iam-authentication-api-gateway/
       auth = None
       if authenticated_user_path:
-          from aws_requests_auth.boto_utils import BotoAWSRequestsAuth
-          auth = BotoAWSRequestsAuth(aws_host='api.isitfit.io',
+          auth = MyBotoAWSRequestsAuth(aws_host='api.isitfit.io',
                                     aws_region='us-east-1',
-                                    aws_service='execute-api')
+                                    aws_service='execute-api',
+                                    # sign with the assumed role's credentials
+                                    boto_session=self.boto3_session
+                                    )
 
       # mark timestamp right before request (used in listen_sqs for dropping stale messages)
       import datetime as dt

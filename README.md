@@ -61,6 +61,10 @@ For pushing tags, the user/role will also need to have the following existing po
 
 `ResourceGroupsandTagEditorFullAccess`
 
+For advanced tag suggestions and other server-side services, the following existing policy is also required:
+
+`STS_AssumeRole`
+
 
 ### Synopsis
 

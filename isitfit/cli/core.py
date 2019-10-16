@@ -1,6 +1,6 @@
-# RuntimeError: Click will abort further execution because Python 3 was configured to use ASCII as encoding for the environment. 
+# RuntimeError: Click will abort further execution because Python 3 was configured to use ASCII as encoding for the environment.
 # Consult https://click.palletsprojects.com/en/7.x/python3/ for mitigation steps.
-# 
+#
 # Edit 2019-10-08: whatsapp's wadebug uses "click.disable_unicode_literals_warning = True"
 # Ref: https://github.com/WhatsApp/WADebug/blob/958ac37be804cc732ae514d4872b93d19d197a5c/wadebug/cli.py#L23
 from ..utils import mysetlocale
@@ -45,13 +45,12 @@ def cli_core(ctx, debug, optimize, share_email):
       import time
       time.sleep(3)
 
+    # make sure that context is a dict
+    ctx.ensure_object(dict)
+
     # check if emailing requested
     if share_email is not None:
       ctx.obj['share_email'] = share_email
-      raise Exception("TO BE IMPLEMENTED")
-
-    # make sure that context is a dict
-    ctx.ensure_object(dict)
 
     # After adding the separate command for "cost" (i.e. `isitfit cost analyze`)
     # putting a note here to notify user of new usage

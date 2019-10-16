@@ -12,6 +12,8 @@ Version latest (0.11.1rc?, 2019-09-24?)
 - enh: when n ec2 > 10, prompt user to use redis caching
 - bugfix: http/sqs combo request was dropping messages since `dt_now` was calculated *after* request .. fixed
 - bugfix: sigv4 with aws-requests-auth updated
+- bugfix: add assume role with boto3 after realizing that the aws auth doesnt work for non-autofitcloud accounts
+  - WIP
 
 
 Version 0.11.0 (2019-10-15)
