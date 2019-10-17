@@ -30,7 +30,7 @@ A simple command-line tool to check if an AWS EC2 account is fit or underused.
 - [Changelog](#changelog)
 - [License](#license)
 - [Dev notes](#dev-notes)
-- [Support](#support)
+- [Author](#author)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -436,14 +436,27 @@ pip3 install -r requirements_dev.txt
 
 
 
-## Support
+## Author
 
-I built `isitfit` as part of the workflow behind [AutofitCloud](https://autofitcloud.com),
-the early-stage startup that I'm founding, seeking to cut cloud waste on our planet  🌎.
+`isitfit` is brought to you by [AutofitCloud](https://www.autofitcloud.com),
+the early-stage startup seeking to cut cloud waste on our planet  🌎.
 
-If you like `isitfit` and would like to see it developed further,
-sign up for a pilot project at https://autofitcloud.com
+If you like `isitfit`, you can benefit further by signing up for our pilot program.
+Through the program we can work together to bring more cost savings to your AWS EC2 budget
+while improving `isitfit` through your use cases.
+
+- The pilot program sign up form is at the bottom of the homepage https://www.autofitcloud.com.
+- To get in touch, you can use the contact form at https://www.autofitcloud.com/contact
+- To follow our news and version announcements, check https://reddit.com/r/autofitcloud or https://twitter.com/autofitcloud
 
 Over and out!
 
---[u/shadiakiki1986](https://www.reddit.com/user/shadiakiki1986)
+--
+
+Shadi Akiki
+
+[u/shadiakiki1986](https://www.reddit.com/user/shadiakiki1986)
+
+Founder and CEO
+
+AutofitCloud Technologies, Inc.
