@@ -55,6 +55,8 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
 
     # POST /tags/suggest
     r2, dt_now = self._tags_suggest()
+    if 'Message' in r2:
+        raise IsitfitError(r2['Message'])
 
     # now listen on sqs
     any_found = False
