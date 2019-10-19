@@ -164,10 +164,16 @@ to upgrade to the latest version ({latest_version})\n
 
 # This import needs to stay here for the sake of the mock in test_utils
 import requests
+SKIP_PING=False
 def ping_matomo(action_name):
   """
   Gather anonymous usage statistics
   """
+  # if any previous failure, just skip it completely
+  global SKIP_PING # http://stackoverflow.com/questions/423379/ddg#423596 
+  if SKIP_PING:
+      return
+
   from urllib.parse import urljoin, urlencode
 
   # get uuid
@@ -194,11 +200,16 @@ def ping_matomo(action_name):
   # https://developer.matomo.org/api-reference/tracking-api
   MATOMO_URL = 'https://isitfit.matomo.cloud/piwik.php'
   try:
-    response = requests.post(MATOMO_URL, json=payload)
+    response = requests.post(MATOMO_URL, json=payload, timeout=1) # 1 second
   except requests.exceptions.ConnectionError as error:
     # just ignore the failure to connect
     # in order not to obstruct the CLI
+    SKIP_PING=True
     pass
+  except requests.exceptions.ReadTimeout as error:
+      # also ignore
+      SKIP_PING=True
+      pass
 
 
 

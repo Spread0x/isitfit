@@ -14,6 +14,7 @@ Version latest (0.11.1rc?, 2019-09-24?)
 - bugfix: sigv4 with aws-requests-auth updated
 - bugfix: add assume role with boto3 after realizing that the aws auth doesnt work for non-autofitcloud accounts
 - bugfix: path /register in `isitfit tags suggest --advanced` still requires IAM auth via sigv4
+- enh: stats to be skipped on first error to reach matomo
 
 
 Version 0.11.0 (2019-10-15)

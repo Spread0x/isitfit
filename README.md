@@ -384,56 +384,7 @@ Apache License 2.0. Check file `LICENSE`
 
 ## Dev notes
 
-### Testing
-
-Check `isitfit/tests/README.md`
-
-
-### Packaging to pypi
-
-New release
-
-```
-update version in isitfit/__init__.py
-update version in changelog
-commit with 'version bump 0.1.0'
-git tag 0.1.0
-git push origin 0.1.0
-git push github 0.1.0
-```
-
-publish to pypi
-
-```
-python3 setup.py sdist bdist_wheel
-twine upload dist/*
-```
-
-Got pypi badge from
-https://badge.fury.io/for/py/git-remote-aws
-
-
-### Developing
-
-Local editable installation
-
-```
-pip3 install -e .
-```
-
-Update README TOC with
-
-```
-npm install -g doctoc
-doctoc README.md
-```
-
-Install dev requirements
-
-```
-pip3 install -r requirements_dev.txt
-```
-
+Check `DEVELOPER.md`
 
 
 ## Author
