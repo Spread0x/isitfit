@@ -109,13 +109,14 @@ class ApiMan:
       #
       # clearer aws post
       # https://aws.amazon.com/premiumsupport/knowledge-center/iam-authentication-api-gateway/
-      auth = None
-      if authenticated_user_path:
-          auth = MyBotoAWSRequestsAuth(aws_host='api.isitfit.io',
+      import boto3
+      boto_session=self.boto3_session if authenticated_user_path else boto3.session.Session()
+
+      auth = MyBotoAWSRequestsAuth(aws_host='api.isitfit.io',
                                     aws_region='us-east-1',
                                     aws_service='execute-api',
                                     # sign with the assumed role's credentials
-                                    boto_session=self.boto3_session
+                                    boto_session=boto_session
                                     )
 
       # mark timestamp right before request (used in listen_sqs for dropping stale messages)
