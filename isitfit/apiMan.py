@@ -18,9 +18,29 @@ class MyBotoAWSRequestsAuth(BotoAWSRequestsAuth):
 
 class ApiMan:
 
+  # counter of number of "register" calls
+  call_n = 0 
+  
+  # class member holding register response
+  r_register = None
+
   def register(self):
       logger.debug("ApiMan::register")
-      logger.info("Logging into server")
+
+      if self.r_register is not None:
+          if self.r_register['status']=='ok':
+              # already registered
+              return
+
+      # counter
+      self.call_n += 1
+
+      # display head
+      if self.call_n == 1:
+          logger.info("Logging into server")
+      else:
+          logger.info("Registration attempt # %i."%(self.call_n))
+
 
       import boto3
       sts_client = boto3.client('sts')
@@ -28,8 +48,58 @@ class ApiMan:
       del self.r_sts['ResponseMetadata']
       # eg {'UserId': 'AIDA6F3WEM7AXY6Y4VWDC', 'Account': '974668457921', 'Arn': 'arn:aws:iam::974668457921:user/shadi'}
 
+      # actual request
+      self.r_register, dt_now = self.request(
+        method='post',
+        relative_url='./register',
+        payload_json=self.r_sts,
+        authenticated_user_path=False # since /register is the absolute path (without account/user)
+      )
+
+      # deal with "registration in progrss"
+      if 'error' in self.r_register:
+        raise IsitfitError("Failed to log in: %s"%self.r_register)
+  
+      if 'status' not in self.r_register:
+        raise IsitfitError("Failed to log in: %s"%self.r_register)
+  
+      if self.r_register['status']=='Registration in progress':
+          # if call 1
+          if self.call_n==1:
+              # just continue and will check again later
+              logger.info("Registration in progress")
+              return
+
+          # if call 2
+          if self.call_n==2:
+              nsecs_wait = 30
+              logger.info("Registration not ready yet. Will check again in %i seconds"%(nsecs_wait))
+
+              import time
+              time.sleep(nsecs_wait)
+
+              self.register()
+              return
+
+          # if call 3
+          if self.call_n==3:
+              raise IsitfitError("Registration is still not ready. Please try again in a few minutes, or file an issue at https://github.com/autofitcloud/isitfit/issues")
+
+      if self.r_register['status']!='ok':
+          raise IsitfitError("Failed to log in: unknown status returned: %s"%self.r_register)
+
+      # at this stage, registration was ok, so proceed
+      logger.info("Registration complete")
+
+      # show resources granted
+      # print(self.r_register)
+      logger.debug("Granted access to s3 arn: %s"%self.r_register['s3_arn'])
+      logger.debug("Granted access to sqs url: %s"%self.r_register['sqs_url'])
+      logger.debug("Note that account number 974668457921 is AutofitCloud, the company behind isitfit.")
+      logger.debug("For more info, visit https://autofitcloud.com/privacy")
+
       # check schema
-      from schema import Schema, Optional
+      from schema import SchemaError, Schema, Optional
       register_schema = Schema({
         'status': str,
         's3_arn': str,
@@ -40,20 +110,15 @@ class ApiMan:
         Optional(str): object
       })
 
-      # actual request
-      self.r_register, dt_now = self.request(
-        method='post',
-        relative_url='./register',
-        payload_json=self.r_sts,
-        response_schema=register_schema,
-        authenticated_user_path=False # since /register is the absolute path (without account/user)
-      )
+      try:
+        register_schema.validate(self.r_register)
+      except SchemaError as e:
+        logger.error("Received response: %s"%self.r_register.text)
+        raise IsitfitError("Does not match expected schema: %s"%str(e))
 
       # get boto3 session using the assumed role
       # for further use of aws resources from AutofitCloud
       # eg API Gateway, S3, SQS
-      import time
-      time.sleep(3) # wait X second(s) for the role creation to be completed in AWS
       sts_connection = boto3.client('sts')
       acct_b = sts_connection.assume_role(
                 RoleArn=self.r_register['role_arn'],
@@ -75,13 +140,12 @@ class ApiMan:
       self.sqs_q = sqs_res.Queue(self.r_register['sqs_url'])
 
 
-  def request(self, method, relative_url, payload_json, response_schema, authenticated_user_path=True):
+  def request(self, method, relative_url, payload_json, authenticated_user_path=True):
       """
       Wrapper to the URL request
       method - post
       relative_url - eg ./tags/suggest
       payload_json - "json" field for request call
-      response_schema - optional schema to validate response
       authenticated_user_path - flag for self.register which can disable this as it doesn't have a account/user prefix in the URL
       """
       logger.debug("ApiMan::request")
@@ -147,19 +211,6 @@ class ApiMan:
           raise IsitfitError('Serverside error #2: %s'%r2['message'])
 
       # if no schema provided
-      if response_schema is None:
-        return r2, dt_now
-
-      # check schema
-      from schema import SchemaError
-      try:
-        response_schema.validate(r2)
-      except SchemaError as e:
-        logger.error("Received response: %s"%r1.text)
-        raise IsitfitError("Does not match expected schema: %s"%str(e))
-
-
-      # if all ok
       return r2, dt_now
 
 

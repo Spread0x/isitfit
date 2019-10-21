@@ -21,29 +21,22 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
 
   def prepare(self):
     logger.debug("TagsSuggestAdvanced::prepare")
-
     self.api_man.register()
-
-    if not 'status' in self.api_man.r_register:
-      raise IsitfitError("Failed to ping the remote: %s"%self.api_man.r_register)
-
-    # TODO implement later
-    # print(self.api_man.r_register)
-    logger.debug("Granted access to s3 arn: %s"%self.api_man.r_register['s3_arn'])
-    logger.debug("Granted access to sqs url: %s"%self.api_man.r_register['sqs_url'])
-    logger.debug("Note that account number 974668457921 is AutofitCloud, the company behind isitfit.")
-    logger.debug("For more info, visit https://autofitcloud.com/privacy")
 
 
   def suggest(self):
+    logger.info("Uploading ec2 names to s3")
+
     logger.debug("TagsSuggestAdvanced::suggest")
+     
+    # if status is not ok yet, ping again
+    if self.api_man.r_register['status']=='Registration in progress':
+        self.api_man.register()
 
     # boto3 s3 client
     s3_client  = self.api_man.boto3_session.client('s3' )
 
     import tempfile
-
-    logger.info("Uploading ec2 names to s3")
     with tempfile.NamedTemporaryFile(suffix='.csv', prefix='isitfit-ec2names-', delete=True) as fh:
       logger.debug("Will use temporary file %s"%fh.name)
       self.tags_df.to_csv(fh.name, index=False)
@@ -125,7 +118,6 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
         method='post',
         relative_url='./tags/suggest',
         payload_json=load_send,
-        response_schema=None,
         authenticated_user_path=True
       )
 

@@ -19,6 +19,5 @@ class EmailMan:
         'dataType': self.dataType,
         'dataVal': self.dataVal,
         'share_email': share_email
-      },
-      response_schema=None
+      }
     )
