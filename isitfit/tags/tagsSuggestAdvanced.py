@@ -13,7 +13,7 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
     logger.debug("TagsSuggestAdvanced::constructor")
 
     # api manager
-    self.api_man = ApiMan()
+    self.api_man = ApiMan(tryAgainIn=2)
 
     # proceed with parent constructor
     return super().__init__()

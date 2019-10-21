@@ -24,6 +24,9 @@ class ApiMan:
   # class member holding register response
   r_register = None
 
+  def __init__(self, tryAgainIn):
+      self.tryAgainIn = tryAgainIn
+
   def register(self):
       logger.debug("ApiMan::register")
 
@@ -64,26 +67,23 @@ class ApiMan:
         raise IsitfitError("Failed to log in: %s"%self.r_register)
   
       if self.r_register['status']=='Registration in progress':
-          # if call 1
+          # status
           if self.call_n==1:
               # just continue and will check again later
               logger.info("Registration in progress")
-              return
+          elif self.call_n==2:
+              logger.info("Registration not ready yet.")
+          else:
+              raise IsitfitError("Registration is still not ready. Please try again in a few minutes, or file an issue at https://github.com/autofitcloud/isitfit/issues")
 
-          # if call 2
-          if self.call_n==2:
+          if self.call_n >= self.tryAgainIn:
               nsecs_wait = 30
-              logger.info("Registration not ready yet. Will check again in %i seconds"%(nsecs_wait))
-
+              logger.info("Will check again in %i seconds"%(nsecs_wait))
               import time
               time.sleep(nsecs_wait)
-
               self.register()
               return
 
-          # if call 3
-          if self.call_n==3:
-              raise IsitfitError("Registration is still not ready. Please try again in a few minutes, or file an issue at https://github.com/autofitcloud/isitfit/issues")
 
       if self.r_register['status']!='ok':
           raise IsitfitError("Failed to log in: unknown status returned: %s"%self.r_register)

@@ -5,7 +5,7 @@ class EmailMan:
   def __init__(self, dataType, dataVal):
     self.dataType = dataType
     self.dataVal = dataVal
-    self.api_man = ApiMan()
+    self.api_man = ApiMan(tryAgainIn=1)
 
   def send(self, share_email):
     # get resources available
