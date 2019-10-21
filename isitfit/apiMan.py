@@ -89,7 +89,10 @@ class ApiMan:
           raise IsitfitError("Failed to log in: unknown status returned: %s"%self.r_register)
 
       # at this stage, registration was ok, so proceed
-      logger.info("Registration complete")
+      if self.call_n==1:
+          logger.info("Registration already done earlier")
+      else:
+          logger.info("Registration complete")
 
       # show resources granted
       # print(self.r_register)
