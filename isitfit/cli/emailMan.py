@@ -1,4 +1,7 @@
 from ..apiMan import ApiMan
+import json
+import logging
+logger = logging.getLogger('isitfit')
 
 class EmailMan:
 
@@ -12,7 +15,7 @@ class EmailMan:
     self.api_man.register()
 
     # submit POST http request
-    self.api_man.request(
+    response, dt_now = self.api_man.request(
       method='post',
       relative_url='./share/email',
       payload_json={
@@ -21,3 +24,5 @@ class EmailMan:
         'share_email': share_email
       }
     )
+    logger.info("Result of share-email:")
+    logger.info(json.dumps(response))

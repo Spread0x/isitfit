@@ -345,6 +345,20 @@ Sizing is simply a rule that says: "If underused, recommend the next smaller ins
 
 The relevant source code is [here](https://github.com/autofitcloud/isitfit/blob/master/isitfit/optimizerListener.py#L69)
 
+### Share results by email
+
+Use the `--share-email` option to share results by email for commands that support it.
+
+Example usage
+
+```
+isitfit --share-email=me@example.com cost analyze
+isitfit --share-email=me@example.com cost optimize
+isitfit --share-email=me@example.com tags dump
+isitfit --share-email=me@example.com tags suggest
+isitfit --share-email=me@example.com tags push
+```
+
 
 ## Statistics and Usage Tracking
 
