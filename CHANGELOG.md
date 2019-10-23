@@ -17,6 +17,7 @@ Version latest (0.11.1rc?, 2019-09-24?)
 - enh: stats to be skipped on first error to reach matomo
 - enh: upgrading client in response to process change about registration in `isitfit-api==0.5` since it takes > 30 seconds
 - enh: implement try-again in apiman
+- enh: `--share-email` is now a list by click usage
 
 
 Version 0.11.0 (2019-10-15)

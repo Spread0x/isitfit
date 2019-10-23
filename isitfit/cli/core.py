@@ -20,10 +20,13 @@ from .. import isitfit_version
 #import atexit
 #atexit.register(display_footer)
 
+# For the --share-email "multiple options"
+# https://click.palletsprojects.com/en/7.x/options/#multiple-options
+
 @click.group(invoke_without_command=True)
 @click.option('--debug', is_flag=True, help='Display more details to help with debugging')
 @click.option('--optimize', is_flag=True, help='DEPRECATED: get cost optimization recommendations')
-@click.option('--share-email', default=None, help='Share result to email address')
+@click.option('--share-email', multiple=True, help='Share result to email address')
 @click.pass_context
 def cli_core(ctx, debug, optimize, share_email):
 

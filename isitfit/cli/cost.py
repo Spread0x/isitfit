@@ -49,7 +49,7 @@ def analyze(ctx, filter_tags):
         from .emailMan import EmailMan
         em = EmailMan(
           dataType='cost analyze',
-          dataVal=ul.table
+          dataVal={'table': ul.table}
         )
         em.send(share_email)
 
