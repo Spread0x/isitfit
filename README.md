@@ -26,6 +26,7 @@ A simple command-line tool to check if an AWS EC2 account is fit or underused.
   - [Caching results with redis](#caching-results-with-redis)
   - [Datadog integration](#datadog-integration)
 - [What does Underused mean?](#what-does-underused-mean)
+  - [Share results by email](#share-results-by-email)
 - [Statistics and Usage Tracking](#statistics-and-usage-tracking)
 - [Changelog](#changelog)
 - [License](#license)
