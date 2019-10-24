@@ -161,7 +161,7 @@ def prompt_upgrade(pkg_name, current_version):
         raise
 
 
-  is_outdated = True # FIXME for debugging
+  # is_outdated = True # FIXME for debugging
   if not is_outdated:
       return
 
