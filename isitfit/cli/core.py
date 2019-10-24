@@ -52,10 +52,14 @@ def cli_core(ctx, debug, optimize, version, share_email, skip_check_upgrade):
         #  ctx.invoke(cost_analyze, filter_tags=filter_tags)
         if optimize:
           click.secho("As of version 0.11, please use `isitfit cost optimize` instead of `isitfit --optimize`.", fg='red')
+        elif version:
+          # ctx.invoke(cli_version)
+          click.secho("As of version 0.11, please use `isitfit version` instead of `isitfit --version`.", fg='red')
         else:
           click.secho("As of version 0.11, please use `isitfit cost analyze` instead of `isitfit` to calculate the cost-weighted utilization.", fg='red')
 
         # just return non-0 code
+        click.secho("Or check `isitfit --help` for a full list of commands and syntax.", fg='red')
         import sys
         sys.exit(1)
 
@@ -66,7 +70,7 @@ def cli_core(ctx, debug, optimize, version, share_email, skip_check_upgrade):
     if share_email is not None:
       max_n_recipients = 3
       if len(share_email) > max_n_recipients:
-          click.secho("Maximum number of email recipients is %i"%max_n_recipients, fg="red")
+          click.secho("Error: Maximum number of email recipients is %i. Received %i"%(max_n_recipients, len(share_email)), fg="red")
           import sys
           sys.exit(1)
 
@@ -76,13 +80,6 @@ def cli_core(ctx, debug, optimize, version, share_email, skip_check_upgrade):
     if not skip_check_upgrade:
       from ..utils import prompt_upgrade
       prompt_upgrade('isitfit', isitfit_version)
-
-    # Important that this be "after" the check for update
-    if version:
-        # ctx.invoke(cli_version)
-        click.secho("As of version 0.11, please use `isitfit version` instead of `isitfit --version`.", fg='red')
-        import sys
-        sys.exit(1)
 
     # After adding the separate command for "cost" (i.e. `isitfit cost analyze`)
     # putting a note here to notify user of new usage

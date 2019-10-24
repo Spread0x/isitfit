@@ -6,19 +6,13 @@ Version latest (0.11.1rc?, 2019-09-24?)
 - ...
 
 
-Version 0.11.4 (2019-10-24)
+Version 0.11.{2,3,4,5} (2019-10-24)
 
+- series of fixups to publish 0.11 to pypi
+- bugfix: move `isitfit --version` deprecation in favor of `isitfit version` before
 - enh: wrap call to cloudtrail with try/except for cleaner exit on error
 - enh: fix some tests
-
-
-Version 0.11.3 (2019-10-24)
-
 - bugfix: uncomment debugging of prompt upgrade
-
-
-Version 0.11.2 (2019-10-24)
-
 - bugfix: bring `findPackages` to `setup.py`
 
 
