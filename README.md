@@ -32,6 +32,7 @@ A simple command-line tool to check if an AWS EC2 account is fit or underused.
 - [License](#license)
 - [Dev notes](#dev-notes)
 - [Author](#author)
+- [Security contact information](#security-contact-information)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
