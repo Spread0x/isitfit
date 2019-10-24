@@ -402,30 +402,38 @@ Apache License 2.0. Check file `LICENSE`
 
 ## Dev notes
 
-Check [DEVELOPER.md](DEVEOPER.md)
+Check [DEVELOPER.md](DEVELOPER.md)
 
 
 ## Author
 
 `isitfit` is brought to you by [AutofitCloud](https://www.autofitcloud.com),
-the early-stage startup seeking to cut cloud waste on our planet  🌎.
+seeking to cut cloud waste on our planet  🌎.
 
-If you like `isitfit`, you can benefit further by signing up for our pilot program.
-Through the program we can work together to bring more cost savings to your AWS EC2 budget
+If you like `isitfit`, sign up for our pilot program
+to bring more cost savings to your AWS EC2 budget
 while improving `isitfit` through your use cases.
 
 - The pilot program sign up form is at the bottom of the homepage https://www.autofitcloud.com.
 - To get in touch, you can use the contact form at https://www.autofitcloud.com/contact
-- To follow our news and version announcements, check https://reddit.com/r/autofitcloud or https://twitter.com/autofitcloud
+- To follow our news and version announcements, check https://reddit.com/r/autofitcloud
 
-Over and out!
+<!-- twitter not so active    or https://twitter.com/autofitcloud -->
 
 --
 
-Shadi Akiki
-
-[u/shadiakiki1986](https://www.reddit.com/user/shadiakiki1986)
+[Shadi Akiki](https://www.reddit.com/user/shadiakiki1986)
 
 Founder and CEO
 
 AutofitCloud Technologies, Inc.
+
+
+## Security contact information
+
+<!-- inspired from https://github.com/pytest-dev/pytest-mock/#security-contact-information -->
+
+To report a security vulnerability, please use the AutofitCloud [contact page](https://autofitcloud.com/contact).
+
+We will coordinate the fix and disclosure.
+

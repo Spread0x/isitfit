@@ -10,7 +10,7 @@ showHelp() {
   command_2="isitfit $command_1"
   echo "## \`$command_2 --help\`\n"
   echo "\`\`\`"
-  isitfit --skip-check-update $command_1 --help
+  isitfit --skip-check-upgrade $command_1 --help
   echo "\`\`\`\n\n"
 }
 

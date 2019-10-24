@@ -10,7 +10,7 @@ Options:
   --optimize           DEPRECATED: use "isitfit cost optimize" instead
   --version            DEPRECATED: use "isitfit version" instead
   --share-email TEXT   Share result to email address
-  --skip-check-update  Skip step for checking for update
+  --skip-check-upgrade  Skip step for checking for upgrade
   --help               Show this message and exit.
 
 Commands:

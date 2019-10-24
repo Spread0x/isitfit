@@ -2,10 +2,11 @@ import logging
 logger = logging.getLogger('isitfit')
 
 # URL of isitfit API
-#BASE_URL = 'https://r0ju8gtgtk.execute-api.us-east-1.amazonaws.com/dev/'
 BASE_URL = 'https://api.isitfit.io/v0/'
+# BASE_URL = 'https://api-dev.isitfit.io/v0/'
 
 from .utils import IsitfitError
+from schema import SchemaError, Schema, Optional
 
 
 from aws_requests_auth.boto_utils import BotoAWSRequestsAuth
@@ -61,6 +62,24 @@ class ApiMan:
         authenticated_user_path=False # since /register is the absolute path (without account/user)
       )
 
+      # validate schema of response
+      register_schema_2 = Schema({
+        'isitfitapi_status': {
+            'code': str,
+            'description': str,
+        },
+        'isitfitapi_body': {
+          Optional(str): object
+        }
+      })
+
+      try:
+        register_schema_2.validate(self.r_register)
+      except SchemaError as e:
+        logger.error("Received response: %s"%self.r_register.text)
+        raise IsitfitError("Does not match expected schema: %s"%str(e))
+
+
       # deal with "registration in progrss"
       if self.r_register['isitfitapi_status']['code'] == 'error':
         raise IsitfitError("Failed to log in: %s"%self.r_register)
@@ -104,23 +123,7 @@ class ApiMan:
       logger.debug("For more info, visit https://autofitcloud.com/privacy")
 
       # check schema
-      from schema import SchemaError, Schema, Optional
-      #register_schema = Schema({
-      #  'isitfitapi_status': {
-      #      'code': str,
-      #      'description': str,
-      #  },
-      #  'isitfitapi_body': {
-      #    's3_arn': str,
-      #    's3_bucketName': str,
-      #    's3_keyPrefix': str,
-      #    'sqs_url': str,
-      #    'role_arn': str,
-      #    Optional(str): object
-      #  },
-      #  Optional(str): object
-      #})
-      register_schema = Schema({
+      register_schema_1 = Schema({
         's3_arn': str,
         's3_bucketName': str,
         's3_keyPrefix': str,
@@ -130,7 +133,7 @@ class ApiMan:
       })
 
       try:
-        register_schema.validate(self.r_register)
+        register_schema_1.validate(self.r_register)
       except SchemaError as e:
         logger.error("Received response: %s"%self.r_register.text)
         raise IsitfitError("Does not match expected schema: %s"%str(e))
@@ -181,6 +184,11 @@ class ApiMan:
       import json
       logger.debug("%s %s %s"%(method, absolute_url, json.dumps(payload_json)))
 
+      # Either use a new boto session using the active AWS profile
+      # or the boto session belonging to the assumed role
+      import boto3
+      boto_session=self.boto3_session if authenticated_user_path else boto3.session.Session()
+
       # prepare to use AWS Sigv4 with requests
       # https://stackoverflow.com/a/47252241/4126114
       #
@@ -192,13 +200,9 @@ class ApiMan:
       #
       # clearer aws post
       # https://aws.amazon.com/premiumsupport/knowledge-center/iam-authentication-api-gateway/
-      import boto3
-      boto_session=self.boto3_session if authenticated_user_path else boto3.session.Session()
-
       auth = MyBotoAWSRequestsAuth(aws_host='api.isitfit.io',
                                     aws_region='us-east-1',
                                     aws_service='execute-api',
-                                    # sign with the assumed role's credentials
                                     boto_session=boto_session
                                     )
 

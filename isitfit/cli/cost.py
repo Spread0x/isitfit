@@ -46,15 +46,17 @@ def analyze(ctx, filter_tags):
       # check if email requested
       share_email = ctx.obj.get('share_email', None)
       if share_email is not None:
-        from .emailMan import EmailMan
-        em = EmailMan(
-          dataType='cost analyze',
-          dataVal={'table': ul.table}
-        )
-        em.send(share_email)
+        if len(share_email)>0:
+          from .emailMan import EmailMan
+          em = EmailMan(
+            dataType='cost analyze',
+            dataVal={'table': ul.table}
+          )
+          em.send(share_email)
 
     except IsitfitError as e_info:
-      logger.error("Error: %s"%str(e_info))
+      from termcolor import colored
+      logger.error(colored("Error: %s"%str(e_info), "red"))
       import sys
       sys.exit(1)
 

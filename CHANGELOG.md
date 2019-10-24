@@ -20,10 +20,18 @@ Version latest (0.11.1rc?, 2019-09-24?)
 - enh: `--share-email` is now a list by click usage
 - enh: move check for deprecated usage to top of cli for faster execution
 - enh: add back `--version` and list it as deprecated
-- enh: add `--skip-check-update` option
+- enh: add `--skip-check-upgrade` option
 - enh: add `SYNOPSIS.md`
 - enh: improve the `prompt_upgrade` function for the case of dev machine version being more recent than pypi
-- feat: upgrade to using responses from `isitfit-api==0.07`
+- feat: `--share-email` works with `isitfit-api==0.08`
+- docs: readme links to other md files
+- docs: add security section to readme
+- enh: validate response schema from share-email
+- enh: validate response schema envelope for all requests (i.e. 2 main keys `isitfitapi_{status,body}`)
+- enh: limit share-email to 3
+- enh: cli move prompt upgrade till after checking share-email limit if requested
+- enh: check if share-email is to 0 emails
+- enh: cli footer aligned
 
 
 Version 0.11.0 (2019-10-15)

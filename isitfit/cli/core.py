@@ -29,9 +29,9 @@ from .. import isitfit_version
 @click.option('--optimize', is_flag=True, help='DEPRECATED: use "isitfit cost optimize" instead')
 @click.option('--version', is_flag=True, help='DEPRECATED: use "isitfit version" instead')
 @click.option('--share-email', multiple=True, help='Share result to email address')
-@click.option('--skip-check-update', is_flag=True, help='Skip step for checking for update')
+@click.option('--skip-check-upgrade', is_flag=True, help='Skip step for checking for upgrade of isitfit')
 @click.pass_context
-def cli_core(ctx, debug, optimize, version, share_email, skip_check_update):
+def cli_core(ctx, debug, optimize, version, share_email, skip_check_upgrade):
     logLevel = logging.DEBUG if debug else logging.INFO
     ch = logging.StreamHandler()
     ch.setLevel(logLevel)
@@ -59,17 +59,23 @@ def cli_core(ctx, debug, optimize, version, share_email, skip_check_update):
         import sys
         sys.exit(1)
 
-    # check if current version is out-of-date
-    if not skip_check_update:
-      from ..utils import prompt_upgrade
-      prompt_upgrade('isitfit', isitfit_version)
-
     # make sure that context is a dict
     ctx.ensure_object(dict)
 
     # check if emailing requested
     if share_email is not None:
+      max_n_recipients = 3
+      if len(share_email) > max_n_recipients:
+          click.secho("Maximum number of email recipients is %i"%max_n_recipients, fg="red")
+          import sys
+          sys.exit(1)
+
       ctx.obj['share_email'] = share_email
+
+    # check if current version is out-of-date
+    if not skip_check_upgrade:
+      from ..utils import prompt_upgrade
+      prompt_upgrade('isitfit', isitfit_version)
 
     # Important that this be "after" the check for update
     if version:
