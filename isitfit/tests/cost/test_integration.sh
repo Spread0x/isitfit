@@ -37,10 +37,10 @@ echo "Test 0b: version takes less than 1 sec (visual check ATM, 0.7s on local, 0
 time isitfit version
 
 echo "Test 1: default profile (shadiakiki1986@gmail.com@amazonaws.com)"
-AWS_PROFILE=shadi AWS_DEFAULT_REGION=us-west-2 isitfit cost analyze
+AWS_PROFILE=shadi_shadi AWS_DEFAULT_REGION=us-west-2 isitfit cost analyze
 
 echo "Test 2: non-default profile (shadi@autofitcloud.com@amazonaws.com)"
-AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit cost analyze
+AWS_PROFILE=afc_shadi_useast1 AWS_DEFAULT_REGION=eu-central-1 isitfit cost analyze
 
 echo "Test 3: default profile in region with 0 ec2 instances"
 # Note, unlike isitfit tags dump which returns a non-0 code if 0 ec2 found, this one just returns 0

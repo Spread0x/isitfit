@@ -210,14 +210,27 @@ class GeneralManager:
         
     def ec2_typeChanges(self):
         import pandas as pd
+        from termcolor import colored
+        import botocore
+        import sys
+
+        def run_iterator(man2_i, iterator_i):
+          try:
+            r_i = man2_i.handleIterator(iterator_i)
+          except botocore.exceptions.ClientError as e:
+            logger.error(colored("\n"+str(e), 'red'))
+            sys.exit(1)
+
+          return r_i
+
         man2_run = Ec2Typechanges(eventName='RunInstances')
         iterator_run = man2_run.getIterator(self.client)
-        r_run = man2_run.handleIterator(iterator_run)
+        r_run = run_iterator(man2_run, iterator_run)
         
         man2_mod = Ec2Typechanges(eventName='ModifyInstanceAttribute')
         iterator_mod = man2_mod.getIterator(self.client)
-        r_mod = man2_mod.handleIterator(iterator_mod)
-        
+        r_mod = run_iterator(man2_mod, iterator_mod)
+       
         # split on instance ID and gather
         r_all = r_run + r_mod
         # logging.error(r_all)

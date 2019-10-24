@@ -140,7 +140,6 @@ def prompt_upgrade(pkg_name, current_version):
   is_outdated = False
   try:
     is_outdated, latest_version = outdated.check_outdated(pkg_name, current_version)
-    print("No except")
   except ValueError as error:
     # catch case of "ValueError: Version 0.10.0 is greater than the latest version on PyPI: 0.9.1"
     # This would happen on my dev machine

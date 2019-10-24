@@ -5,8 +5,9 @@ Two kinds of tests: integration, unit
 To run integration tests:
 
 ```
-bash cost/test_integration.sh
-bash tags/test_integration.sh
+[sudo] apt-get install redis
+bash isitfit/tests/cost/test_integration.sh
+bash isitfit/tests/tags/test_integration.sh
 ```
 
 To run unit tests: `pytest`
