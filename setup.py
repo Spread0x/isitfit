@@ -1,4 +1,5 @@
-from setuptools import setup # , find_packages
+# 2019-10-24 Not sure why find_packages was commented out .. bringing it back
+from setuptools import setup, find_packages
 
 # copied from https://github.com/awslabs/git-remote-codecommit/blob/master/setup.py
 import os
@@ -24,8 +25,8 @@ setup(
     long_description = 'Check https://isitfit.autofitcloud.com',
     long_description_content_type="text/markdown",
     
-    # packages=find_packages(),
-    packages = ['isitfit'],
+    packages=find_packages(),
+    # packages = ['isitfit'],
     include_package_data=True,
     install_requires=[
         'click==7.0',

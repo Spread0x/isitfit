@@ -6,6 +6,11 @@ Version latest (0.11.1rc?, 2019-09-24?)
 - ...
 
 
+Version 0.11.2 (2019-10-24)
+
+- bugfix: bring `findPackages` to `setup.py`
+
+
 Version 0.11.1 (2019-10-24)
 
 - enh: factor out code into `ApiMan` (for listening on SQS and calling AWS API Gateway endpoint) and new class EmailMan
