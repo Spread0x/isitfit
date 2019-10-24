@@ -4,6 +4,10 @@ Semantic versioning
 Version latest (0.11.1rc?, 2019-09-24?)
 
 - ...
+
+
+Version 0.11.4 (2019-10-24)
+
 - enh: wrap call to cloudtrail with try/except for cleaner exit on error
 - enh: fix some tests
 
