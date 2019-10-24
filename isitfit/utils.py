@@ -135,31 +135,53 @@ def prompt_upgrade(pkg_name, current_version):
 
   copied from https://github.com/WhatsApp/WADebug/blob/958ac37be804cc732ae514d4872b93d19d197a5c/wadebug/cli.py#L40
   """
-
-  from outdated import check_outdated
+  import outdated
 
   is_outdated = False
   try:
-    is_outdated, latest_version = check_outdated(pkg_name, current_version)
+    is_outdated, latest_version = outdated.check_outdated(pkg_name, current_version)
+    print("No except")
   except ValueError as error:
     # catch case of "ValueError: Version 0.10.0 is greater than the latest version on PyPI: 0.9.1"
     # This would happen on my dev machine
     if not "is greater than" in str(error):
       raise
 
-  # is_outdated = True # FIXME for debugging
-  if is_outdated:
-    import click
-    msg_outdated = """The current version of {pkg_name} ({current_version}) is out of date.
-Run `pip3 install {pkg_name} --upgrade` 
-to upgrade to the latest version ({latest_version})\n
+    # In this case, outdated does not cache the result to disk
+    # so cache it myself (copied from https://github.com/alexmojaki/outdated/blob/565bb3fe1adc30da5e50249912cd2ac494662659/outdated/__init__.py#L61)
+    latest_version = str(error).split(":")[1].strip()
+    import datetime as dt
+    import json
+    with outdated.utils.cache_file(pkg_name, 'w') as f:
+      try:
+        data = [latest_version, outdated.utils.format_date(dt.datetime.now())]
+        json.dump(data, f)
+      except Exception as e:
+        print('Error: ' + str(e))
+        raise
+
+
+  is_outdated = True # FIXME for debugging
+  if not is_outdated:
+      return
+
+  import click
+  msg_outdated = """The current version of {pkg_name} ({current_version}) is out of date.
+Run `pip3 install {pkg_name} --upgrade` to upgrade to version {latest_version},
+or use `isitfit --skip-check-update ...` to skip checking for version updates.
 """
-    msg_outdated = msg_outdated.format(
-        pkg_name=pkg_name, current_version=current_version, latest_version=latest_version
-      )
-    click.secho(msg_outdated, fg="yellow")
-  
-  return is_outdated
+  msg_outdated = msg_outdated.format(
+      pkg_name=pkg_name, current_version=current_version, latest_version=latest_version
+    )
+  click.secho(msg_outdated, fg="red")
+
+  # Give the user some time to read the message and possibly update
+  import time
+  from tqdm import tqdm
+  wait_outdated = 10
+  click.secho("Will continue in %i seconds"%wait_outdated, fg='yellow')
+  for i in tqdm(range(wait_outdated)):
+    time.sleep(1)
 
 
 # This import needs to stay here for the sake of the mock in test_utils

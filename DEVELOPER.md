@@ -58,3 +58,8 @@ by adding the line
 1.2.3.4   isitfit.matomo.cloud
 ```
 
+## Updating SYNOPSIS.md
+
+```
+/bin/sh synopsis_update.sh > SYNOPSIS.md
+```

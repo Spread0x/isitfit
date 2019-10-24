@@ -69,7 +69,10 @@ For advanced tag suggestions and other server-side services, the following exist
 
 ### Synopsis
 
+Check [SYNOPSIS.md](SYNOPSIS.md)
+
 To get help hints in the command-line use the `--help`
+
 ```
 > isitfit --help
 > isitfit cost --help
@@ -387,7 +390,7 @@ isitfit tags push
 
 ## Changelog
 
-Check `CHANGELOG.md`
+Check [CHANGELOG.md](CHANGELOG.md)
 
 
 ## License
@@ -399,7 +402,7 @@ Apache License 2.0. Check file `LICENSE`
 
 ## Dev notes
 
-Check `DEVELOPER.md`
+Check [DEVELOPER.md](DEVEOPER.md)
 
 
 ## Author

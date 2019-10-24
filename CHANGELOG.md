@@ -18,6 +18,11 @@ Version latest (0.11.1rc?, 2019-09-24?)
 - enh: upgrading client in response to process change about registration in `isitfit-api==0.5` since it takes > 30 seconds
 - enh: implement try-again in apiman
 - enh: `--share-email` is now a list by click usage
+- enh: move check for deprecated usage to top of cli for faster execution
+- enh: add back `--version` and list it as deprecated
+- enh: add `--skip-check-update` option
+- enh: add `SYNOPSIS.md`
+- enh: improve the `prompt_upgrade` function for the case of dev machine version being more recent than pypi
 
 
 Version 0.11.0 (2019-10-15)
