@@ -5,6 +5,8 @@ logger = logging.getLogger('isitfit')
 #BASE_URL = 'https://r0ju8gtgtk.execute-api.us-east-1.amazonaws.com/dev/'
 BASE_URL = 'https://api.isitfit.io/v0/'
 
+from .utils import IsitfitError
+
 
 from aws_requests_auth.boto_utils import BotoAWSRequestsAuth
 class MyBotoAWSRequestsAuth(BotoAWSRequestsAuth):
@@ -31,7 +33,7 @@ class ApiMan:
       logger.debug("ApiMan::register")
 
       if self.r_register is not None:
-          if self.r_register['status']=='ok':
+          if self.r_register['isitfitapi_status']['code']=='ok':
               # already registered
               return
 
@@ -60,13 +62,10 @@ class ApiMan:
       )
 
       # deal with "registration in progrss"
-      if 'error' in self.r_register:
+      if self.r_register['isitfitapi_status']['code'] == 'error':
         raise IsitfitError("Failed to log in: %s"%self.r_register)
   
-      if 'status' not in self.r_register:
-        raise IsitfitError("Failed to log in: %s"%self.r_register)
-  
-      if self.r_register['status']=='Registration in progress':
+      if self.r_register['isitfitapi_status']['code']=='Registration in progress':
           # status
           if self.call_n==1:
               # just continue and will check again later
@@ -85,7 +84,7 @@ class ApiMan:
               return
 
 
-      if self.r_register['status']!='ok':
+      if self.r_register['isitfitapi_status']['code']!='ok':
           raise IsitfitError("Failed to log in: unknown status returned: %s"%self.r_register)
 
       # at this stage, registration was ok, so proceed
@@ -93,6 +92,9 @@ class ApiMan:
           logger.info("Registration already done earlier")
       else:
           logger.info("Registration complete")
+
+      # set to body only
+      self.r_register = self.r_register['isitfitapi_body']
 
       # show resources granted
       # print(self.r_register)
@@ -103,8 +105,22 @@ class ApiMan:
 
       # check schema
       from schema import SchemaError, Schema, Optional
+      #register_schema = Schema({
+      #  'isitfitapi_status': {
+      #      'code': str,
+      #      'description': str,
+      #  },
+      #  'isitfitapi_body': {
+      #    's3_arn': str,
+      #    's3_bucketName': str,
+      #    's3_keyPrefix': str,
+      #    'sqs_url': str,
+      #    'role_arn': str,
+      #    Optional(str): object
+      #  },
+      #  Optional(str): object
+      #})
       register_schema = Schema({
-        'status': str,
         's3_arn': str,
         's3_bucketName': str,
         's3_keyPrefix': str,
@@ -200,18 +216,18 @@ class ApiMan:
       import json
       r2 = json.loads(r1.text)
 
-      # check for errors
-      from .utils import IsitfitError
-      if 'error' in r2:
-        # print(r2)
-        raise IsitfitError('Serverside error #1: %s'%r2['error'])
-
+      # check AWS-generated errors
       if 'message' in r2:
         if r2['message']=='Internal server error':
           raise IsitfitError('Internal server error')
         else:
           # print(r2)
           raise IsitfitError('Serverside error #2: %s'%r2['message'])
+
+      # check for isitfit errors
+      if r2['isitfitapi_status']['code'] == 'error':
+        # print(r2)
+        raise IsitfitError('Serverside error #1: %s'%r2r2['isitfitapi_status']['description'])
 
       # if no schema provided
       return r2, dt_now

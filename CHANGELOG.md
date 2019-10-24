@@ -23,6 +23,7 @@ Version latest (0.11.1rc?, 2019-09-24?)
 - enh: add `--skip-check-update` option
 - enh: add `SYNOPSIS.md`
 - enh: improve the `prompt_upgrade` function for the case of dev machine version being more recent than pypi
+- feat: upgrade to using responses from `isitfit-api==0.07`
 
 
 Version 0.11.0 (2019-10-15)
