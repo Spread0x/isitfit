@@ -231,7 +231,7 @@ class ApiMan:
       # check for isitfit errors
       if r2['isitfitapi_status']['code'] == 'error':
         # print(r2)
-        raise IsitfitCliError('Serverside error #1: %s'%r2r2['isitfitapi_status']['description'])
+        raise IsitfitCliError('Serverside error #1: %s'%r2['isitfitapi_status']['description'])
 
       # if no schema provided
       return r2, dt_now
