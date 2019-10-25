@@ -5,6 +5,8 @@ Version latest (0.12.0rc?, 2019-09-24?)
 
 - ...
 - enh: refactor `IsitfitError` for `IsitfitCliError`
+- bugfix: change format of payload sent to cost analyze share email
+  - initially the color codes were cluttering the email html
 
 
 Version 0.11.{2,3,4,5} (2019-10-24)

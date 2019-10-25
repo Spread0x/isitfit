@@ -30,7 +30,8 @@ def analyze(ctx, filter_tags):
       from ..cost.optimizerListener import OptimizerListener
       from ..cost.datadogManager import DatadogManager
 
-      ul = UtilizationListener()
+      share_email = ctx.obj.get('share_email', None)
+      ul = UtilizationListener(share_email)
       ddg = DatadogManager()
       mm = MainManager(ddg, filter_tags)
 
@@ -38,21 +39,11 @@ def analyze(ctx, filter_tags):
       mm.add_listener('ec2', ul.per_ec2)
       mm.add_listener('all', ul.after_all)
       mm.add_listener('all', ul.display_all)
+      mm.add_listener('all', ul.share_email)
 
       # start download data and processing
       logger.info("Fetching history...")
       mm.get_ifi()
-
-      # check if email requested
-      share_email = ctx.obj.get('share_email', None)
-      if share_email is not None:
-        if len(share_email)>0:
-          from .emailMan import EmailMan
-          em = EmailMan(
-            dataType='cost analyze',
-            dataVal={'table': ul.table}
-          )
-          em.send(share_email)
 
     except IsitfitCliError as e_info:
       from termcolor import colored

@@ -1,9 +1,9 @@
-from ..apiMan import ApiMan
+from .apiMan import ApiMan
 import json
 import logging
 logger = logging.getLogger('isitfit')
 
-from ..utils import IsitfitCliError
+from .utils import IsitfitCliError
 
 class EmailMan:
 
