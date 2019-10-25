@@ -15,7 +15,7 @@ def tags():
 @click.option('--advanced', is_flag=True, help='Get advanced suggestions of tags. Requires login')
 def suggest(advanced):
   # gather anonymous usage statistics
-  from ..utils import ping_matomo, IsitfitError
+  from ..utils import ping_matomo, IsitfitCliError
   ping_matomo("/tags/suggest")
 
   tl = None
@@ -31,7 +31,7 @@ def suggest(advanced):
     tl.fetch()
     tl.suggest()
     tl.display()
-  except IsitfitError as e:
+  except IsitfitCliError as e:
     logger.error("Error: %s"%str(e))
     import sys
     sys.exit(1)
@@ -42,7 +42,7 @@ def suggest(advanced):
 @tags.command(help="Dump existing EC2 tags in tabular form into a csv file")
 def dump():
   # gather anonymous usage statistics
-  from ..utils import ping_matomo, IsitfitError
+  from ..utils import ping_matomo, IsitfitCliError
   ping_matomo("/tags/dump")
 
   from ..tags.tagsDump import TagsDump
@@ -52,7 +52,7 @@ def dump():
     tl.fetch()
     tl.suggest() # not really suggesting. Just dumping to csv
     tl.display()
-  except IsitfitError as e:
+  except IsitfitCliError as e:
     logger.error("Error: %s"%str(e))
     import sys
     sys.exit(1)
@@ -66,7 +66,7 @@ def dump():
 @click.option('--not-dry-run', is_flag=True, help='True for dry run (simulated push)')
 def push(csv_filename, not_dry_run):
   # gather anonymous usage statistics
-  from ..utils import ping_matomo, IsitfitError
+  from ..utils import ping_matomo, IsitfitCliError
   ping_matomo("/tags/push")
 
   from ..tags.tagsPush import TagsPush
@@ -78,7 +78,7 @@ def push(csv_filename, not_dry_run):
     tp.pullLatest()
     tp.diffLatest()
     tp.processPush(not not_dry_run)
-  except IsitfitError as e:
+  except IsitfitCliError as e:
     logger.error("Error: %s"%str(e))
     import sys
     sys.exit(1)

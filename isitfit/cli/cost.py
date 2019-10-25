@@ -17,7 +17,7 @@ def cost(ctx):
 @click.pass_context
 def analyze(ctx, filter_tags):
     # gather anonymous usage statistics
-    from ..utils import ping_matomo, IsitfitError
+    from ..utils import ping_matomo, IsitfitCliError
     ping_matomo("/cost/analyze")
 
     #logger.info("Is it fit?")
@@ -54,7 +54,7 @@ def analyze(ctx, filter_tags):
           )
           em.send(share_email)
 
-    except IsitfitError as e_info:
+    except IsitfitCliError as e_info:
       from termcolor import colored
       logger.error(colored("Error: %s"%str(e_info), "red"))
       import sys
@@ -69,7 +69,7 @@ def analyze(ctx, filter_tags):
 @click.option('--filter-tags', default=None, help='filter instances for only those carrying this value in the tag name or value')
 def optimize(n, filter_tags):
     # gather anonymous usage statistics
-    from ..utils import ping_matomo, IsitfitError
+    from ..utils import ping_matomo, IsitfitCliError
     ping_matomo("/cost/optimize")
 
     #logger.info("Is it fit?")
@@ -98,7 +98,7 @@ def optimize(n, filter_tags):
       logger.info("Fetching history...")
       mm.get_ifi()
 
-    except IsitfitError as e_info:
+    except IsitfitCliError as e_info:
       logger.error("Error: %s"%str(e_info))
       import sys
       sys.exit(1)

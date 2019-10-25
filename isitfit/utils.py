@@ -123,7 +123,7 @@ def display_df(title, df, csv_fn, shape, logger):
     return
 
 
-class IsitfitError(Exception):
+class IsitfitCliError(Exception):
   pass
 
 

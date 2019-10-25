@@ -1,12 +1,12 @@
 from ...tags.tagsPush import TagsPush
 import pytest
-from ...utils import IsitfitError
+from ...utils import IsitfitCliError
 
 def test_validateTagsFile_fail_empty():
   import tempfile
   with tempfile.NamedTemporaryFile(suffix='.csv', prefix='isitfit-testTagsPush-', delete=True) as fh:
     tp = TagsPush(fh.name)
-    with pytest.raises(IsitfitError) as e_info:
+    with pytest.raises(IsitfitCliError) as e_info:
       tp.read_csv()
       # tp.validateTagsFile()
 
@@ -21,7 +21,7 @@ def test_validateTagsFile_fail_format_1():
   with tempfile.NamedTemporaryFile(suffix='.csv', prefix='isitfit-testTagsPush-', delete=True) as fh:
     df.to_csv(fh.name, index=False)
     tp = TagsPush(fh.name)
-    with pytest.raises(IsitfitError) as e_info:
+    with pytest.raises(IsitfitCliError) as e_info:
       tp.read_csv()
 
 
@@ -36,7 +36,7 @@ def test_validateTagsFile_fail_format_2():
     df.to_csv(fh.name, index=False)
     tp = TagsPush(fh.name)
     tp.read_csv()
-    with pytest.raises(IsitfitError) as e_info:
+    with pytest.raises(IsitfitCliError) as e_info:
       tp.validateTagsFile()
 
 
@@ -71,7 +71,7 @@ def test_diffLatest_fail_noChanges(monkeypatch):
   tp = TagsPush(None)
   tp.csv_df = tags_new
   tp.latest_df = tags_old
-  with pytest.raises(IsitfitError) as e_info:
+  with pytest.raises(IsitfitCliError) as e_info:
     tp.diffLatest()
 
 
@@ -94,7 +94,7 @@ def test_diffLatest_fail_newInstances(monkeypatch):
   tp = TagsPush(None)
   tp.csv_df = tags_new
   tp.latest_df = tags_old
-  with pytest.raises(IsitfitError) as e_info:
+  with pytest.raises(IsitfitCliError) as e_info:
     tp.diffLatest()
 
 
@@ -122,7 +122,7 @@ def test_diffLatest_fail_dropIsWrong(monkeypatch):
   tp = TagsPush(None)
   tp.csv_df = tags_new
   tp.latest_df = tags_old
-  with pytest.raises(IsitfitError) as e_info:
+  with pytest.raises(IsitfitCliError) as e_info:
     tp.diffLatest()
 
 

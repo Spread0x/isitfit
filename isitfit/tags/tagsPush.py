@@ -1,4 +1,4 @@
-from ..utils import IsitfitError
+from ..utils import IsitfitCliError
 
 import logging
 logger = logging.getLogger('isitfit')
@@ -26,13 +26,13 @@ class TagsPush:
       # read all fields as string
       self.csv_df = pd.read_csv(self.csv_fn, dtype=str)
     except pd.errors.EmptyDataError as e_info:
-      raise IsitfitError("Error reading csv: %s"%str(e_info))
+      raise IsitfitCliError("Error reading csv: %s"%str(e_info))
 
     if self.csv_df.shape[0]==0:
-      raise IsitfitError("Tags csv file is empty")
+      raise IsitfitCliError("Tags csv file is empty")
 
     if 'instance_id' not in self.csv_df.columns:
-      raise IsitfitError("Missing column instance_id")
+      raise IsitfitCliError("Missing column instance_id")
 
     # sort by instance ID
     self.csv_df = self.csv_df.sort_values('instance_id', ascending=True)
@@ -43,7 +43,7 @@ class TagsPush:
 
   def validateTagsFile(self):
     if self.csv_df is None:
-      raise IsitfitError("Internal dev error: Call TagsPush::read_csv before TagsPush::validateTagsFile")
+      raise IsitfitCliError("Internal dev error: Call TagsPush::read_csv before TagsPush::validateTagsFile")
 
     csv_dict = self.csv_df.to_dict(orient='records')
     from schema import Schema, Optional, SchemaError
@@ -55,7 +55,7 @@ class TagsPush:
     try:
       csv_schema.validate(csv_dict)
     except SchemaError as e:
-      raise IsitfitError("CSV is not a tags file: %s"%str(e))
+      raise IsitfitCliError("CSV is not a tags file: %s"%str(e))
 
   def pullLatest(self):
     logger.info("Pulling latest tags for comparison")
@@ -68,10 +68,10 @@ class TagsPush:
 
   def diffLatest(self):
     if self.latest_df is None:
-      raise IsitfitError("Internal dev error: Call TagsPush::pullLatest before TagsPush::diffLatest")
+      raise IsitfitCliError("Internal dev error: Call TagsPush::pullLatest before TagsPush::diffLatest")
 
     if self.csv_df is None:
-      raise IsitfitError("Internal dev error: Call TagsPush::read_csv before TagsPush::diffLatest")
+      raise IsitfitCliError("Internal dev error: Call TagsPush::read_csv before TagsPush::diffLatest")
 
     # diff columns
     from .tagsCsvDiff import TagsCsvDiff

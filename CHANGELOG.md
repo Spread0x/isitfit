@@ -1,9 +1,10 @@
 Semantic versioning
 
 
-Version latest (0.11.1rc?, 2019-09-24?)
+Version latest (0.12.0rc?, 2019-09-24?)
 
 - ...
+- enh: refactor `IsitfitError` for `IsitfitCliError`
 
 
 Version 0.11.{2,3,4,5} (2019-10-24)

@@ -3,7 +3,7 @@ import json
 import logging
 logger = logging.getLogger('isitfit')
 
-from ..utils import IsitfitError
+from ..utils import IsitfitCliError
 
 class EmailMan:
 
@@ -29,14 +29,14 @@ class EmailMan:
 
     # check if error
     if response_json['isitfitapi_status']['code']=='Email verification in progress':
-        raise IsitfitError(response_json['isitfitapi_status']['description'])
+        raise IsitfitCliError(response_json['isitfitapi_status']['description'])
 
     if response_json['isitfitapi_status']['code']=='error':
-        raise IsitfitError(response_json['isitfitapi_status']['description'])
+        raise IsitfitCliError(response_json['isitfitapi_status']['description'])
 
     if response_json['isitfitapi_status']['code']!='ok':
         response_str = json.dumps(response_json)
-        raise IsitfitError("Unsupported response from server: %s"%response_str)
+        raise IsitfitCliError("Unsupported response from server: %s"%response_str)
 
     # validate schema
     from schema import SchemaError, Schema, Optional
@@ -49,7 +49,7 @@ class EmailMan:
     except SchemaError as e:
         responseBody_str = json.dumps(response_json['isitfitapi_body'])
         err_msg = "Received response body: %s. Schema error: %s"%(responseBody_str, str(e))
-        raise IsitfitError(err_msg)
+        raise IsitfitCliError(err_msg)
 
     # otherwise proceed
     emailFrom = response_json['isitfitapi_body']['from']

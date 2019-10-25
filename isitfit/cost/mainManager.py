@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger('isitfit')
 
 
-from ..utils import mergeSeriesOnTimestampRange, ec2_catalog, IsitfitError
+from ..utils import mergeSeriesOnTimestampRange, ec2_catalog, IsitfitCliError
 from .cloudtrail_ec2type import Manager as CloudtrailEc2typeManager
 
 
@@ -73,7 +73,7 @@ class MainManager:
 
     def add_listener(self, event, listener):
       if event not in self.listeners:
-        raise IsitfitError("Internal dev error: Event %s is not supported for listeners. Use: %s"%(event, ",".join(self.listeners.keys())))
+        raise IsitfitCliError("Internal dev error: Event %s is not supported for listeners. Use: %s"%(event, ",".join(self.listeners.keys())))
 
       self.listeners[event].append(listener)
 
@@ -241,7 +241,7 @@ And finally re-run isitfit as usual.
           return pd.DataFrame() # use an empty dataframe in order to distinguish when getting from cache if not available in cache or data not found but set in cache
 
         if len(df_cw1) >1:
-          raise IsitfitError("More than 1 cloudwatch metric found for %s"%ec2_obj.instance_id)
+          raise IsitfitCliError("More than 1 cloudwatch metric found for %s"%ec2_obj.instance_id)
 
         # merge
         # df_cw2 = pd.concat(df_cw1, axis=1)

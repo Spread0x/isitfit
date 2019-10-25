@@ -1,4 +1,4 @@
-from ..utils import IsitfitError
+from ..utils import IsitfitCliError
 
 import logging
 logger = logging.getLogger('isitfit')
@@ -27,7 +27,7 @@ class TagsCsvDiff:
     json_old = to_json(self.df_old)
     json_new = to_json(self.df_new)
     if json_old == json_new:
-      raise IsitfitError("Aborting `tags push` due to no changes detected.")
+      raise IsitfitCliError("Aborting `tags push` due to no changes detected.")
 
   def noNewInstances(self):
     inst_old = set(self.df_old.instance_id)
@@ -39,7 +39,7 @@ class TagsCsvDiff:
       msg_2 = ", ".join(inst_created[:5])
       msg_3 ="..." if len(inst_created)>5 else ""
       msg_4 = msg_1%(msg_2,msg_3)
-      raise IsitfitError(msg_4)
+      raise IsitfitCliError(msg_4)
 
 
   def getDiffCols(self):
@@ -157,10 +157,10 @@ class TagsCsvDiff:
       msg_1 = "Aborting `tags push` due to new tags in pushed csv file, and user indicated they shouldnt be created"
       msg_2 = ", ".join(sorted(list(self.new_minus_old)))
       msg_3 = "%s: %s"%(msg_1,msg_2)
-      raise IsitfitError(msg_3)
+      raise IsitfitCliError(msg_3)
 
     if len(self.old_minus_new)>0:
       msg_1 = "Aborting `tags push` due to missing tags in pushed csv file, and user indicated they shouldnt be deleted"
       msg_2 = ", ".join(sorted(list(self.old_minus_new)))
       msg_3 = "%s: %s"%(msg_1,msg_2)
-      raise IsitfitError(msg_3)
+      raise IsitfitCliError(msg_3)

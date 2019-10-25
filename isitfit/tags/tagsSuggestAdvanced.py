@@ -2,7 +2,7 @@ import logging
 logger = logging.getLogger('isitfit')
 
 from .tagsSuggestBasic import TagsSuggestBasic
-from ..utils import MAX_ROWS, IsitfitError
+from ..utils import MAX_ROWS, IsitfitCliError
 import os
 import json
 from ..apiMan import ApiMan
@@ -49,7 +49,7 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
     # POST /tags/suggest
     r2, dt_now = self._tags_suggest()
     if 'Message' in r2:
-        raise IsitfitError(r2['Message'])
+        raise IsitfitCliError(r2['Message'])
 
     # now listen on sqs
     any_found = False

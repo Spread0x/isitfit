@@ -5,7 +5,7 @@ logger = logging.getLogger('isitfit')
 BASE_URL = 'https://api.isitfit.io/v0/'
 # BASE_URL = 'https://api-dev.isitfit.io/v0/'
 
-from .utils import IsitfitError
+from .utils import IsitfitCliError
 from schema import SchemaError, Schema, Optional
 
 
@@ -77,12 +77,12 @@ class ApiMan:
         register_schema_2.validate(self.r_register)
       except SchemaError as e:
         logger.error("Received response: %s"%self.r_register.text)
-        raise IsitfitError("Does not match expected schema: %s"%str(e))
+        raise IsitfitCliError("Does not match expected schema: %s"%str(e))
 
 
       # deal with "registration in progrss"
       if self.r_register['isitfitapi_status']['code'] == 'error':
-        raise IsitfitError("Failed to log in: %s"%self.r_register)
+        raise IsitfitCliError("Failed to log in: %s"%self.r_register)
   
       if self.r_register['isitfitapi_status']['code']=='Registration in progress':
           # status
@@ -92,7 +92,7 @@ class ApiMan:
           elif self.call_n==2:
               logger.info("Registration not ready yet.")
           else:
-              raise IsitfitError("Registration is still not ready. Please try again in a few minutes, or file an issue at https://github.com/autofitcloud/isitfit/issues")
+              raise IsitfitCliError("Registration is still not ready. Please try again in a few minutes, or file an issue at https://github.com/autofitcloud/isitfit/issues")
 
           if self.call_n >= self.tryAgainIn:
               nsecs_wait = 30
@@ -104,7 +104,7 @@ class ApiMan:
 
 
       if self.r_register['isitfitapi_status']['code']!='ok':
-          raise IsitfitError("Failed to log in: unknown status returned: %s"%self.r_register)
+          raise IsitfitCliError("Failed to log in: unknown status returned: %s"%self.r_register)
 
       # at this stage, registration was ok, so proceed
       if self.call_n==1:
@@ -136,7 +136,7 @@ class ApiMan:
         register_schema_1.validate(self.r_register)
       except SchemaError as e:
         logger.error("Received response: %s"%self.r_register.text)
-        raise IsitfitError("Does not match expected schema: %s"%str(e))
+        raise IsitfitCliError("Does not match expected schema: %s"%str(e))
 
       # get boto3 session using the assumed role
       # for further use of aws resources from AutofitCloud
@@ -223,15 +223,15 @@ class ApiMan:
       # check AWS-generated errors
       if 'message' in r2:
         if r2['message']=='Internal server error':
-          raise IsitfitError('Internal server error')
+          raise IsitfitCliError('Internal server error')
         else:
           # print(r2)
-          raise IsitfitError('Serverside error #2: %s'%r2['message'])
+          raise IsitfitCliError('Serverside error #2: %s'%r2['message'])
 
       # check for isitfit errors
       if r2['isitfitapi_status']['code'] == 'error':
         # print(r2)
-        raise IsitfitError('Serverside error #1: %s'%r2r2['isitfitapi_status']['description'])
+        raise IsitfitCliError('Serverside error #1: %s'%r2r2['isitfitapi_status']['description'])
 
       # if no schema provided
       return r2, dt_now
