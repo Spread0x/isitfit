@@ -186,7 +186,7 @@ or use `isitfit --skip-check-upgrade ...` to skip checking for version upgrades 
 # This import needs to stay here for the sake of the mock in test_utils
 import requests
 SKIP_PING=False
-def ping_matomo(action_name):
+def ping_matomo(action_name, action_base=None, idsite=None, uuid_val=None, isitfit_version=None):
   """
   Gather anonymous usage statistics
   """
@@ -195,21 +195,30 @@ def ping_matomo(action_name):
   if SKIP_PING:
       return
 
+  if action_base is None:
+    action_base = "https://cli.isitfit.io"
+
+  if idsite is None:
+    idsite = 2 # 2 is for cli.isitfit.io
+
   from urllib.parse import urljoin, urlencode
 
   # get uuid
-  from .dotMan import DotMan
-  uuid_val = DotMan().get_myuid()
+  if uuid_val is None:
+    from .dotMan import DotMan
+    uuid_val = DotMan().get_myuid()
+
+  # get version
+  if isitfit_version is None:
+      from . import isitfit_version
 
   # build action url
   # https://stackoverflow.com/questions/9718541/reconstructing-absolute-urls-from-relative-urls-on-a-page#comment51058834_9718651
-  from . import isitfit_version
-  action_base = "https://cli.isitfit.io"
   action_url = urljoin(action_base, isitfit_version+action_name)
 
   # https://stackoverflow.com/a/39144239/4126114
   req_i = {
-    "idsite": 2, # 2 is for cli.isitfit.io
+    "idsite": idsite,
     "rec": 1,
     "action_name": action_name,
     "uid": uuid_val,
