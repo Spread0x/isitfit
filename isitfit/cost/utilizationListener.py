@@ -66,10 +66,10 @@ class UtilizationListener:
     dt_end   = mm.EndTime.strftime("%Y-%m-%d")
     
     self.table = [
-            {'color': None,       'label': "Start date",              'value': "%s"%dt_start                },
-            {'color': None,       'label': "End date",                'value': "%s"%dt_end                  },
-            {'color': None,       'label': "EC2 machines (total)",    'value': "%i"%n_ec2_total             },
-            {'color': None,       'label': "EC2 machines (analysed)", 'value': "%i"%n_ec2_analysed          },
+            {'color': '',         'label': "Start date",              'value': "%s"%dt_start                },
+            {'color': '',         'label': "End date",                'value': "%s"%dt_end                  },
+            {'color': '',         'label': "EC2 machines (total)",    'value': "%i"%n_ec2_total             },
+            {'color': '',         'label': "EC2 machines (analysed)", 'value': "%i"%n_ec2_analysed          },
             {'color': 'cyan',     'label': "Billed cost",             'value': "%0.0f $"%self.sum_capacity  },
             {'color': 'cyan',     'label': "Used cost",               'value': "%0.0f $"%self.sum_used      },
             {'color': cwau_color, 'label': "CWAU (Used/Billed)",      'value': "%0.0f %%"%cwau_val          },
@@ -79,7 +79,7 @@ class UtilizationListener:
   def display_all(self, *args, **kwargs):
     def get_row(row):
         def get_cell(i):
-          retc = row[i] if row['color'] is None else colored(row[i], row['color'])
+          retc = row[i] if not row['color'] else colored(row[i], row['color'])
           return retc
         
         retr = [get_cell('label'), get_cell('value')]

@@ -98,7 +98,10 @@ class ApiMan:
               nsecs_wait = 30
               logger.info("Will check again in %i seconds"%(nsecs_wait))
               import time
-              time.sleep(nsecs_wait)
+              from tqdm import tqdm
+              for i in tqdm(range(nsecs_wait)):
+                time.sleep(1)
+
               self.register()
               return
 
