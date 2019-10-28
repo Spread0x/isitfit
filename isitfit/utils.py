@@ -186,62 +186,29 @@ or use `isitfit --skip-check-upgrade ...` to skip checking for version upgrades 
 # This import needs to stay here for the sake of the mock in test_utils
 import requests
 SKIP_PING=False
-def ping_matomo(action_name, action_base=None, idsite=None, uuid_val=None, isitfit_version=None):
+def ping_matomo(action_name, uuid_val=None, isitfit_version=None):
   """
   Gather anonymous usage statistics
   """
-  # if any previous failure, just skip it completely
-  global SKIP_PING # http://stackoverflow.com/questions/423379/ddg#423596 
-  if SKIP_PING:
-      return
-
-  if action_base is None:
-    action_base = "https://cli.isitfit.io"
-
-  if idsite is None:
-    idsite = 2 # 2 is for cli.isitfit.io
-
-  from urllib.parse import urljoin, urlencode
-
   # get uuid
-  if uuid_val is None:
-    from .dotMan import DotMan
-    uuid_val = DotMan().get_myuid()
+  from .dotMan import DotMan
+  uuid_val = DotMan().get_myuid()
 
   # get version
-  if isitfit_version is None:
-      from . import isitfit_version
+  from . import isitfit_version as isitfit_cli_version
 
-  # build action url
-  # https://stackoverflow.com/questions/9718541/reconstructing-absolute-urls-from-relative-urls-on-a-page#comment51058834_9718651
-  action_url = urljoin(action_base, isitfit_version+action_name)
+  # build action name field. note that "action_name" already starts with "/"
+  full_actionName = "%s%s"%(isitfit_cli_version, action_name)
 
-  # https://stackoverflow.com/a/39144239/4126114
-  req_i = {
-    "idsite": idsite,
-    "rec": 1,
-    "action_name": action_name,
-    "uid": uuid_val,
-    "url": action_url
-  }
-  payload = {"requests": ["?"+urlencode(req_i)]}
-
-  # use POST instead of GET to avoid arguments showing up in the clear
-  # https://developer.matomo.org/api-reference/tracking-api
-  MATOMO_URL = 'https://isitfit.matomo.cloud/piwik.php'
-  try:
-    response = requests.post(MATOMO_URL, json=payload, timeout=1) # 1 second
-  except requests.exceptions.ConnectionError as error:
-    # just ignore the failure to connect
-    # in order not to obstruct the CLI
-    SKIP_PING=True
-    pass
-  except requests.exceptions.ReadTimeout as error:
-      # also ignore
-      SKIP_PING=True
-      pass
-
-
+  # use base function
+  from matomo_sdk_py.matomo_sdk_py import ping_matomo as ping_matomo_base
+  ping_matomo_base(
+    action_name=full_actionName,
+    action_base="https://cli.isitfit.io",
+    idsite=2, # 2 is for cli.isitfit.io
+    uuid_val=uuid_val,
+    matomo_url="https://isitfit.matomo.cloud/piwik.php"
+  )
 
 
 def display_footer():

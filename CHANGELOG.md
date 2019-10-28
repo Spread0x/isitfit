@@ -4,6 +4,7 @@ Semantic versioning
 Version latest (0.12.0rc?, 2019-09-24?)
 
 - ...
+- enh: `utils.ping_matomo` to use the new package `matomo-sdk-py`
 
 
 Version 0.12 (2019-10-25)
