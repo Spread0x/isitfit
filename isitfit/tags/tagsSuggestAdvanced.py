@@ -2,21 +2,21 @@ import logging
 logger = logging.getLogger('isitfit')
 
 from .tagsSuggestBasic import TagsSuggestBasic
-from ..utils import MAX_ROWS, IsitfitCliError
+from ..utils import MAX_ROWS
 import os
 import json
 from ..apiMan import ApiMan
 
 class TagsSuggestAdvanced(TagsSuggestBasic):
 
-  def __init__(self):
+  def __init__(self, ctx):
     logger.debug("TagsSuggestAdvanced::constructor")
 
     # api manager
-    self.api_man = ApiMan(tryAgainIn=2)
+    self.api_man = ApiMan(tryAgainIn=2, ctx=ctx)
 
     # proceed with parent constructor
-    return super().__init__()
+    return super().__init__(ctx)
 
 
   def prepare(self):
@@ -49,7 +49,8 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
     # POST /tags/suggest
     r2, dt_now = self._tags_suggest()
     if 'Message' in r2:
-        raise IsitfitCliError(r2['Message'])
+        from ..utils import IsitfitCliError
+        raise IsitfitCliError(r2['Message'], self.ctx)
 
     # now listen on sqs
     any_found = False

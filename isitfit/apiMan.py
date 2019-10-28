@@ -21,14 +21,21 @@ class MyBotoAWSRequestsAuth(BotoAWSRequestsAuth):
 
 class ApiMan:
 
+  # number of seconds to wait between re-calls to register
+  nsecs_wait = 30
+
   # counter of number of "register" calls
   call_n = 0 
   
   # class member holding register response
   r_register = None
 
-  def __init__(self, tryAgainIn):
+  # number of times to call register before failing
+  n_maxCalls = 3
+
+  def __init__(self, tryAgainIn, ctx):
       self.tryAgainIn = tryAgainIn
+      self.ctx = ctx
 
   def register(self):
       logger.debug("ApiMan::register")
@@ -76,38 +83,42 @@ class ApiMan:
       try:
         register_schema_2.validate(self.r_register)
       except SchemaError as e:
-        logger.error("Received response: %s"%self.r_register.text)
-        raise IsitfitCliError("Does not match expected schema: %s"%str(e))
+        import json
+        logger.error("Received response: %s"%json.dumps(self.r_register))
+        raise IsitfitCliError("Does not match expected schema: %s"%str(e), self.ctx)
 
 
-      # deal with "registration in progrss"
+      # deal with "error"
       if self.r_register['isitfitapi_status']['code'] == 'error':
-        raise IsitfitCliError("Failed to log in: %s"%self.r_register)
+        raise IsitfitCliError("Failed to log in: %s"%self.r_register, self.ctx)
   
+      # deal with "registration in progress"
       if self.r_register['isitfitapi_status']['code']=='Registration in progress':
           # status
           if self.call_n==1:
               # just continue and will check again later
               logger.info("Registration in progress")
-          elif self.call_n==2:
-              logger.info("Registration not ready yet.")
+          elif self.call_n >= self.n_maxCalls:
+              raise IsitfitCliError("Registration is still not ready. Please try again in a few minutes, or file an issue at https://github.com/autofitcloud/isitfit/issues", self.ctx)
           else:
-              raise IsitfitCliError("Registration is still not ready. Please try again in a few minutes, or file an issue at https://github.com/autofitcloud/isitfit/issues")
+              logger.info("Registration not ready yet.")
 
           if self.call_n >= self.tryAgainIn:
-              nsecs_wait = 30
-              logger.info("Will check again in %i seconds"%(nsecs_wait))
+              logger.info("Will check again in %i seconds"%(self.nsecs_wait))
               import time
               from tqdm import tqdm
-              for i in tqdm(range(nsecs_wait)):
+              for i in tqdm(range(self.nsecs_wait)):
                 time.sleep(1)
 
               self.register()
               return
 
+          # stop here
+          return
+
 
       if self.r_register['isitfitapi_status']['code']!='ok':
-          raise IsitfitCliError("Failed to log in: unknown status returned: %s"%self.r_register)
+          raise IsitfitCliError("Failed to log in: unknown status returned: %s"%self.r_register, self.ctx)
 
       # at this stage, registration was ok, so proceed
       if self.call_n==1:
@@ -117,13 +128,6 @@ class ApiMan:
 
       # set to body only
       self.r_register = self.r_register['isitfitapi_body']
-
-      # show resources granted
-      # print(self.r_register)
-      logger.debug("Granted access to s3 arn: %s"%self.r_register['s3_arn'])
-      logger.debug("Granted access to sqs url: %s"%self.r_register['sqs_url'])
-      logger.debug("Note that account number 974668457921 is AutofitCloud, the company behind isitfit.")
-      logger.debug("For more info, visit https://autofitcloud.com/privacy")
 
       # check schema
       register_schema_1 = Schema({
@@ -138,8 +142,16 @@ class ApiMan:
       try:
         register_schema_1.validate(self.r_register)
       except SchemaError as e:
-        logger.error("Received response: %s"%self.r_register.text)
-        raise IsitfitCliError("Does not match expected schema: %s"%str(e))
+        import json
+        logger.error("Received response: %s"%json.dumps(self.r_register))
+        raise IsitfitCliError("Does not match expected schema: %s"%str(e), self.ctx)
+
+      # show resources granted
+      # print(self.r_register)
+      logger.debug("Granted access to s3 arn: %s"%self.r_register['s3_arn'])
+      logger.debug("Granted access to sqs url: %s"%self.r_register['sqs_url'])
+      logger.debug("Note that account number 974668457921 is AutofitCloud, the company behind isitfit.")
+      logger.debug("For more info, visit https://autofitcloud.com/privacy")
 
       # get boto3 session using the assumed role
       # for further use of aws resources from AutofitCloud
@@ -226,15 +238,22 @@ class ApiMan:
       # check AWS-generated errors
       if 'message' in r2:
         if r2['message']=='Internal server error':
-          raise IsitfitCliError('Internal server error')
+          raise IsitfitCliError('Internal server error', self.ctx)
         else:
           # print(r2)
-          raise IsitfitCliError('Serverside error #2: %s'%r2['message'])
+          raise IsitfitCliError('Serverside error #2: %s'%r2['message'], self.ctx)
 
-      # check for isitfit errors
+      # check for isitfit errors (in schema)
+      if r2['isitfitapi_status']['code'] == 'error in schema':
+        # print(r2)
+        logger.debug("Detailed schema error message")
+        logger.debug(r2['isitfitapi_status']['description'])
+        raise IsitfitCliError("The data sent to the server by isitfit does not match the expected format.", self.ctx)
+
+      # check for isitfit errors (general)
       if r2['isitfitapi_status']['code'] == 'error':
         # print(r2)
-        raise IsitfitCliError('Serverside error #1: %s'%r2['isitfitapi_status']['description'])
+        raise IsitfitCliError('Serverside error #1: %s'%r2['isitfitapi_status']['description'], self.ctx)
 
       # if no schema provided
       return r2, dt_now

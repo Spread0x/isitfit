@@ -123,8 +123,48 @@ def display_df(title, df, csv_fn, shape, logger):
     return
 
 
-class IsitfitCliError(Exception):
-  pass
+# Inherit from click's usageError since click can handle it automatically
+# https://click.palletsprojects.com/en/7.x/exceptions/
+from click import UsageError
+class IsitfitCliError(UsageError):
+  """
+  Inherited from click.exceptions.UsageError
+  because it adds the context as a constructor argument,
+  which I need for checking "is_outdated"
+  https://github.com/pallets/click/blob/8df9a6b2847b23de5c65dcb16f715a7691c60743/click/exceptions.py#L51
+  """
+
+  # exit code
+  exit_code = 10
+
+  # constructor parameters from
+  # https://github.com/pallets/click/blob/8df9a6b2847b23de5c65dcb16f715a7691c60743/click/exceptions.py#L11
+  def show(self, file=None):
+    from click._compat import get_text_stderr
+    if file is None:
+        file = get_text_stderr()
+
+    # echo wrap
+    color = 'red'
+    import click
+    def echo(message):
+      # from click.utils import echo
+      # echo('Error: %s' % self.format_message(), file=file, color=color)
+
+      click.secho(message, fg=color)
+
+    # main error
+    echo('Error: %s' % self.format_message())
+
+    # if isitfit installation is outdated, append a message to upgrade
+    if self.ctx is not None:
+      if self.ctx.obj.get('is_outdated', None):
+        hint_1 = "Upgrade your isitfit installation with `pip3 install --upgrade isitfit` and try again."
+        echo(hint_1)
+
+    # add link to github issues
+    hint_2 = "If the problem persists, please report it at https://github.com/autofitcloud/isitfit/issues/new"
+    echo(hint_2)
 
 
 
@@ -162,7 +202,7 @@ def prompt_upgrade(pkg_name, current_version):
 
   # is_outdated = True # FIXME for debugging
   if not is_outdated:
-      return
+      return is_outdated
 
   import click
   msg_outdated = """The current version of {pkg_name} ({current_version}) is out of date.
@@ -181,6 +221,8 @@ or use `isitfit --skip-check-upgrade ...` to skip checking for version upgrades 
   click.secho("Will continue in %i seconds"%wait_outdated, fg='yellow')
   for i in tqdm(range(wait_outdated)):
     time.sleep(1)
+
+  return is_outdated
 
 
 # This import needs to stay here for the sake of the mock in test_utils
@@ -227,3 +269,13 @@ def display_footer():
 
 
 
+from click.core import Command as ClickCommand
+class IsitfitCommand(ClickCommand):
+    """
+    Call display_footer at the end of each invokation
+    https://github.com/pallets/click/blob/8df9a6b2847b23de5c65dcb16f715a7691c60743/click/core.py#L945
+    """
+    def invoke(self, *args, **kwargs):
+        ret = super().invoke(*args, **kwargs)
+        display_footer()
+        return ret

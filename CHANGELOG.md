@@ -4,6 +4,10 @@ Semantic versioning
 Version latest (0.12.0rc?, 2019-09-24?)
 
 - ...
+- feat: use click's exception handling for IsitfitCliError
+	- pass `is_outdated` in click context for error verbosity about upgrade
+- feat: use click's Command to display footer after invoke
+- feat: unit tests for the above changes
 
 
 Version 0.12.{0,1} (2019-10-25)

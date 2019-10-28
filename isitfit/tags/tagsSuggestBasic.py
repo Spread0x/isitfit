@@ -18,13 +18,14 @@ def dump_df_to_csv(df_dump, csv_prefix):
 
 class TagsSuggestBasic:
 
-  def __init__(self):
+  def __init__(self, ctx):
     logger.debug("TagsSuggestBasic::constructor")
     # boto3 ec2 and cloudwatch data
     import boto3
     self.ec2_resource = boto3.resource('ec2')
     self.tags_list = []
     self.tags_df = None
+    self.ctx = ctx
 
   def prepare(self):
     logger.debug("TagsSuggestBasic::prepare")
@@ -41,7 +42,7 @@ class TagsSuggestBasic:
     msg_total = "Found a total of %i EC2 instances"%n_ec2_total
     if n_ec2_total==0:
       from ..utils import IsitfitCliError
-      raise IsitfitCliError(msg_total)
+      raise IsitfitCliError(msg_total, self.ctx)
 
     logger.warning(msg_total)
 

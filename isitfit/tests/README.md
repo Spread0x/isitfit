@@ -1,8 +1,10 @@
 Folder structure like https://github.com/pandas-dev/pandas/tree/master/pandas/tests
 
-Two kinds of tests: integration, unit
+Two kinds of tests: unit, functional (integration TODO)
 
-To run integration tests:
+To run unit tests: `pytest`
+
+To run functional tests:
 
 ```
 [sudo] apt-get install redis
@@ -10,9 +12,7 @@ bash isitfit/tests/cost/test_integration.sh
 bash isitfit/tests/tags/test_integration.sh
 ```
 
-To run unit tests: `pytest`
-
-To run integration tests in docker:
+To run functional tests in docker:
 
 ```
 bash isitfit/tests/run_tests_docker.sh

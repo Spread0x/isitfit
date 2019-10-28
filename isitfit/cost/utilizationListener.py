@@ -10,13 +10,14 @@ from termcolor import colored
 
 class UtilizationListener:
 
-  def __init__(self, emailTo):
+  def __init__(self, emailTo, ctx):
     # iterate over all ec2 instances
     self.sum_capacity = 0
     self.sum_used = 0
     self.df_all = []
     self.table = None # will contain the final table after calling `after_all`
     self.emailTo = emailTo
+    self.ctx = ctx
 
 
   def per_ec2(self, ec2_obj, ec2_df, mm, ddg_df):
@@ -107,7 +108,8 @@ class UtilizationListener:
       from ..emailMan import EmailMan
       em = EmailMan(
         dataType='cost analyze',
-        dataVal={'table': self.table}
+        dataVal={'table': self.table},
+        ctx=self.ctx
       )
       em.send(self.emailTo)
 

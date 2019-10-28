@@ -7,10 +7,11 @@ from .utils import IsitfitCliError
 
 class EmailMan:
 
-  def __init__(self, dataType, dataVal):
+  def __init__(self, dataType, dataVal, ctx):
     self.dataType = dataType
     self.dataVal = dataVal
-    self.api_man = ApiMan(tryAgainIn=1)
+    self.ctx = ctx
+    self.api_man = ApiMan(tryAgainIn=1, ctx=ctx)
 
   def send(self, share_email):
     # get resources available
@@ -29,14 +30,14 @@ class EmailMan:
 
     # check if error
     if response_json['isitfitapi_status']['code']=='Email verification in progress':
-        raise IsitfitCliError(response_json['isitfitapi_status']['description'])
+        raise IsitfitCliError(response_json['isitfitapi_status']['description'], self.ctx)
 
     if response_json['isitfitapi_status']['code']=='error':
-        raise IsitfitCliError(response_json['isitfitapi_status']['description'])
+        raise IsitfitCliError(response_json['isitfitapi_status']['description'], self.ctx)
 
     if response_json['isitfitapi_status']['code']!='ok':
         response_str = json.dumps(response_json)
-        raise IsitfitCliError("Unsupported response from server: %s"%response_str)
+        raise IsitfitCliError("Unsupported response from server: %s"%response_str, self.ctx)
 
     # validate schema
     from schema import SchemaError, Schema, Optional
@@ -49,7 +50,7 @@ class EmailMan:
     except SchemaError as e:
         responseBody_str = json.dumps(response_json['isitfitapi_body'])
         err_msg = "Received response body: %s. Schema error: %s"%(responseBody_str, str(e))
-        raise IsitfitCliError(err_msg)
+        raise IsitfitCliError(err_msg, self.ctx)
 
     # otherwise proceed
     emailFrom = response_json['isitfitapi_body']['from']

@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger('isitfit')
 
 
-from ..utils import mergeSeriesOnTimestampRange, ec2_catalog, IsitfitCliError
+from ..utils import mergeSeriesOnTimestampRange, ec2_catalog
 from .cloudtrail_ec2type import Manager as CloudtrailEc2typeManager
 
 
@@ -43,7 +43,7 @@ def tagsContain(f_tn, ec2_obj):
 
 
 class MainManager:
-    def __init__(self, ddg=None, filter_tags=None):
+    def __init__(self, ctx, ddg=None, filter_tags=None):
         # boto3 ec2 and cloudwatch data
         self.ec2_resource = boto3.resource('ec2')
         self.cloudwatch_resource = boto3.resource('cloudwatch')
@@ -70,10 +70,14 @@ class MainManager:
         # filtering by tags
         self.filter_tags = filter_tags
 
+        # click context for errors
+        self.ctx = ctx
+
 
     def add_listener(self, event, listener):
       if event not in self.listeners:
-        raise IsitfitCliError("Internal dev error: Event %s is not supported for listeners. Use: %s"%(event, ",".join(self.listeners.keys())))
+        from ..utils import IsitfitCliError
+        raise IsitfitCliError("Internal dev error: Event %s is not supported for listeners. Use: %s"%(event, ",".join(self.listeners.keys())), self.ctx)
 
       self.listeners[event].append(listener)
 
@@ -241,7 +245,8 @@ And finally re-run isitfit as usual.
           return pd.DataFrame() # use an empty dataframe in order to distinguish when getting from cache if not available in cache or data not found but set in cache
 
         if len(df_cw1) >1:
-          raise IsitfitCliError("More than 1 cloudwatch metric found for %s"%ec2_obj.instance_id)
+          from ..utils import IsitfitCliError
+          raise IsitfitCliError("More than 1 cloudwatch metric found for %s"%ec2_obj.instance_id, self.ctx)
 
         # merge
         # df_cw2 = pd.concat(df_cw1, axis=1)

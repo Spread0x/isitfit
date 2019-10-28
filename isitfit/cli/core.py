@@ -12,14 +12,8 @@ logger = logging.getLogger('isitfit')
 
 import click
 
-from ..utils import display_footer
 from .. import isitfit_version
 
-
-# With atexit, this message is being displayed even in case of early return or errors.
-# Changing to try/finally in the __main__ below
-#import atexit
-#atexit.register(display_footer)
 
 # For the --share-email "multiple options"
 # https://click.palletsprojects.com/en/7.x/options/#multiple-options
@@ -42,7 +36,9 @@ def cli_core(ctx, debug, optimize, version, share_email, skip_check_upgrade):
       logger.debug("Enabled debug level")
       logger.debug("-------------------")
 
-    # if a command is invoked, eg `isitfit tags`, do not proceed
+    # After adding the separate command for "cost" (i.e. `isitfit cost analyze`)
+    # putting a note here to notify user of new usage
+    # Ideally, this code would be deprecated though
     if ctx.invoked_subcommand is None:
         # if still used without subcommands, notify user of new usage
         #from .cost import analyze as cost_analyze, optimize as cost_optimize
@@ -79,11 +75,8 @@ def cli_core(ctx, debug, optimize, version, share_email, skip_check_upgrade):
     # check if current version is out-of-date
     if not skip_check_upgrade:
       from ..utils import prompt_upgrade
-      prompt_upgrade('isitfit', isitfit_version)
-
-    # After adding the separate command for "cost" (i.e. `isitfit cost analyze`)
-    # putting a note here to notify user of new usage
-    # Ideally, this code would be deprecated though
+      is_outdated = prompt_upgrade('isitfit', isitfit_version)
+      ctx.obj['is_outdated'] = is_outdated
 
 
 

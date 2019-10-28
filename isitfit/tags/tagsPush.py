@@ -12,13 +12,15 @@ class TagsPush:
   https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/API_UntagResources.html
   """
 
-  def __init__(self, csv_fn):
+  def __init__(self, csv_fn, ctx):
     """
     csv_fn - filename of CSV file containing the tags
+    ctx - click context object
     """
     self.csv_fn = csv_fn
     self.csv_df = None
     self.latest_df = None
+    self.ctx = ctx
 
   def read_csv(self):
     import pandas as pd
@@ -26,13 +28,13 @@ class TagsPush:
       # read all fields as string
       self.csv_df = pd.read_csv(self.csv_fn, dtype=str)
     except pd.errors.EmptyDataError as e_info:
-      raise IsitfitCliError("Error reading csv: %s"%str(e_info))
+      raise IsitfitCliError("Error reading csv: %s"%str(e_info), self.ctx)
 
     if self.csv_df.shape[0]==0:
-      raise IsitfitCliError("Tags csv file is empty")
+      raise IsitfitCliError("Tags csv file is empty", self.ctx)
 
     if 'instance_id' not in self.csv_df.columns:
-      raise IsitfitCliError("Missing column instance_id")
+      raise IsitfitCliError("Missing column instance_id", self.ctx)
 
     # sort by instance ID
     self.csv_df = self.csv_df.sort_values('instance_id', ascending=True)
@@ -43,7 +45,7 @@ class TagsPush:
 
   def validateTagsFile(self):
     if self.csv_df is None:
-      raise IsitfitCliError("Internal dev error: Call TagsPush::read_csv before TagsPush::validateTagsFile")
+      raise IsitfitCliError("Internal dev error: Call TagsPush::read_csv before TagsPush::validateTagsFile", self.ctx)
 
     csv_dict = self.csv_df.to_dict(orient='records')
     from schema import Schema, Optional, SchemaError
@@ -55,12 +57,12 @@ class TagsPush:
     try:
       csv_schema.validate(csv_dict)
     except SchemaError as e:
-      raise IsitfitCliError("CSV is not a tags file: %s"%str(e))
+      raise IsitfitCliError("CSV is not a tags file: %s"%str(e), self.ctx)
 
   def pullLatest(self):
     logger.info("Pulling latest tags for comparison")
     from .tagsDump import TagsDump
-    td = TagsDump()
+    td = TagsDump(self.ctx)
     td.fetch()
     td.suggest() # not really suggesting. Just dumping to csv
     self.latest_df = td.tags_df
@@ -68,10 +70,10 @@ class TagsPush:
 
   def diffLatest(self):
     if self.latest_df is None:
-      raise IsitfitCliError("Internal dev error: Call TagsPush::pullLatest before TagsPush::diffLatest")
+      raise IsitfitCliError("Internal dev error: Call TagsPush::pullLatest before TagsPush::diffLatest", self.ctx)
 
     if self.csv_df is None:
-      raise IsitfitCliError("Internal dev error: Call TagsPush::read_csv before TagsPush::diffLatest")
+      raise IsitfitCliError("Internal dev error: Call TagsPush::read_csv before TagsPush::diffLatest", self.ctx)
 
     # diff columns
     from .tagsCsvDiff import TagsCsvDiff

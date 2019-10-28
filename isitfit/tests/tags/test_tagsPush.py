@@ -5,7 +5,7 @@ from ...utils import IsitfitCliError
 def test_validateTagsFile_fail_empty():
   import tempfile
   with tempfile.NamedTemporaryFile(suffix='.csv', prefix='isitfit-testTagsPush-', delete=True) as fh:
-    tp = TagsPush(fh.name)
+    tp = TagsPush(fh.name, None)
     with pytest.raises(IsitfitCliError) as e_info:
       tp.read_csv()
       # tp.validateTagsFile()
@@ -20,7 +20,7 @@ def test_validateTagsFile_fail_format_1():
   import tempfile
   with tempfile.NamedTemporaryFile(suffix='.csv', prefix='isitfit-testTagsPush-', delete=True) as fh:
     df.to_csv(fh.name, index=False)
-    tp = TagsPush(fh.name)
+    tp = TagsPush(fh.name, None)
     with pytest.raises(IsitfitCliError) as e_info:
       tp.read_csv()
 
@@ -34,7 +34,7 @@ def test_validateTagsFile_fail_format_2():
   import tempfile
   with tempfile.NamedTemporaryFile(suffix='.csv', prefix='isitfit-testTagsPush-', delete=True) as fh:
     df.to_csv(fh.name, index=False)
-    tp = TagsPush(fh.name)
+    tp = TagsPush(fh.name, None)
     tp.read_csv()
     with pytest.raises(IsitfitCliError) as e_info:
       tp.validateTagsFile()
@@ -50,7 +50,7 @@ def test_validateTagsFile_ok():
   import tempfile
   with tempfile.NamedTemporaryFile(suffix='.csv', prefix='isitfit-testTagsPush-', delete=True) as fh:
     df.to_csv(fh.name, index=False)
-    tp = TagsPush(fh.name)
+    tp = TagsPush(fh.name, None)
     tp.read_csv()
     tp.validateTagsFile()
 
@@ -68,7 +68,7 @@ def test_diffLatest_fail_noChanges(monkeypatch):
   tags_new = tags_old.copy()
 
   # perform diff
-  tp = TagsPush(None)
+  tp = TagsPush(None, None)
   tp.csv_df = tags_new
   tp.latest_df = tags_old
   with pytest.raises(IsitfitCliError) as e_info:
@@ -91,7 +91,7 @@ def test_diffLatest_fail_newInstances(monkeypatch):
   ])
 
   # perform diff
-  tp = TagsPush(None)
+  tp = TagsPush(None, None)
   tp.csv_df = tags_new
   tp.latest_df = tags_old
   with pytest.raises(IsitfitCliError) as e_info:
@@ -119,7 +119,7 @@ def test_diffLatest_fail_dropIsWrong(monkeypatch):
   monkeypatch.setattr('builtins.input', lambda x: "no")
 
   # perform diff
-  tp = TagsPush(None)
+  tp = TagsPush(None, None)
   tp.csv_df = tags_new
   tp.latest_df = tags_old
   with pytest.raises(IsitfitCliError) as e_info:
@@ -148,7 +148,7 @@ def test_diffLatest_ok(monkeypatch):
   monkeypatch.setattr('builtins.input', lambda x: "yes")
 
   # perform diff
-  tp = TagsPush(None)
+  tp = TagsPush(None, None)
   tp.csv_df = tags_new
   tp.latest_df = tags_old
   tp.diffLatest()
