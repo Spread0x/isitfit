@@ -46,18 +46,14 @@ def cli_core(ctx, debug, optimize, version, share_email, skip_check_upgrade):
         #  ctx.invoke(cost_optimize, filter_tags=filter_tags, n=n)
         #else:
         #  ctx.invoke(cost_analyze, filter_tags=filter_tags)
+        from click.exceptions import UsageError
         if optimize:
-          click.secho("As of version 0.11, please use `isitfit cost optimize` instead of `isitfit --optimize`.", fg='red')
+          raise UsageError("As of version 0.11, please use `isitfit cost optimize` instead of `isitfit --optimize`.")
         elif version:
           # ctx.invoke(cli_version)
-          click.secho("As of version 0.11, please use `isitfit version` instead of `isitfit --version`.", fg='red')
+          raise UsageError("As of version 0.11, please use `isitfit version` instead of `isitfit --version`.")
         else:
-          click.secho("As of version 0.11, please use `isitfit cost analyze` instead of `isitfit` to calculate the cost-weighted utilization.", fg='red')
-
-        # just return non-0 code
-        click.secho("Or check `isitfit --help` for a full list of commands and syntax.", fg='red')
-        import sys
-        sys.exit(1)
+          raise UsageError("As of version 0.11, please use `isitfit cost analyze` instead of `isitfit` to calculate the cost-weighted utilization.")
 
     # make sure that context is a dict
     ctx.ensure_object(dict)
