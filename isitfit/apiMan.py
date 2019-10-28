@@ -255,7 +255,13 @@ class ApiMan:
         # print(r2)
         raise IsitfitCliError('Serverside error #1: %s'%r2['isitfitapi_status']['description'], self.ctx)
 
-      # if no schema provided
+      # check for isitfit unknown codes (i.e. maybe CLI is too old)
+      if r2['isitfitapi_status']['code'] != 'ok':
+        # print(r2)
+        msg = 'Unknown status code: %s. Description: %s'%(r2['isitfitapi_status']['code'], r2['isitfitapi_status']['description'])
+        raise IsitfitCliError(msg, self.ctx)
+
+      # if ok
       return r2, dt_now
 
 

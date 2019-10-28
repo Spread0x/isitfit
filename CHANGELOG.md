@@ -10,6 +10,7 @@ Version latest (0.12.0rc?, 2019-09-24?)
 - end: unit tests for the above changes
 - enh: use click's UsageError for the deprecated options
 - enh: use click's BadParameter for n of emails > 3
+- enh: in `ApiMan.request`, add case of status code not "ok"
 
 
 Version 0.12.{0,1} (2019-10-25)
