@@ -19,6 +19,10 @@ class MyBotoAWSRequestsAuth(BotoAWSRequestsAuth):
         self._refreshable_credentials = boto_session.get_credentials()
 
 
+class IsitfitCliRegistrationInProgress(Exception):
+    pass
+
+
 class ApiMan:
 
   # number of seconds to wait between re-calls to register
@@ -62,39 +66,15 @@ class ApiMan:
       # eg {'UserId': 'AIDA6F3WEM7AXY6Y4VWDC', 'Account': '974668457921', 'Arn': 'arn:aws:iam::974668457921:user/shadi'}
 
       # actual request
-      self.r_register, dt_now = self.request(
-        method='post',
-        relative_url='./register',
-        payload_json=self.r_sts,
-        authenticated_user_path=False # since /register is the absolute path (without account/user)
-      )
-
-      # validate schema of response
-      register_schema_2 = Schema({
-        'isitfitapi_status': {
-            'code': str,
-            'description': str,
-        },
-        'isitfitapi_body': {
-          Optional(str): object
-        }
-      })
-
       try:
-        register_schema_2.validate(self.r_register)
-      except SchemaError as e:
-        import json
-        logger.error("Received response: %s"%json.dumps(self.r_register))
-        raise IsitfitCliError("Does not match expected schema: %s"%str(e), self.ctx)
-
-
-      # deal with "error"
-      if self.r_register['isitfitapi_status']['code'] == 'error':
-        raise IsitfitCliError("Failed to log in: %s"%self.r_register, self.ctx)
-  
-      # deal with "registration in progress"
-      if self.r_register['isitfitapi_status']['code']=='Registration in progress':
-          # status
+        self.r_register, dt_now = self.request(
+          method='post',
+          relative_url='./register',
+          payload_json=self.r_sts,
+          authenticated_user_path=False # since /register is the absolute path (without account/user)
+        )
+      except IsitfitCliRegistrationInProgress as e:
+          # deal with "registration in progress"
           if self.call_n==1:
               # just continue and will check again later
               logger.info("Registration in progress")
@@ -116,9 +96,6 @@ class ApiMan:
           # stop here
           return
 
-
-      if self.r_register['isitfitapi_status']['code']!='ok':
-          raise IsitfitCliError("Failed to log in: unknown status returned: %s"%self.r_register, self.ctx)
 
       # at this stage, registration was ok, so proceed
       if self.call_n==1:
@@ -243,6 +220,23 @@ class ApiMan:
           # print(r2)
           raise IsitfitCliError('Serverside error #2: %s'%r2['message'], self.ctx)
 
+      # validate schema of response
+      register_schema_2 = Schema({
+        'isitfitapi_status': {
+            'code': str,
+            'description': str,
+        },
+        'isitfitapi_body': {
+          Optional(str): object
+        }
+      })
+      try:
+        register_schema_2.validate(r2)
+      except SchemaError as e:
+        import json
+        logger.error("Received response: %s"%json.dumps(r2))
+        raise IsitfitCliError("Does not match expected schema: %s"%str(e), self.ctx)
+
       # check for isitfit errors (in schema)
       if r2['isitfitapi_status']['code'] == 'error in schema':
         # print(r2)
@@ -254,6 +248,9 @@ class ApiMan:
       if r2['isitfitapi_status']['code'] == 'error':
         # print(r2)
         raise IsitfitCliError('Serverside error #1: %s'%r2['isitfitapi_status']['description'], self.ctx)
+
+      if r2['isitfitapi_status']['code']=='Registration in progress':
+        raise IsitfitCliRegistrationInProgress
 
       # check for isitfit unknown codes (i.e. maybe CLI is too old)
       if r2['isitfitapi_status']['code'] != 'ok':
