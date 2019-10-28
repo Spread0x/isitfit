@@ -30,7 +30,7 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
     logger.debug("TagsSuggestAdvanced::suggest")
      
     # if status is not ok yet, ping again
-    if self.api_man.r_register['status']=='Registration in progress':
+    if self.api_man.r_register['isitfitapi_status']['code']=='Registration in progress':
         self.api_man.register()
 
     # boto3 s3 client
@@ -43,8 +43,8 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
       self.s3_key_suffix = 'tags_request.csv'
       s3_path = os.path.join(self.api_man.r_sts['Account'], self.api_man.r_sts['UserId'], self.s3_key_suffix)
 
-      logger.debug("s3 PUT bucket=%s path=%s"%(self.api_man.r_register['s3_bucketName'], s3_path))
-      s3_client.put_object(Bucket=self.api_man.r_register['s3_bucketName'], Key=s3_path, Body=fh)
+      logger.debug("s3 PUT bucket=%s path=%s"%(self.api_man.r_body['s3_bucketName'], s3_path))
+      s3_client.put_object(Bucket=self.api_man.r_body['s3_bucketName'], Key=s3_path, Body=fh)
 
     # POST /tags/suggest
     r2, dt_now = self._tags_suggest()
@@ -73,11 +73,11 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
         self.csv_fn = None
         with tempfile.NamedTemporaryFile(suffix='.csv', prefix='isitfit-tags-suggestAdvanced-', delete=False) as fh:
           self.csv_fn = fh.name
-          s3_path = os.path.join(self.api_man.r_register['s3_keyPrefix'], m.body_decoded['s3_key_suffix'])
+          s3_path = os.path.join(self.api_man.r_body['s3_keyPrefix'], m.body_decoded['s3_key_suffix'])
           logger.info("Downloading tag suggestions from isitfit server")
           logger.debug("Getting s3 file %s"%s3_path)
           logger.debug("Saving it into %s"%fh.name)
-          response = s3_client.get_object(Bucket=self.api_man.r_register['s3_bucketName'], Key=s3_path)
+          response = s3_client.get_object(Bucket=self.api_man.r_body['s3_bucketName'], Key=s3_path)
           fh.write(response['Body'].read())
 
         logger.debug("TagsSuggestAdvanced:suggest .. read_csv")
@@ -111,7 +111,7 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
       load_send = {}
       #load_send.update(self.api_man.r_sts)
       load_send['s3_key_suffix'] = self.s3_key_suffix
-      load_send['sqs_url'] = self.api_man.r_register['sqs_url']
+      load_send['sqs_url'] = self.api_man.r_body['sqs_url']
 
       # curl equivalent
       # curl -X POST --data "foo=bar" https://api.isitfit.io/v0/974668457921/AIDA6F3WEM7AXY6Y4VWDC/tags/suggest

@@ -34,6 +34,9 @@ class ApiMan:
   # class member holding register response
   r_register = None
 
+  # class member shortcut for r_register['isitfitapi_body']
+  r_body = None
+
   # number of times to call register before failing
   n_maxCalls = 3
 
@@ -47,6 +50,7 @@ class ApiMan:
       if self.r_register is not None:
           if self.r_register['isitfitapi_status']['code']=='ok':
               # already registered
+              self.r_body = self.r_register['isitfitapi_body']
               return
 
       # counter
@@ -104,7 +108,7 @@ class ApiMan:
           logger.info("Registration complete")
 
       # set to body only
-      self.r_register = self.r_register['isitfitapi_body']
+      self.r_body = self.r_register['isitfitapi_body']
 
       # check schema
       register_schema_1 = Schema({
@@ -117,16 +121,16 @@ class ApiMan:
       })
 
       try:
-        register_schema_1.validate(self.r_register)
+        register_schema_1.validate(self.r_body)
       except SchemaError as e:
         import json
-        logger.error("Received response: %s"%json.dumps(self.r_register))
+        logger.error("Received response: %s"%json.dumps(self.r_body))
         raise IsitfitCliError("Does not match expected schema: %s"%str(e), self.ctx)
 
       # show resources granted
       # print(self.r_register)
-      logger.debug("Granted access to s3 arn: %s"%self.r_register['s3_arn'])
-      logger.debug("Granted access to sqs url: %s"%self.r_register['sqs_url'])
+      logger.debug("Granted access to s3 arn: %s"%self.r_body['s3_arn'])
+      logger.debug("Granted access to sqs url: %s"%self.r_body['sqs_url'])
       logger.debug("Note that account number 974668457921 is AutofitCloud, the company behind isitfit.")
       logger.debug("For more info, visit https://autofitcloud.com/privacy")
 
@@ -135,7 +139,7 @@ class ApiMan:
       # eg API Gateway, S3, SQS
       sts_connection = boto3.client('sts')
       acct_b = sts_connection.assume_role(
-                RoleArn=self.r_register['role_arn'],
+                RoleArn=self.r_body['role_arn'],
                 #ExternalId=None, # TODO set external ID?
                 RoleSessionName="cross_acct_isitfit"
       )
@@ -151,7 +155,7 @@ class ApiMan:
       # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs.html#SQS.Queue.receive_messages
       # region matches with the serverless.yml region
       sqs_res = self.boto3_session.resource('sqs') # no need for region since already in boto session # , region_name='us-east-1')
-      self.sqs_q = sqs_res.Queue(self.r_register['sqs_url'])
+      self.sqs_q = sqs_res.Queue(self.r_body['sqs_url'])
 
 
   def request(self, method, relative_url, payload_json, authenticated_user_path=True):
