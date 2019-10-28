@@ -4,12 +4,11 @@ Semantic versioning
 Version latest (0.12.0rc?, 2019-09-24?)
 
 - ...
+
+
+Version 0.12.{0,1} (2019-10-25)
+
 - enh: `utils.ping_matomo` to use the new package `matomo-sdk-py`
-
-
-Version 0.12 (2019-10-25)
-
-- feat: modifications to `utils.ping_matomo` so that `isitfit-api` can use it
 
 
 Version 0.11.{6,7} (2019-10-25)
