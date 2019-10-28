@@ -4,6 +4,10 @@ Semantic versioning
 Version latest (0.12.0rc?, 2019-09-24?)
 
 - ...
+
+
+Version 0.12.3 (2019-10-25)
+
 - enh: move apiman.register.schemaValidation to apiman.request since all responses from isitfit-api will match the general schema
 - enh: add treat 'registration in progress' in the apiman.request function
 
