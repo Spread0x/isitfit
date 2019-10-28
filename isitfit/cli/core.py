@@ -62,9 +62,8 @@ def cli_core(ctx, debug, optimize, version, share_email, skip_check_upgrade):
     if share_email is not None:
       max_n_recipients = 3
       if len(share_email) > max_n_recipients:
-          click.secho("Error: Maximum number of email recipients is %i. Received %i"%(max_n_recipients, len(share_email)), fg="red")
-          import sys
-          sys.exit(1)
+          from click.exceptions import BadParameter
+          raise BadParameter("Maximum allowed number of email recipients is %i. Received %i"%(max_n_recipients, len(share_email)), param_hint="--share-email")
 
       ctx.obj['share_email'] = share_email
 

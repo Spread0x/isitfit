@@ -63,6 +63,9 @@ isitfit cost analyze --filter-tags=ffa
 isitfit cost optimize --filter-tags=inexistant
 isitfit cost analyze --filter-tags=inexistant
 
+echo "Test 8: --share-email allowed max 3 times"
+isitfit --share-email=abc --share-email=fdas --share-email=fsf --share-email=fdasf cost analyze || echo "expected to fail"
+
 
 # restore the original UID
 if [ -f ~/.isitfit/uid.txt.bkpDuringTest ]; then

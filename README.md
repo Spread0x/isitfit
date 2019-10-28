@@ -364,6 +364,9 @@ isitfit --share-email=me@example.com tags suggest
 isitfit --share-email=me@example.com tags push
 ```
 
+To send to multiple emails, repeat the `--share-email=foo` option.
+The maximum allowed number of emails is 3.
+
 
 ## Statistics and Usage Tracking
 
