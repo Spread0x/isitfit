@@ -57,7 +57,7 @@ The keys should belong to a user/role with the following minimal policies:
 
 `AmazonEC2ReadOnlyAccess, CloudWatchReadOnlyAccess`
 
-If you have a Datadog account, check [Example 4: datadog integration](#example-4-datadog-integration)
+If you have a Datadog account, check section [Datadog integration](#datadog-integration)
 
 For pushing tags, the user/role will also need to have the following existing policy:
 
