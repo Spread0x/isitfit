@@ -373,8 +373,7 @@ The maximum allowed number of emails is 3.
 `isitfit` seeks to be driven by usage and demand of our community.
 We want to understand what users are doing by collecting various events and usage data,
 and we will use this data to iterate and improve `isitfit` based on this gained insight.
-This includes things like the installed version of `isitfit`,
-the commands being used, and the operating system.
+This includes things like the installed version of `isitfit` and the commands being used.
 
 We do not use event payloads to collect any identifying information,
 and the data is used in aggregate to understand the community as a whole.
