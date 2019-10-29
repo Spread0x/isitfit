@@ -4,6 +4,10 @@ Semantic versioning
 Version latest (0.12.0rc?, 2019-09-24?)
 
 - ...
+
+
+Version 0.12.5 (2019-10-29)
+
 - bugfix: change handling of `registration in progress` to be not via exception
   - this is so that the `tags_suggest.advanced` can check `r_register` and see that the last code was `registration in progress` and re-trigger registration
 - enh: split out `baseMan.BASE_URL` into `BASE_{HOST,PREFIX}` to allow for testing against dev API
@@ -12,7 +16,7 @@ Version latest (0.12.0rc?, 2019-09-24?)
 - enh: add `test_apiDeployed.sh` to facilitate testing against API
 
 
-Version 0.12.{3,4} (2019-10-25)
+Version 0.12.{3,4} (2019-10-28)
 
 - enh: move apiman.register.schemaValidation to apiman.request since all responses from isitfit-api will match the general schema
 - enh: add treat 'registration in progress' in the apiman.request function
@@ -20,7 +24,7 @@ Version 0.12.{3,4} (2019-10-25)
 - enh: add `apiman.r_body` as shortcut
 
 
-Version 0.12.2 (2019-10-25)
+Version 0.12.2 (2019-10-28)
 
 - enh: use click's exception handling for IsitfitCliError
 	- pass `is_outdated` in click context for error verbosity about upgrade
@@ -31,7 +35,7 @@ Version 0.12.2 (2019-10-25)
 - enh: in `ApiMan.request`, add case of status code not "ok"
 
 
-Version 0.12.{0,1} (2019-10-25)
+Version 0.12.{0,1} (2019-10-28)
 
 - enh: `utils.ping_matomo` to use the new package `matomo-sdk-py`
 
