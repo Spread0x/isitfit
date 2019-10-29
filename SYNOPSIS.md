@@ -6,12 +6,12 @@
 Usage: isitfit [OPTIONS] COMMAND [ARGS]...
 
 Options:
-  --debug              Display more details to help with debugging
-  --optimize           DEPRECATED: use "isitfit cost optimize" instead
-  --version            DEPRECATED: use "isitfit version" instead
-  --share-email TEXT   Share result to email address
-  --skip-check-upgrade  Skip step for checking for upgrade
-  --help               Show this message and exit.
+  --debug               Display more details to help with debugging
+  --optimize            DEPRECATED: use "isitfit cost optimize" instead
+  --version             DEPRECATED: use "isitfit version" instead
+  --share-email TEXT    Share result to email address
+  --skip-check-upgrade  Skip step for checking for upgrade of isitfit
+  --help                Show this message and exit.
 
 Commands:
   cost     Evaluate AWS EC2 costs
