@@ -44,6 +44,11 @@ AWS_PROFILE=afc_shadi_useast1 AWS_DEFAULT_REGION=eu-central-1 isitfit --debug ta
 echo "Test 9: user shadi doesnt have access to SQS of user autofitcloud (not as provider of isitfit-api)"
 AWS_PROFILE=shadi_shadi aws sqs send-message --queue-url "https://sqs.us-east-1.amazonaws.com/974668457921/isitfit-cli-974668457921-AIDA6F3WEM7AXY6Y4VWDC.fifo" --message-body bla || echo "expected to fail"
 
+
+echo "Test 10: advanced tags suggestions"
+AWS_PROFILE=shadi_shadi isitfit tags suggest --advanced
+
+
 # restore the original UID
 if [ -f ~/.isitfit/uid.txt.bkpDuringTest ]; then
   cp ~/.isitfit/uid.txt.bkpDuringTest ~/.isitfit/uid.txt

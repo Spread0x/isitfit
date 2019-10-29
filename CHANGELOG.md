@@ -4,6 +4,12 @@ Semantic versioning
 Version latest (0.12.0rc?, 2019-09-24?)
 
 - ...
+- bugfix: change handling of `registration in progress` to be not via exception
+  - this is so that the `tags_suggest.advanced` can check `r_register` and see that the last code was `registration in progress` and re-trigger registration
+- enh: split out `baseMan.BASE_URL` into `BASE_{HOST,PREFIX}` to allow for testing against dev API
+- enh: use tabulate in showing resources to which user is granted access
+- bugfix: `apiman.request` treating response is now `if/elif` instead of `if... if...`
+- enh: add `test_apiDeployed.sh` to facilitate testing against API
 
 
 Version 0.12.{3,4} (2019-10-25)

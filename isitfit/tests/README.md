@@ -10,6 +10,7 @@ To run functional tests:
 [sudo] apt-get install redis
 bash isitfit/tests/cost/test_integration.sh
 bash isitfit/tests/tags/test_integration.sh
+bash isitfit/tests/test_apiDeployed.sh
 ```
 
 To run functional tests in docker:

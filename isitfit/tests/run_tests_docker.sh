@@ -35,6 +35,12 @@ docker run --name isitfit_test \
            isitfit \
            sh /code/isitfit/tests/tags/test_functional.sh
 
+docker run --name isitfit_test \
+           --rm \
+           -v /home/ubuntu/.aws:/root/.aws \
+           isitfit \
+           sh /code/isitfit/tests/test_apiDeployed.sh
+
 ###############################
 ## mocked test
 ## launch 1st docker container of ec2op with the moto server

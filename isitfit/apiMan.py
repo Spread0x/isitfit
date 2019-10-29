@@ -2,8 +2,10 @@ import logging
 logger = logging.getLogger('isitfit')
 
 # URL of isitfit API
-BASE_URL = 'https://api.isitfit.io/v0/'
-# BASE_URL = 'https://api-dev.isitfit.io/v0/'
+BASE_HOST = 'api.isitfit.io' # FIXME this should be in master
+# BASE_HOST = 'api-dev.isitfit.io' # FIXME do not push this into master
+BASE_PREFIX = 'v0'
+BASE_URL = 'https://%s/%s/'%(BASE_HOST, BASE_PREFIX)
 
 from .utils import IsitfitCliError
 from schema import SchemaError, Schema, Optional
@@ -17,10 +19,6 @@ class MyBotoAWSRequestsAuth(BotoAWSRequestsAuth):
         # https://github.com/DavidMuller/aws-requests-auth/blob/master/aws_requests_auth/boto_utils.py
         if boto_session is None: boto_session = boto3.session.Session()
         self._refreshable_credentials = boto_session.get_credentials()
-
-
-class IsitfitCliRegistrationInProgress(Exception):
-    pass
 
 
 class ApiMan:
@@ -70,14 +68,18 @@ class ApiMan:
       # eg {'UserId': 'AIDA6F3WEM7AXY6Y4VWDC', 'Account': '974668457921', 'Arn': 'arn:aws:iam::974668457921:user/shadi'}
 
       # actual request
-      try:
-        self.r_register, dt_now = self.request(
+      self.r_register, dt_now = self.request(
           method='post',
           relative_url='./register',
           payload_json=self.r_sts,
           authenticated_user_path=False # since /register is the absolute path (without account/user)
         )
-      except IsitfitCliRegistrationInProgress as e:
+
+      # set shortcut to body only
+      self.r_body = self.r_register['isitfitapi_body']
+
+      # handle registration in progress
+      if self.r_register['isitfitapi_status']['code']=='Registration in progress':
           # deal with "registration in progress"
           if self.call_n==1:
               # just continue and will check again later
@@ -107,8 +109,6 @@ class ApiMan:
       else:
           logger.info("Registration complete")
 
-      # set to body only
-      self.r_body = self.r_register['isitfitapi_body']
 
       # check schema
       register_schema_1 = Schema({
@@ -129,8 +129,9 @@ class ApiMan:
 
       # show resources granted
       # print(self.r_register)
-      logger.debug("Granted access to s3 arn: %s"%self.r_body['s3_arn'])
-      logger.debug("Granted access to sqs url: %s"%self.r_body['sqs_url'])
+      logger.debug("AutofitCloud granted you access to the following AWS resources:")
+      from tabulate import tabulate
+      logger.debug(tabulate([(k, self.r_body[k]) for k in self.r_body.keys()]))
       logger.debug("Note that account number 974668457921 is AutofitCloud, the company behind isitfit.")
       logger.debug("For more info, visit https://autofitcloud.com/privacy")
 
@@ -140,7 +141,13 @@ class ApiMan:
       sts_connection = boto3.client('sts')
       acct_b = sts_connection.assume_role(
                 RoleArn=self.r_body['role_arn'],
-                #ExternalId=None, # TODO set external ID?
+
+                # TODO set external ID?
+                #ExternalId=None,
+
+                # this is a generic session name that shows up in the User ID field
+                # on the server-side. If this gets modified, make sure to modify the
+                # counter-part in isitfit-api
                 RoleSessionName="cross_acct_isitfit"
       )
       self.boto3_session =  boto3.session.Session(
@@ -196,7 +203,7 @@ class ApiMan:
       #
       # clearer aws post
       # https://aws.amazon.com/premiumsupport/knowledge-center/iam-authentication-api-gateway/
-      auth = MyBotoAWSRequestsAuth(aws_host='api.isitfit.io',
+      auth = MyBotoAWSRequestsAuth(aws_host=BASE_HOST,
                                     aws_region='us-east-1',
                                     aws_service='execute-api',
                                     boto_session=boto_session
@@ -249,15 +256,17 @@ class ApiMan:
         raise IsitfitCliError("The data sent to the server by isitfit does not match the expected format.", self.ctx)
 
       # check for isitfit errors (general)
-      if r2['isitfitapi_status']['code'] == 'error':
+      elif r2['isitfitapi_status']['code'] == 'error':
         # print(r2)
         raise IsitfitCliError('Serverside error #1: %s'%r2['isitfitapi_status']['description'], self.ctx)
 
-      if r2['isitfitapi_status']['code']=='Registration in progress':
-        raise IsitfitCliRegistrationInProgress
+      elif r2['isitfitapi_status']['code']=='Registration in progress':
+        # do nothing. This will be handled by self.register
+        # Also, note that from isitfit-api, only the /register can lead to this code
+        pass
 
       # check for isitfit unknown codes (i.e. maybe CLI is too old)
-      if r2['isitfitapi_status']['code'] != 'ok':
+      elif r2['isitfitapi_status']['code'] != 'ok':
         # print(r2)
         msg = 'Unknown status code: %s. Description: %s'%(r2['isitfitapi_status']['code'], r2['isitfitapi_status']['description'])
         raise IsitfitCliError(msg, self.ctx)
