@@ -66,3 +66,10 @@ by adding the line
 ```
 /bin/sh synopsis_update.sh > SYNOPSIS.md
 ```
+
+
+## Asciinema demo
+
+The https://isitfit.autofitcloud.com site hosts a demo recorded via asciinema.
+
+Check [asciinema-demo/README.md](asciinema-demo/README.md) for more details

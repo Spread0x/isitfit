@@ -1,0 +1,17 @@
+# run inside pew in isitfit_dev
+# screen -c screenrc
+
+# display version "isitfit 0.12.5"
+# isitfit version
+screen -t header bash run-cowsay.sh
+#height -d 30
+#height -w 30
+split # -v
+focus
+
+# to run isitfit
+screen -t isitfit bash run-demo.sh
+#split -v
+#focus
+#height -d 10
+
