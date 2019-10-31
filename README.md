@@ -25,8 +25,8 @@ A simple command-line tool to check if an AWS EC2 account is fit or underused.
   - [Non-default awscli profile](#non-default-awscli-profile)
   - [Caching results with redis](#caching-results-with-redis)
   - [Datadog integration](#datadog-integration)
-- [What does Underused mean?](#what-does-underused-mean)
   - [Share results by email](#share-results-by-email)
+- [What does Underused mean?](#what-does-underused-mean)
 - [Statistics and Usage Tracking](#statistics-and-usage-tracking)
 - [Changelog](#changelog)
 - [License](#license)
@@ -319,7 +319,26 @@ isitfit cost analyze
 isitfit cost optimize
 ```
 
-Again, consider saving the environment variables in the `~/.bashrc` file.
+Consider saving the environment variables in the `~/.bashrc` file.
+
+
+### Share results by email
+
+Use the `--share-email` option to share results by email for commands that support it.
+
+Example usage
+
+```
+isitfit --share-email=me@example.com cost analyze
+isitfit --share-email=me@example.com cost optimize
+isitfit --share-email=me@example.com tags dump
+isitfit --share-email=me@example.com tags suggest
+isitfit --share-email=me@example.com tags push
+```
+
+To send to multiple emails, repeat the `--share-email=foo` option.
+The maximum allowed number of emails is 3.
+
 
 
 ## What does Underused mean?
@@ -350,22 +369,6 @@ Sizing is simply a rule that says: "If underused, recommend the next smaller ins
 
 The relevant source code is [here](https://github.com/autofitcloud/isitfit/blob/master/isitfit/optimizerListener.py#L69)
 
-### Share results by email
-
-Use the `--share-email` option to share results by email for commands that support it.
-
-Example usage
-
-```
-isitfit --share-email=me@example.com cost analyze
-isitfit --share-email=me@example.com cost optimize
-isitfit --share-email=me@example.com tags dump
-isitfit --share-email=me@example.com tags suggest
-isitfit --share-email=me@example.com tags push
-```
-
-To send to multiple emails, repeat the `--share-email=foo` option.
-The maximum allowed number of emails is 3.
 
 
 ## Statistics and Usage Tracking
