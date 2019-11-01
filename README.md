@@ -381,15 +381,22 @@ This includes things like the installed version of `isitfit` and the commands be
 We do not use event payloads to collect any identifying information,
 and the data is used in aggregate to understand the community as a whole.
 
-Events we collect are:
+Here is an example of a collected event:
 
 ```
-isitfit cost analyze
-isitfit cost optimize
-isitfit tags suggest
-isitfit tags dump
-isitfit tags push
+Date/Time:        2019-10-05 12:34
+isitfit version:  0.10
+Command issued:   cost analyze
+Installation ID:  abcdef123456 (random per installation)
+Source IP:        123.123.123.123
+Source city:      Jacksonville
+Source country:   USA
 ```
+
+If you use the `--share-email` option,
+the email address is stored by AWS SES
+to remember that it has already been verified.
+The email's contents are not stored.
 
 (Originally adapted from [serverless](https://serverless.com/framework/docs/providers/aws/cli-reference/slstats/))
 
