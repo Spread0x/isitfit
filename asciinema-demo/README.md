@@ -17,7 +17,7 @@ pew in isitfit_live
 pip3 install --upgrade isitfit
 
 asciinema rec
-pew in isitfit_live screen -c screenrc
+pew in isitfit_live screen -c screenrc # cannot run from within another screen session
 exit
 ```
 
