@@ -9,6 +9,7 @@ COWSAY_TXT=/tmp/isitfit-demo-cowsay-text.txt
 export AWS_PROFILE=shadi_shadi
 
 docw1() {
+  # cowsay wrpper that displays the message in the same terminal
   clear
   figlet "    isitfit"
   echo ""
@@ -20,8 +21,16 @@ docw1() {
 }
 
 docw2() {
+  # cowsay wrapper that sends message to txt file that is displayed in another gnome screen session
   echo $2 > $COWSAY_TXT
   sleep $1
+}
+
+docow() {
+  # wrapper function to choose either docw1 or docw2
+  # Usage: Uncomment one of these lines
+  docw1 $1 $2
+  # docw2 $1 $2
 }
 
 typewriter()
@@ -37,7 +46,6 @@ typewriter()
 }
 
 doisi() {
-  clear
   typewriter "# $2"
   $2
   sleep $1
@@ -47,20 +55,20 @@ doisi() {
 sleep 1
 
 # start
-docw2 3 ""
-docw2 6 "Welcome to my demo of isitfit. Let's check the installed version."
+docow 3 ""
+docow 6 "Welcome to my demo of isitfit. Let's check the installed version."
 doisi 3 "isitfit version"
-docw2 2 "LGTM"
+docow 2 "LGTM"
 doisi 1 "clear"
 
-docw2 6 "The first step to cost optimization is measuring the efficiency. Let's calculate the cost-weighted average utilization and send it by email"
+docow 6 "The first step to cost optimization is measuring the efficiency. Let's calculate the cost-weighted average utilization and send it by email"
 doisi 3 "isitfit --share-email=cow@isitfit.io cost analyze"
-docw2 6 "The demonstrated account is underutilized at 6% only" 
+docow 6 "The demonstrated account is underutilized at 6% only" 
 doisi 1 "clear"
 
-docw2 5 "Next, let's identify a few saving opportunities while filtering for a tag"
+docow 5 "Next, let's identify a few saving opportunities while filtering for a tag"
 doisi 3 "isitfit cost optimize --n=3 --filter-tags=ffa"
-docw2 6 "So we can save \$15 in the next 3 months by downsizing one server."
+docow 6 "So we can save \$15 in the next 3 months by downsizing one server."
 
-docw2 9 "And that's it for the demo! To check more options in isitfit, use \`isitfit --help\`, or go to https://isitfit.autofitcloud.com. Thank you!"
+docow 9 "And that's it for the demo! To check more options in isitfit, use \`isitfit --help\`, or go to https://isitfit.autofitcloud.com. Thank you!"
 read
