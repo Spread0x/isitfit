@@ -23,6 +23,7 @@ A simple command-line tool to check if an AWS EC2 account is fit or underused.
     - [Basic](#basic)
     - [Advanced](#advanced)
   - [Non-default awscli profile](#non-default-awscli-profile)
+  - [Assumed roles](#assumed-roles)
   - [Caching results with redis](#caching-results-with-redis)
   - [Datadog integration](#datadog-integration)
   - [Share results by email](#share-results-by-email)
@@ -258,10 +259,23 @@ For example
 AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit cost analyze
 ```
 
-To show higher verbosity, append `--debug` to any command call
+### Assumed roles
+
+To get `isitfit` to use a specific role, just issue `aws sts assume-role ...` and continue using `isitfit` as usual.
+
+It will pick up the environment variables set by `assume-role`: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN`.
+
+Another way is to specify the role in the `~/.aws/credentials` file as follows, and then set `AWS_PROFILE` to the role's profile name (`a_role` in the example below)
 
 ```
-isitfit --debug cost analyze
+[a_role]
+role_arn = arn:aws:iam::123456789:role/foo-bar
+source_profile = profile_that_can_assume_role
+
+[profile_that_can_assume_role]
+aws_access_key_id = ABCDEF
+aws_secret_access_key = 123abc456
+region=us-east-1
 ```
 
 
