@@ -6,6 +6,11 @@ Version latest (0.12.0rc?, 2019-09-24?)
 - ...
 
 
+Version 0.12.6rc (2019-11-08)
+
+- hotfix: ping matomo stats on exception IsitfitCliError
+
+
 Version 0.12.5 (2019-10-29)
 
 - bugfix: change handling of `registration in progress` to be not via exception

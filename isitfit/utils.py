@@ -140,6 +140,10 @@ class IsitfitCliError(UsageError):
   # constructor parameters from
   # https://github.com/pallets/click/blob/8df9a6b2847b23de5c65dcb16f715a7691c60743/click/exceptions.py#L11
   def show(self, file=None):
+    # ping matomo about error
+    ping_matomo("/error?message=%s"%self.message)
+
+    # continue
     from click._compat import get_text_stderr
     if file is None:
         file = get_text_stderr()
