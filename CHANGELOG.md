@@ -6,6 +6,12 @@ Version latest (0.12.0rc?, 2019-09-24?)
 - ...
 
 
+Version 0.12.7 (2019-11-08)
+
+- hotfix: `isitfit cost optimize` borks when an ec2 has no tags and not even a name. Addresses #8
+  - https://github.com/autofitcloud/isitfit/issues/8
+
+
 Version 0.12.6 (2019-11-08)
 
 - hotfix: ping matomo stats on exception IsitfitCliError
