@@ -6,7 +6,7 @@ Version latest (0.12.0rc?, 2019-09-24?)
 - ...
 
 
-Version 0.12.6rc (2019-11-08)
+Version 0.12.6 (2019-11-08)
 
 - hotfix: ping matomo stats on exception IsitfitCliError
 
