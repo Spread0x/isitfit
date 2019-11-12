@@ -1,3 +1,6 @@
+SECONDS_IN_ONE_DAY = 60*60*24 # 86400  # used for granularity (daily)
+
+
 def mergeSeriesOnTimestampRange(df_cpu, df_type):
   """
   Upsamples df_type to df_cpu.
@@ -268,6 +271,7 @@ def display_footer():
     logger.info("")
     logger.info("Useful links:")
     logger.info("ℹ️  isitfit homepage         https://isitfit.autofitcloud.com")
+    logger.info("😞 isitfit issues           https://github.com/autofitcloud/isitfit/issues")
     logger.info("🌎 Global Climate Strike    https://twitter.com/hashtag/ClimateStrike")
     logger.info("❤️  Built by AutofitCloud    https://www.autofitcloud.com")
 

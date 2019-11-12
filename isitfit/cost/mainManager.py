@@ -11,11 +11,9 @@ import logging
 logger = logging.getLogger('isitfit')
 
 
-from ..utils import mergeSeriesOnTimestampRange, ec2_catalog
+from ..utils import mergeSeriesOnTimestampRange, ec2_catalog, SECONDS_IN_ONE_DAY
 from .cloudtrail_ec2type import Manager as CloudtrailEc2typeManager
 
-
-SECONDS_IN_ONE_DAY = 60*60*24 # 86400  # used for granularity (daily)
 MINUTES_IN_ONE_DAY = 60*24 # 1440
 N_DAYS=90
 
@@ -139,7 +137,8 @@ And finally re-run isitfit as usual.
         df_all = []
         ec2_noCloudwatch = []
         ec2_noCloudtrail = []
-        for ec2_obj in tqdm(self.ec2_resource.instances.all(), total=n_ec2_total, desc="Second pass through EC2 instances", initial=1):
+        # Edit 2019-11-12 use "initial=0" instead of "=1". Check more details in a similar note in "cloudtrail_ec2type.py"
+        for ec2_obj in tqdm(self.ec2_resource.instances.all(), total=n_ec2_total, desc="Pass 2/2 through EC2 instances", initial=0):
           # if filters requested, check that this instance passes
           if self.filter_tags is not None:
             f_tn = self.filter_tags.lower()
@@ -165,16 +164,27 @@ And finally re-run isitfit as usual.
         logger.info("")
         logger.info("")
 
+        # get now + 10 minutes
+        # http://stackoverflow.com/questions/6205442/ddg#6205529
+        dt_now = dt.datetime.now()
+        TRY_IN = 10
+        now_plus_10 = dt_now + dt.timedelta(minutes = TRY_IN)
+        now_plus_10 = now_plus_10.strftime("%H:%M")
+
         if len(ec2_noCloudwatch)>0:
-          has_more_cw = "..." if len(ec2_noCloudwatch)>5 else ""
+          n_no_cw = len(ec2_noCloudwatch)
+          has_more_cw = "..." if n_no_cw>5 else ""
           l_no_cw = ", ".join(ec2_noCloudwatch[:5])
-          logger.warning("No cloudwatch data for: %s%s"%(l_no_cw, has_more_cw))
+          logger.warning("No cloudwatch data for %i instances: %s%s"%(n_no_cw, l_no_cw, has_more_cw))
+          logger.warning("Try again in %i minutes (at %s) to check for new data"%(TRY_IN, now_plus_10))
           logger.info("")
 
         if len(ec2_noCloudtrail)>0:
-          has_more_ct = "..." if len(ec2_noCloudtrail)>5 else ""
+          n_no_ct = len(ec2_noCloudtrail)
+          has_more_ct = "..." if n_no_ct>5 else ""
           l_no_ct = ", ".join(ec2_noCloudtrail[:5])
-          logger.warning("No cloudtrail data for: %s%s"%(l_no_ct, has_more_ct))
+          logger.warning("No cloudtrail data for %i instances: %s%s"%(n_no_ct, l_no_ct, has_more_ct))
+          logger.warning("Try again in %i minutes (at %s) to check for new data"%(TRY_IN, now_plus_10))
           logger.info("")
 
         for l in self.listeners['all']:

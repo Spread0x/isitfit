@@ -6,6 +6,15 @@ Version latest (0.12.0rc?, 2019-09-24?)
 - ...
 
 
+Version 0.12.8 (2019-11-12)
+
+- enh: set expiry to 1 day on redis cached items if data found, otherwise 10 minutes for missing data
+- bugfix: progress bar to start from 0 not from 1 to avoid issue of "101 items" at end when only "100 items" available
+- enh: show number of instances for which missing cloudwatch/cloudtrail data
+- enh: add link to github issues in display footer function
+- enh: installation docs in readme expanded for newcomers
+
+
 Version 0.12.7 (2019-11-08)
 
 - hotfix: `isitfit cost optimize` borks when an ec2 has no tags and not even a name. Addresses #8

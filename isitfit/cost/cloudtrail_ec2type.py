@@ -21,7 +21,9 @@ class Manager:
 
         # first pass to append ec2 types to cloudtrail based on "now"
         self.df_cloudtrail = self.df_cloudtrail.reset_index()
-        for ec2_obj in tqdm(ec2_instances.all(), total=n_ec2, desc="First pass through EC2 instances", initial=1):
+        # Edit 2019-11-12 use initial=0 otherwise if "=1" used then the tqdm output would be "101it" at conclusion, i.e.
+        # First pass through EC2 instances: 101it [00:05,  5.19it/s]
+        for ec2_obj in tqdm(ec2_instances.all(), total=n_ec2, desc="Pass 1/2 through EC2 instances", initial=0):
             self._appendNow(ec2_obj)
 
         # set index again, and sort decreasing this time (not like git-remote-aws default)

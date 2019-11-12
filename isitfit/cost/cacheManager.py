@@ -1,6 +1,9 @@
 import logging
 logger = logging.getLogger('isitfit')
 
+from ..utils import SECONDS_IN_ONE_DAY
+SECONDS_IN_10MINS = 60*10
+
 class RedisPandas:
   """
   Python class that manages caching pandas dataframes to redis
@@ -38,7 +41,10 @@ class RedisPandas:
 
   def set(self, key, df):
     pybytes = self.pyarrow_context.serialize(df).to_buffer().to_pybytes()
-    self.redis_client.set(key, pybytes)
+    # set expiration of key-value pair to be 1 day if data was found, 10 minutes otherwise
+    ex = SECONDS_IN_10MINS if df is None else SECONDS_IN_ONE_DAY
+    # https://redis-py.readthedocs.io/en/latest/#redis.Redis.set
+    self.redis_client.set(name=key, value=pybytes, ex=ex)
 
   def get(self, key):
     v1 = self.redis_client.get(key)

@@ -41,9 +41,37 @@ A simple command-line tool to check if an AWS EC2 account is fit or underused.
 
 ## Installation
 
+To install `isitfit` with `pip3`:
+
 ```
 pip3 install isitfit
 ```
+
+and then just test that it's installed with
+
+```
+isitfit version
+```
+
+### pip-fu
+
+If you're new to python, here's some pip-fu for help:
+
+If you don't have `pip3` installed yet, you can install it on Ubuntu 18.04 with:
+
+```
+sudo apt-get install python3-pip
+```
+
+To install with pip but without using `sudo`, you could use
+
+```
+pip3 install --user isitfit
+```
+
+If you've just installed `pip3`, running `isitfit version` right after this step would yield an error `command not found`.
+Restarting the machine would set the proper environment variables so that `isitfit version` would work.
+You could restart it with `sudo shutdown -r now`.
 
 
 ## Usage
@@ -309,7 +337,6 @@ isitfit cost optimize
 To clear the cache
 
 ```
-apt-get install redis-client
 redis-cli -n 0 flushdb
 ```
 
