@@ -45,7 +45,7 @@ class RedshiftPerformanceIterator:
 
   def _metric_get_statistics(self, metric):
     logger.debug("fetch cw")
-    logger.debug(m_i.dimensions)
+    logger.debug(metric.dimensions)
 
     # util func
     # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/cloudwatch.html#CloudWatch.Metric.get_statistics

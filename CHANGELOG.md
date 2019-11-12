@@ -6,7 +6,7 @@ Version latest (0.12.0rc?, 2019-09-24?)
 - ...
 
 
-Version 0.13.0 (2019-11-12)
+Version 0.13.{0,1} (2019-11-12)
 
 - feat: redshift clusters cost analysis/optimization (no redis caching)
 - bugfix: test for apiman was not properly mocking the requests

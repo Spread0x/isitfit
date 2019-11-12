@@ -57,7 +57,7 @@ class UtilizationListener:
     if self.sum_capacity!=0:
       cwau_val = self.sum_used/self.sum_capacity*100
 
-    cwau_color = 'orange'
+    cwau_color = 'yellow'
     if cwau_val >= 70:
       cwau_color = 'green'
     elif cwau_val <= 30:

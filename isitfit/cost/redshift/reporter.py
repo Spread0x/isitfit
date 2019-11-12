@@ -26,7 +26,7 @@ class ReporterAnalyze(ReporterBase):
   def postprocess(self):
     # copied from isitfit.cost.utilizationListener.after_all
     cwau_val = self.analyzer.cwau_percent
-    cwau_color = 'orange'
+    cwau_color = 'yellow'
     if cwau_val >= 70: cwau_color = 'green'
     elif cwau_val <= 30: cwau_color = 'red'
 
