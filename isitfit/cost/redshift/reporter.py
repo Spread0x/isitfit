@@ -104,8 +104,8 @@ class ReporterAnalyze(ReporterBase):
 class ReporterOptimize(ReporterBase):
   def postprocess(self):
     analyze_df = self.analyzer.analyze_df
-    analyze_df['CpuMaxMax'] = analyze_df['CpuMaxMax'].astype(int)
-    analyze_df['CpuMinMin'] = analyze_df['CpuMinMin'].astype(int)
+    analyze_df['CpuMaxMax'] = analyze_df['CpuMaxMax'].fillna(value=0).astype(int)
+    analyze_df['CpuMinMin'] = analyze_df['CpuMinMin'].fillna(value=0).astype(int)
 
     # copied from isitfit.cost.optimizationListener.storecsv...
     import tempfile

@@ -2,7 +2,7 @@
 
 [![PyPI version](https://badge.fury.io/py/isitfit.svg)](https://badge.fury.io/py/isitfit)
 
-A simple command-line tool to check if an AWS EC2 account is fit or underused.
+A simple command-line tool to check if an AWS EC2/Redshift account is fit or underused.
 
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
@@ -10,6 +10,7 @@ A simple command-line tool to check if an AWS EC2 account is fit or underused.
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Installation](#installation)
+  - [pip-fu](#pip-fu)
 - [Usage](#usage)
   - [Pre-requisites](#pre-requisites)
   - [Synopsis](#synopsis)
@@ -86,6 +87,8 @@ The keys should belong to a user/role with the following minimal policies:
 
 `AmazonEC2ReadOnlyAccess, CloudWatchReadOnlyAccess`
 
+For Redshift analysis, the user/role also needs: `redshift:DescribeClusters`
+
 If you have a Datadog account, check section [Datadog integration](#datadog-integration)
 
 For pushing tags, the user/role will also need to have the following existing policy:
@@ -138,6 +141,20 @@ CWAU = Used / Billed * 100       6 %
 For reference:
 * CWAU >= 70% is well optimized
 * CWAU <= 30% is underused
+
+
+Field                            Value
+-------------------------------  -----------
+Analysis start date              2019-06-07
+Analysis end date                2019-09-05
+Redshift clusters (total)        2
+Redshift clusters (analysed)     2
+CWAU                             34 %
+
+For reference:
+* CWAU >= 70% is well optimized
+* CWAU <= 30% is underused
+
 ```
 
 ### Recommended optimizations
@@ -149,7 +166,7 @@ Find all recommended type changes
 
 Recommended savings: -74 $ (over next 3 months)
 
-Details
+EC2 Details
 +---------------------+-----------------+--------------------+------------------------------------+-----------+--------------------+-----------+--------------------------------------------------+
 | instance_id         | instance_type   | classification_1   | classification_2                   |   cost_3m | recommended_type   |   savings | tags                                             |
 |---------------------+-----------------+--------------------+------------------------------------+-----------+--------------------+-----------+--------------------------------------------------|
@@ -161,6 +178,15 @@ Details
 +---------------------+-----------------+--------------------+------------------------------------+-----------+--------------------+-----------+--------------------------------------------------+
 Saving final results to /tmp/isitfit-full-41o1b4o8.csv
 Save complete
+
+
+Redshift cluster classification
++---------------------+------------+-----------------+-------------+-------------+--------+------------------+
+| ClusterIdentifier   | NodeType   |   NumberOfNodes |   CpuMaxMax |   CpuMinMin |   Cost | classification   |
+|---------------------+------------+-----------------+-------------+-------------+--------+------------------|
+| redshift-cluster-1  | dc2.large  |               2 |           0 |           0 |   0.25 | Normal           |
+| redshift-cluster-2  | dc2.large  |               3 |          56 |           0 |   0.25 | Normal           |
++---------------------+------------+-----------------+-------------+-------------+--------+------------------+
 ```
 
 Notice that the full final results are saved to a csv file, indicated in the line under the table: `Saving final results to /tmp/isitfit-full-...csv`
