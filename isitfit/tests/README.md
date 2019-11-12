@@ -4,6 +4,12 @@ Two kinds of tests: unit, functional (integration TODO)
 
 To run unit tests: `pytest`
 
+For running a specific unit test:
+
+```
+pytest isitfit/tests/cost/redshift/test_iterator.py -k 'test_iterateCore_none'
+```
+
 To run functional tests:
 
 ```

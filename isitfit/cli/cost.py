@@ -48,6 +48,15 @@ def analyze(ctx, filter_tags):
     logger.info("Fetching history...")
     mm.get_ifi()
 
+    # -----------------------------
+    # now analyze redshift clusters
+    logger.info("")
+    logger.info("-"*20)
+    from ..cost.redshift.cli import cost_analyze
+    cost_analyze(share_email)
+    logger.info("-"*20)
+
+
 
 @cost.command(help='Generate recommendations of optimal EC2 sizes', cls=IsitfitCommand)
 @click.option('--n', default=0, help='number of underused ec2 optimizations to find before stopping. Skip to get all optimizations')
@@ -82,4 +91,12 @@ def optimize(ctx, n, filter_tags):
     # start download data and processing
     logger.info("Fetching history...")
     mm.get_ifi()
+
+    # -----------------------------
+    # now optimize redshift clusters
+    logger.info("")
+    logger.info("-"*20)
+    from ..cost.redshift.cli import cost_optimize
+    cost_optimize()
+    logger.info("-"*20)
 

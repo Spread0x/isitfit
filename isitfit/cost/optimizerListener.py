@@ -250,7 +250,7 @@ class OptimizerListener:
       if self.df_sort is None:
         return
 
-      with tempfile.NamedTemporaryFile(prefix='isitfit-full-', suffix='.csv', delete=False) as  csv_fh_final:
+      with tempfile.NamedTemporaryFile(prefix='isitfit-full-ec2-', suffix='.csv', delete=False) as  csv_fh_final:
         self.csv_fn_final = csv_fh_final.name
         logger.debug(colored("Saving final results to %s"%csv_fh_final.name, "cyan"))
         self.df_sort.to_csv(csv_fh_final.name, index=False)

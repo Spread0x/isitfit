@@ -5,7 +5,53 @@ from ..utils import IsitfitCliError
 
 
 @pytest.fixture(scope='function')
-def MockApiManFactory(mocker):
+def MockRequestsRequest(mocker):
+  def get_class(response):
+    # set up
+    def mockreturn(*args, **kwargs):
+        return response
+    mocker.patch('requests.request', side_effect=mockreturn)
+
+    am = ApiMan(tryAgainIn=2, ctx=None)
+    return am
+
+  return get_class
+
+
+class TestApiManRequest:
+    @mock_sts
+    def test_register_failSchemaL1(self, mocker, MockRequestsRequest):
+        # since the MockApiManRequest patches the request function
+        # and since the request function is
+        response_val = {}
+        class MockResponse:
+          import json
+          text = json.dumps(response_val)
+
+        am = MockRequestsRequest(MockResponse)
+
+        # trigger
+        with pytest.raises(IsitfitCliError) as e:
+            am.register()
+
+
+    @mock_sts
+    def test_register_failErrorGeneral(self, mocker, MockRequestsRequest):
+        response_val = {'isitfitapi_status': {'code': 'error'}}
+        class MockResponse:
+          import json
+          text = json.dumps(response_val)
+
+        am = MockRequestsRequest(MockResponse)
+
+        # trigger
+        with pytest.raises(IsitfitCliError) as e:
+            am.register()
+
+#---------------------------
+
+@pytest.fixture(scope='function')
+def MockApiManRequest(mocker):
   def get_class(response):
     # set up
     def mockreturn(*args, **kwargs):
@@ -20,31 +66,12 @@ def MockApiManFactory(mocker):
 
 class TestApiManRegister:
     @mock_sts
-    def test_register_failSchemaL1(self, mocker, MockApiManFactory):
-        am = MockApiManFactory({})
-
-        # trigger
-        with pytest.raises(IsitfitCliError) as e:
-            am.register()
-
-
-    @mock_sts
-    def test_register_failErrorGeneral(self, mocker, MockApiManFactory):
-        response = {'isitfitapi_status': {'code': 'error'}}
-        am = MockApiManFactory(response)
-
-        # trigger
-        with pytest.raises(IsitfitCliError) as e:
-            am.register()
-
-
-    @mock_sts
-    def test_register_failRegInProg(self, mocker, MockApiManFactory):
+    def test_register_failRegInProg(self, mocker, MockApiManRequest):
         response = {
                 'isitfitapi_status': {'code': 'Registration in progress', 'description': 'foo'},
                 'isitfitapi_body': {}
             }
-        am = MockApiManFactory(response)
+        am = MockApiManRequest(response)
         am.nsecs_wait = 0
 
         # no exception, will not automatically try again
@@ -68,13 +95,13 @@ class TestApiManRegister:
 
 
     @mock_sts
-    def test_register_failSchemaL2(self, mocker, MockApiManFactory):
+    def test_register_failSchemaL2(self, mocker, MockApiManRequest):
         response = {
                 'isitfitapi_status': {'code': 'ok', 'description': 'foo'},
                 'isitfitapi_body': {
                 }
             }
-        am = MockApiManFactory(response)
+        am = MockApiManRequest(response)
 
         # exception
         with pytest.raises(IsitfitCliError) as e:
@@ -82,7 +109,7 @@ class TestApiManRegister:
 
 
     @mock_sts
-    def test_register_ok(self, mocker, MockApiManFactory):
+    def test_register_ok(self, mocker, MockApiManRequest):
         response = {
                 'isitfitapi_status': {'code': 'ok', 'description': 'foo'},
                 'isitfitapi_body': {
@@ -93,7 +120,7 @@ class TestApiManRegister:
                     's3_keyPrefix': 'foo',
                 }
             }
-        am = MockApiManFactory(response)
+        am = MockApiManRequest(response)
 
         # no exception
         am.register()

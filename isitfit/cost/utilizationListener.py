@@ -107,7 +107,7 @@ class UtilizationListener:
 
       from ..emailMan import EmailMan
       em = EmailMan(
-        dataType='cost analyze',
+        dataType='cost analyze', # ec2, not redshift
         dataVal={'table': self.table},
         ctx=self.ctx
       )

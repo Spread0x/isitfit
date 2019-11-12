@@ -1,0 +1,56 @@
+    {
+    	"ClusterIdentifier": "redshift-cluster-1",
+    	"NodeType": "dc2.large",
+    	"ClusterStatus": "available",
+    	"ClusterAvailabilityStatus": "Available",
+    	"MasterUsername": "awsuser",
+    	"DBName": "dev",
+    	"Endpoint": {
+    		"Address": "redshift-cluster-1.abcdefghi.us-east-2.redshift.amazonaws.com",
+    		"Port": 5439
+    	},
+    	"ClusterCreateTime": datetime.datetime(2019, 11, 12, 7, 43, 22, 247000, tzinfo = tzutc()),
+    	"AutomatedSnapshotRetentionPeriod": 1,
+    	"ManualSnapshotRetentionPeriod": -1,
+    	"ClusterSecurityGroups": [],
+    	"VpcSecurityGroups": [{
+    		"VpcSecurityGroupId": "sg-1234567",
+    		"Status": "active"
+    	}],
+    	"ClusterParameterGroups": [{
+    		"ParameterGroupName": "default.redshift-1.0",
+    		"ParameterApplyStatus": "in-sync"
+    	}],
+    	"ClusterSubnetGroupName": "default",
+    	"VpcId": "vpc-123456",
+    	"AvailabilityZone": "us-east-2a",
+    	"PreferredMaintenanceWindow": "tue:06:30-tue:07:00",
+    	"PendingModifiedValues": {},
+    	"ClusterVersion": "1.0",
+    	"AllowVersionUpgrade": True,
+    	"NumberOfNodes": 2,
+    	"PubliclyAccessible": True,
+    	"Encrypted": False,
+    	"ClusterPublicKey": "ssh-rsa ABCDEFGHI Amazon-Redshift\n",
+    	"ClusterNodes": [{
+    		"NodeRole": "LEADER",
+    		"PrivateIPAddress": "123.123.123.123",
+    		"PublicIPAddress": "123.123.123.123"
+    	}, {
+    		"NodeRole": "COMPUTE-0",
+    		"PrivateIPAddress": "123.123.123.123",
+    		"PublicIPAddress": "123.123.123.123"
+    	}, {
+    		"NodeRole": "COMPUTE-1",
+    		"PrivateIPAddress": "123.123.123.123",
+    		"PublicIPAddress": "123.123.123.123"
+    	}],
+    	"ClusterRevisionNumber": "1111",
+    	"Tags": [],
+    	"EnhancedVpcRouting": False,
+    	"IamRoles": [],
+    	"MaintenanceTrackName": "current",
+    	"ElasticResizeNumberOfNodeOptions": "[4]",
+    	"DeferredMaintenanceWindows": [],
+    	"NextMaintenanceWindowStartTime": datetime.datetime(2019, 11, 19, 6, 30, tzinfo = tzutc())
+    }

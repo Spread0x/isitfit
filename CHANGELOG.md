@@ -6,6 +6,12 @@ Version latest (0.12.0rc?, 2019-09-24?)
 - ...
 
 
+Version 0.13.0 (2019-11-12)
+
+- feat: redshift clusters cost analysis/optimization (no redis caching)
+- bugfix: test for apiman was not properly mocking the requests
+
+
 Version 0.12.8 (2019-11-12)
 
 - enh: set expiry to 1 day on redis cached items if data found, otherwise 10 minutes for missing data

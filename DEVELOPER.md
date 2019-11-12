@@ -73,3 +73,14 @@ by adding the line
 The https://isitfit.autofitcloud.com site hosts a demo recorded via asciinema.
 
 Check [asciinema-demo/README.md](asciinema-demo/README.md) for more details
+
+
+## Experimenting
+
+Through jupyter notebooks
+
+```
+jupyter notebook
+```
+
+Notebooks not stored in this repository for space efficiency purposes.
