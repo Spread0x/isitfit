@@ -41,12 +41,12 @@ class AnalyzerBase:
 
   def count(self):
     # count clusters
-    for rc_describe_entry in tqdm(self.rp_iter.iterate_core(), desc="Redshift clusters, pass 1/2"):
+    for rc_describe_entry in self.rp_iter.iterate_core(just_counting=True):
       self.n_rc_total += 1
 
   def iterator(self):
     # get all performance dataframes, on the cluster-aggregated level
-    for rc_describe_entry, df_single in tqdm(self.rp_iter, desc="Redshift clusters, pass 2/2", total=self.n_rc_total):
+    for rc_describe_entry, df_single in tqdm(self.rp_iter, desc="Redshift clusters, pass 2/2 (calculating performances)", total=self.n_rc_total):
 
       # for types not yet in pricing dictionary above
       rc_type = rc_describe_entry['NodeType']
@@ -75,20 +75,47 @@ class AnalyzerAnalyze(AnalyzerBase):
 
   def fetch(self):
     # get all performance dataframes, on the cluster-aggregated level
+    import datetime as dt
+    import pytz
+    import math
+    dt_now_d = dt.datetime.utcnow().replace(tzinfo=pytz.utc)
+
     for rc_describe_entry, df_single in self.iterator():
-      # summarize into maxmax, maxmin, minmax, minmin
       rc_type = rc_describe_entry['NodeType']
+
+      # append a n_hours field per day
+      # and correct for number of hours on first and last day
+      # Note that intermediate days are just 24 hours since Redshift cannot be stopped
+      ymd_creation = rc_describe_entry['ClusterCreateTime'].strftime("%Y-%m-%d")
+      ymd_today    = dt_now_d.strftime("%Y-%m-%d")
+
+      hc_ref = dt_now_d if ymd_creation == ymd_today else rc_describe_entry['ClusterCreateTime'].replace(hour=23, minute=59)
+      hours_creation = hc_ref - rc_describe_entry['ClusterCreateTime']
+      hours_creation = math.ceil(hours_creation.seconds/60/60)
+      hours_today = dt_now_d - dt_now_d.replace(hour=0, minute=0)
+      hours_today = math.ceil(hours_today.seconds/60/60)
+
+      def calc_nhours(ts):
+        ts_str = ts.strftime("%Y-%m-%d")
+        if ts_str == ymd_creation: return hours_creation
+        if ts_str == ymd_today:    return hours_today
+        return 24
+
+      df_single['n_hours'] = df_single.Timestamp.apply(calc_nhours)
+
+      # summarize into 1 row
       self.analyze_list.append({
         'ClusterIdentifier': rc_describe_entry['ClusterIdentifier'],
         'NodeType': rc_type,
         'NumberOfNodes': rc_describe_entry['NumberOfNodes'],
+        'Region': rc_describe_entry['Region'],
 
         # TODO if cloudtrail is used to get the history of size changes of a redshift cluster,
         # the pricing field needs to change from a single number to a series of same dimension as df_single.Average
         # The same applies to the number of nodes field, which becomes a series too.
         # Finally, the "* df_single.shape[0]" becomes ".sum()"
-        'CostUsed':   (df_single.Average  * redshiftPricing_dict[rc_type] * 24 * 90 * rc_describe_entry['NumberOfNodes']).sum(),
-        'CostBilled': (100                * redshiftPricing_dict[rc_type] * 24 * 90 * rc_describe_entry['NumberOfNodes']) * df_single.shape[0], # df_single.shape[0] == number of days
+        'CostUsed':   (df_single.Average / 100 * redshiftPricing_dict[rc_type] * df_single.n_hours * rc_describe_entry['NumberOfNodes']).sum(),
+        'CostBilled': (1                       * redshiftPricing_dict[rc_type] * df_single.n_hours * rc_describe_entry['NumberOfNodes']).sum()
       })
 
     # done
@@ -100,6 +127,7 @@ class AnalyzerAnalyze(AnalyzerBase):
     analyze_df = self.analyze_df
     self.cost_used   = analyze_df.CostUsed.fillna(value=0).sum()
     self.cost_billed = analyze_df.CostBilled.fillna(value=0).sum()
+    self.regions_n = len(analyze_df.Region.unique())
 
     if self.cost_billed == 0:
       self.cwau_percent = 0
@@ -117,6 +145,7 @@ class AnalyzerOptimize(AnalyzerBase):
 
       # summarize into maxmax, maxmin, minmax, minmin
       self.analyze_list.append({
+        'Region': rc_describe_entry['Region'],
         'ClusterIdentifier': rc_describe_entry['ClusterIdentifier'],
         'NodeType': rc_describe_entry['NodeType'],
         'NumberOfNodes': rc_describe_entry['NumberOfNodes'],

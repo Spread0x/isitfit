@@ -1,5 +1,4 @@
 # imports
-import boto3
 import datetime as dt
 from ...utils import SECONDS_IN_ONE_DAY
 import pandas as pd
@@ -15,13 +14,16 @@ class RedshiftPerformanceIterator:
   https://en.wikipedia.org/wiki/Iterator_pattern#Python
   """
 
-  # list of cluster ID's for which data is not available
-  rc_noData = []
 
 
   def __init__(self):
     self._initDates()
-    self._initBoto3()
+
+    # list of cluster ID's for which data is not available
+    self.rc_noData = []
+
+    # list of regions to skip
+    self.region_skip = []
 
 
   def _initDates(self):
@@ -33,14 +35,6 @@ class RedshiftPerformanceIterator:
     dt_now_d = dt.datetime.utcnow()
     self.StartTime = dt_now_d - dt.timedelta(days=N_DAYS)
     self.EndTime = dt_now_d
-
-
-  def _initBoto3(self):
-    # boto3 clients
-    # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/redshift.html#Redshift.Client.describe_logging_status
-    self.redshift_client = boto3.client('redshift')
-    # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/cloudwatch.html#metric
-    self.cloudwatch_resource = boto3.resource('cloudwatch')
 
 
   def _metric_get_statistics(self, metric):
@@ -95,7 +89,7 @@ class RedshiftPerformanceIterator:
 
   def handle_metric(self, m_i, rc_id, ClusterCreateTime):
     response_metric = self._metric_get_statistics(m_i)
-    logger.debug("cw response_metric")
+    #logger.debug("cw response_metric")
     #logger.debug(response_metric)
 
     if len(response_metric['Datapoints'])==0:
@@ -112,17 +106,62 @@ class RedshiftPerformanceIterator:
     return df
 
 
-  def iterate_core(self):
-    # iterate on redshift clusters
-    paginator = self.redshift_client.get_paginator('describe_clusters')
-    rc_iterator = paginator.paginate()
-    for rc_describe_page in rc_iterator:
-      for rc_describe_entry in rc_describe_page['Clusters']:
-        yield rc_describe_entry
+  def iterate_core(self, just_counting = False):
+    # iterate on regions
+    import botocore
+    import boto3
+    redshift_regions = boto3.Session().get_available_regions('redshift')
+    #redshift_regions = ['us-east-1']
+
+    region_iterator = redshift_regions
+    if just_counting:
+      from tqdm import tqdm
+      region_iterator = tqdm(region_iterator, total = len(redshift_regions), desc="Redshift clusters, pass 1/2 (counting in all regions)")
+
+    for region_name in region_iterator:
+      if region_name in self.region_skip:
+        # skip since already failed to use it
+        continue
+
+      logger.debug("Region %s"%region_name)
+      boto3.setup_default_session(region_name = region_name)
+
+      # boto3 clients
+      # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/redshift.html#Redshift.Client.describe_logging_status
+      redshift_client = boto3.client('redshift')
+
+      # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/cloudwatch.html#metric
+      self.cloudwatch_resource = boto3.resource('cloudwatch')
+
+      # iterate on redshift clusters
+      paginator = redshift_client.get_paginator('describe_clusters')
+      rc_iterator = paginator.paginate()
+      try:
+        region_anyClusterFound = False
+        for rc_describe_page in rc_iterator:
+          for rc_describe_entry in rc_describe_page['Clusters']:
+            region_anyClusterFound = True
+            # add field for region
+            rc_describe_entry['Region'] = region_name
+            # yield
+            yield rc_describe_entry
+
+        if not region_anyClusterFound:
+          # skip since no clusters in this region
+          self.region_skip.append(region_name)
+
+      except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code']=='InvalidClientTokenId':
+          # skip since no access to this region
+          self.region_skip.append(region_name)
+          continue
+
+        # all other exceptions raised
+        raise e
 
 
   def __iter__(self):
-    for rc_describe_entry in self.iterate_core():
+    for rc_describe_entry in self.iterate_core(just_counting=False):
         #print("response, entry")
         #print(rc_describe_entry)
 

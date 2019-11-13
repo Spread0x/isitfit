@@ -15,7 +15,7 @@ class TestAnalyzerBase:
 
   def test_fetchCount_zero(self):
     class MockIter:
-      def iterate_core(self):
+      def iterate_core(self, just_counting):
         return []
 
     # prepare
@@ -30,7 +30,7 @@ class TestAnalyzerBase:
 
   def test_fetchCount_one(self):
     class MockIter:
-      def iterate_core(self):
+      def iterate_core(self, just_counting):
         yield 1
 
     # prepare
@@ -47,9 +47,12 @@ class TestAnalyzerAnalyze:
 
   def test_fetch(self):
     import pandas as pd
+    import datetime as dt
+    import pytz
+    dt_now_d = dt.datetime.utcnow().replace(tzinfo=pytz.utc)
     ex_iter = [
-      ({'ClusterIdentifier': 'abc', 'NodeType': 'dc2.large', 'NumberOfNodes': 3},
-        pd.DataFrame([{'Average': 1}]),
+      ({'ClusterIdentifier': 'abc', 'NodeType': 'dc2.large', 'NumberOfNodes': 3, 'ClusterCreateTime': dt_now_d, 'Region': 'bla'},
+        pd.DataFrame([{'Average': 1, 'Timestamp': dt_now_d}]),
       ),
     ]
     class MockIter:
@@ -72,7 +75,7 @@ class TestAnalyzerAnalyze:
 
     ra = AnalyzerAnalyze()
     ra.analyze_df = pd.DataFrame([
-      {'CostUsed': 1, 'CostBilled': 100}
+      {'CostUsed': 1, 'CostBilled': 100, 'Region': 'bla'}
     ])
     ra.calculate()
     assert ra.cwau_percent == 1
@@ -83,7 +86,7 @@ class TestAnalyzerOptimize:
   def test_fetch(self):
     import pandas as pd
     ex_iter = [
-      ( {'ClusterIdentifier': 'def', 'NodeType': 'dc2.large', 'NumberOfNodes': 3},
+      ( {'ClusterIdentifier': 'def', 'NodeType': 'dc2.large', 'NumberOfNodes': 3, 'Region': 'bla'},
         pd.DataFrame([{'Maximum': 1, 'Minimum': 1}]),
       ),
     ]

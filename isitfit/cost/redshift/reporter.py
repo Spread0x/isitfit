@@ -43,6 +43,10 @@ class ReporterAnalyze(ReporterBase):
         'value': "%s"%dt_end
       },
       { 'color': '',
+        'label': "Regions",
+        'value': "%i"%self.analyzer.regions_n
+      },
+      { 'color': '',
         'label': "Redshift clusters (total)",
         'value': "%i"%self.analyzer.n_rc_total
       },

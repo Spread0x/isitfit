@@ -81,7 +81,12 @@ def test_handleMetric_notEmpty(mocker):
 
 from moto import mock_redshift
 @mock_redshift
-def test_iterateCore_none():
+def test_iterateCore_none(mocker):
+  # mock the get regions part
+  mockreturn = lambda service: ['us-east-1']
+  mockee = 'boto3.session.Session.get_available_regions'
+  mocker.patch(mockee, side_effect=mockreturn)
+
   # test
   rpi = RedshiftPerformanceIterator()
   x = list(rpi.iterate_core())
@@ -89,7 +94,16 @@ def test_iterateCore_none():
 
 
 @mock_redshift
-def test_iterateCore_exists():
+def test_iterateCore_exists(mocker):
+  # mock the get regions part
+  mockreturn = lambda service: ['us-east-1']
+  mockee = 'boto3.session.Session.get_available_regions'
+  mocker.patch(mockee, side_effect=mockreturn)
+
+  # undo some region settings from before
+  import boto3
+  boto3.setup_default_session(region_name='us-east-1')
+
   # create mock redshift
   import boto3
   redshift_client = boto3.client('redshift')

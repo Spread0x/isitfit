@@ -20,6 +20,9 @@ class TestReporterAnalyze:
       rp_iter = MockIter
       n_rc_total = 0
       n_rc_analysed = 0
+      regions_n = 1
+      cost_billed = 1
+      cost_used = 1
 
     rb = ReporterAnalyze()
     rb.set_analyzer(MockAnalyzer)

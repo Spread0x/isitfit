@@ -6,12 +6,15 @@ Version latest (0.12.0rc?, 2019-09-24?)
 - ...
 
 
-Version 0.13.2 (2019-11-13)
+Version 0.13.{2,3} (2019-11-13)
 
 - enh: split the cost.redshift.analyzer into base and derived classes for cleaner code
 - enh: calculation of CWAU revised to use the average CPU, wherease the max CPU is used for the recommendations
 - enh: bring back billed/used cost entries in CWAU
 - enh: add integration tests to redshift cost analyze/optimize
+- feat: redshift cost: cover all regions
+- bugfix: redshift cost: do not multiply by 90 in analyzer since already length of dataframes = number of days
+- bugfix: redshift cost: account for fractional days on first/last day
 
 
 Version 0.13.{0,1} (2019-11-12)
