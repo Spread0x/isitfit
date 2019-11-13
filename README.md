@@ -147,8 +147,11 @@ Field                            Value
 -------------------------------  -----------
 Analysis start date              2019-06-07
 Analysis end date                2019-09-05
+Regions                          1
 Redshift clusters (total)        2
 Redshift clusters (analysed)     2
+Billed cost                      100 $
+Used cost                        34 $
 CWAU                             34 %
 
 For reference:
@@ -181,12 +184,12 @@ Save complete
 
 
 Redshift cluster classification
-+---------------------+------------+-----------------+-------------+-------------+--------+------------------+
-| ClusterIdentifier   | NodeType   |   NumberOfNodes |   CpuMaxMax |   CpuMinMin |   Cost | classification   |
-|---------------------+------------+-----------------+-------------+-------------+--------+------------------|
-| redshift-cluster-1  | dc2.large  |               2 |           0 |           0 |   0.25 | Normal           |
-| redshift-cluster-2  | dc2.large  |               3 |          56 |           0 |   0.25 | Normal           |
-+---------------------+------------+-----------------+-------------+-------------+--------+------------------+
++-----------+---------------------+------------+-----------------+-------------+-------------+--------+------------------+
+| Region    | ClusterIdentifier   | NodeType   |   NumberOfNodes |   CpuMaxMax |   CpuMinMin |   Cost | classification   |
+|-----------+---------------------+------------+-----------------+-------------+-------------+--------+------------------|
+| us-east-1 | redshift-cluster-1  | dc2.large  |               2 |           0 |           0 |   0.25 | Normal           |
+| us-east-1 | redshift-cluster-2  | dc2.large  |               3 |          56 |           0 |   0.25 | Normal           |
++-----------+---------------------+------------+-----------------+-------------+-------------+--------+------------------+
 ```
 
 Notice that the full final results are saved to a csv file, indicated in the line under the table: `Saving final results to /tmp/isitfit-full-...csv`
