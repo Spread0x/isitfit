@@ -3,7 +3,8 @@ from isitfit.cost.redshift.cli import cost_analyze, cost_optimize
 def test_costCore(mocker):
     mockee_list = [
       'isitfit.cost.redshift.iterator.RedshiftPerformanceIterator',
-      'isitfit.cost.redshift.analyzer.Analyzer',
+      'isitfit.cost.redshift.analyzer.AnalyzerAnalyze',
+      'isitfit.cost.redshift.analyzer.AnalyzerOptimize',
       'isitfit.cost.redshift.reporter.ReporterAnalyze',
       'isitfit.cost.redshift.reporter.ReporterOptimize',
     ]

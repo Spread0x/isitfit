@@ -2,40 +2,30 @@ import logging
 logger = logging.getLogger('isitfit')
 
 
-def cost_core(is_analyze, share_email):
-    pre_word = "Analyzing" if is_analyze else "Optimizing"
-    logger.info("%s redshift clusters"%pre_word)
-
-    from .iterator import RedshiftPerformanceIterator
-    from .analyzer import Analyzer
-    from .reporter import ReporterAnalyze, ReporterOptimize
+def cost_core(ra, rr, share_email):
+    """
+    ra - Analyzer
+    rr - Reporter
+    """
 
     # data layer
+    from .iterator import RedshiftPerformanceIterator
     ri = RedshiftPerformanceIterator()
-    ra = Analyzer(ri)
-
-    ra.fetch_count()
+    ra.set_iterator(ri)
+    ra.count()
     if ra.n_rc_total==0:
       logger.warning("No redshift clusters found")
       return
 
-    ra.fetch_performances()
+    ra.fetch()
     if ra.n_rc_analysed==0:
       logger.warning("No redshift clusters analyzed")
       return
 
-    ra.calculate_cwau()
-
-    if not is_analyze:
-      ra.classify()
+    ra.calculate()
 
     # display layer
-    rr = None
-    if is_analyze:
-      rr = ReporterAnalyze(ra)
-    else:
-      rr = ReporterOptimize(ra)
-
+    rr.set_analyzer(ra)
     rr.postprocess()
     rr.display()
     if share_email is not None:
@@ -44,7 +34,19 @@ def cost_core(is_analyze, share_email):
 
 
 def cost_analyze(share_email):
-  cost_core(True, share_email)
+  logger.info("Analyzing redshift clusters")
+
+  from .analyzer import AnalyzerAnalyze
+  from .reporter import ReporterAnalyze
+  ra = AnalyzerAnalyze()
+  rr = ReporterAnalyze()
+  cost_core(ra, rr, share_email)
 
 def cost_optimize():
-  cost_core(False, None)
+  logger.info("Optimizing redshift clusters")
+
+  from .analyzer import AnalyzerOptimize
+  from .reporter import ReporterOptimize
+  ra = AnalyzerOptimize()
+  rr = ReporterOptimize()
+  cost_core(ra, rr, None)

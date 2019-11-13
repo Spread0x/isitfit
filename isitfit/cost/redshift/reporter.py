@@ -9,7 +9,7 @@ logger = logging.getLogger('isitfit')
 
 
 class ReporterBase:
-  def __init__(self, analyzer):
+  def set_analyzer(self, analyzer):
     self.analyzer = analyzer
 
   def postprocess(self):
@@ -32,7 +32,7 @@ class ReporterAnalyze(ReporterBase):
 
     dt_start = self.analyzer.rp_iter.StartTime.strftime("%Y-%m-%d")
     dt_end   = self.analyzer.rp_iter.EndTime.strftime("%Y-%m-%d")
-    
+
     self.table = [
       { 'color': '',
         'label': "Start date",
@@ -50,6 +50,14 @@ class ReporterAnalyze(ReporterBase):
         'label': "Redshift clusters (analysed)",
         'value': "%i"%self.analyzer.n_rc_analysed
       },
+      { 'color': '',
+        'label': "Billed cost",
+        'value': "%0.0f $"%self.analyzer.cost_billed
+      },
+      { 'color': '',
+        'label': "Used cost",
+        'value': "%0.0f $"%self.analyzer.cost_used
+      },
       { 'color': cwau_color,
         'label': "CWAU",
         'value': "%0.0f %%"%cwau_val
@@ -64,7 +72,7 @@ class ReporterAnalyze(ReporterBase):
         def get_cell(i):
           retc = row[i] if not row['color'] else colored(row[i], row['color'])
           return retc
-        
+
         retr = [get_cell('label'), get_cell('value')]
         return retr
 

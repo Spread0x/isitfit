@@ -2,7 +2,7 @@ from isitfit.cost.redshift.reporter import ReporterBase, ReporterAnalyze, Report
 
 class TestReporterBase:
   def test_init(self):
-    rb = ReporterBase(None)
+    rb = ReporterBase()
     assert True
 
 
@@ -21,7 +21,8 @@ class TestReporterAnalyze:
       n_rc_total = 0
       n_rc_analysed = 0
 
-    rb = ReporterAnalyze(MockAnalyzer)
+    rb = ReporterAnalyze()
+    rb.set_analyzer(MockAnalyzer)
     rb.postprocess()
     assert rb.table is not None
 
@@ -36,7 +37,8 @@ class TestReporterAnalyze:
 
       rp_iter = MockIter
 
-    rb = ReporterAnalyze(MockAnalyzer)
+    rb = ReporterAnalyze()
+    rb.set_analyzer(MockAnalyzer)
     rb.table = [
       {'color': '', 'label': 'bla', 'value': 'foo'}
     ]
@@ -47,7 +49,7 @@ class TestReporterAnalyze:
   def test_email(self, mocker):
     mockee = 'isitfit.emailMan.EmailMan'
     mocker.patch(mockee, autospec=True)
-    rb = ReporterAnalyze(None)
+    rb = ReporterAnalyze()
     rb.table = []
     rb.email([])
     assert True # no exception
@@ -60,7 +62,8 @@ class TestReporterOptimize:
     class MockAnalyzer:
       analyze_df = pd.DataFrame([{'CpuMaxMax': 1, 'CpuMinMin': 1}])
 
-    rb = ReporterOptimize(MockAnalyzer)
+    rb = ReporterOptimize()
+    rb.set_analyzer(MockAnalyzer)
     rb.postprocess()
     assert True # no exception
 
@@ -73,7 +76,8 @@ class TestReporterOptimize:
     class MockAnalyzer:
       analyze_df = pd.DataFrame([{'CpuMaxMax': 1, 'CpuMinMin': 1}])
 
-    rb = ReporterOptimize(MockAnalyzer)
+    rb = ReporterOptimize()
+    rb.set_analyzer(MockAnalyzer)
     rb.csv_fn_final = 'bla.csv'
     rb.display()
     assert True # no exception
@@ -82,6 +86,6 @@ class TestReporterOptimize:
   def test_email(self):
     import pytest
     with pytest.raises(Exception):
-      rb = ReporterOptimize(None)
+      rb = ReporterOptimize()
       rb.email([])
 

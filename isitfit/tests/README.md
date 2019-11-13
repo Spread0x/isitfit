@@ -15,6 +15,7 @@ To run functional tests:
 ```
 [sudo] apt-get install redis
 bash isitfit/tests/cost/test_integration.sh
+bash isitfit/tests/cost/redshift/test_integration.sh
 bash isitfit/tests/tags/test_integration.sh
 bash isitfit/tests/test_apiDeployed.sh
 ```

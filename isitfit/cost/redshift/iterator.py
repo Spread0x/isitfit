@@ -55,7 +55,7 @@ class RedshiftPerformanceIterator:
         StartTime=self.StartTime,
         EndTime=self.EndTime,
         Period=SECONDS_IN_ONE_DAY,
-        Statistics=['Minimum', 'Maximum'],
+        Statistics=['Minimum', 'Average', 'Maximum'],
         Unit = 'Percent'
     )
     return response

@@ -23,63 +23,116 @@ redshiftPricing_dict = {
 
 
 
-class Analyzer:
+class AnalyzerBase:
   n_rc_total = 0
   n_rc_analysed = 0
 
-  def __init__(self, rp_iter):
+  def __init__(self):
+    # define the list in the constructor because if I define it as a class member above,
+    # then it gets reused between instantiations of derived classes
+    self.analyze_list = []
+    self.analyze_df = None
+
+  def set_iterator(self, rp_iter):
     """
     rp_iter - from .iterator import RedshiftPerformanceIterator
     """
     self.rp_iter = rp_iter
 
-  def fetch_count(self):
+  def count(self):
     # count clusters
     for rc_describe_entry in tqdm(self.rp_iter.iterate_core(), desc="Redshift clusters, pass 1/2"):
       self.n_rc_total += 1
 
-  def fetch_performances(self):
+  def iterator(self):
     # get all performance dataframes, on the cluster-aggregated level
-    analyze_list = []
     for rc_describe_entry, df_single in tqdm(self.rp_iter, desc="Redshift clusters, pass 2/2", total=self.n_rc_total):
-    
+
       # for types not yet in pricing dictionary above
-      rc_id = rc_describe_entry['ClusterIdentifier']
       rc_type = rc_describe_entry['NodeType']
       if rc_type not in redshiftPricing_dict.keys():
+        rc_id = rc_describe_entry['ClusterIdentifier']
         self.rp_iter.rc_noData.append(rc_id)
         continue
-    
+
+      yield rc_describe_entry, df_single
+
+  def fetch(self):
+    # To be used by derived class *after* its own implementation
+
+    # gather into a single dataframe
+    self.analyze_df = pd.DataFrame(self.analyze_list)
+
+    # update number of analyzed clusters
+    self.n_rc_analysed = self.analyze_df.shape[0]
+
+  def calculate(self):
+    raise Exception("To be implemented by derived class")
+
+
+
+class AnalyzerAnalyze(AnalyzerBase):
+
+  def fetch(self):
+    # get all performance dataframes, on the cluster-aggregated level
+    for rc_describe_entry, df_single in self.iterator():
       # summarize into maxmax, maxmin, minmax, minmin
-      analyze_list.append({
-        'ClusterIdentifier': rc_id,
+      rc_type = rc_describe_entry['NodeType']
+      self.analyze_list.append({
+        'ClusterIdentifier': rc_describe_entry['ClusterIdentifier'],
         'NodeType': rc_type,
         'NumberOfNodes': rc_describe_entry['NumberOfNodes'],
+
+        # TODO if cloudtrail is used to get the history of size changes of a redshift cluster,
+        # the pricing field needs to change from a single number to a series of same dimension as df_single.Average
+        # The same applies to the number of nodes field, which becomes a series too.
+        # Finally, the "* df_single.shape[0]" becomes ".sum()"
+        'CostUsed':   (df_single.Average  * redshiftPricing_dict[rc_type] * 24 * 90 * rc_describe_entry['NumberOfNodes']).sum(),
+        'CostBilled': (100                * redshiftPricing_dict[rc_type] * 24 * 90 * rc_describe_entry['NumberOfNodes']) * df_single.shape[0], # df_single.shape[0] == number of days
+      })
+
+    # done
+    super().fetch()
+
+
+  def calculate(self):
+    # calculate cost-weighted utilization
+    analyze_df = self.analyze_df
+    self.cost_used   = analyze_df.CostUsed.fillna(value=0).sum()
+    self.cost_billed = analyze_df.CostBilled.fillna(value=0).sum()
+
+    if self.cost_billed == 0:
+      self.cwau_percent = 0
+      return
+
+    self.cwau_percent = int(self.cost_used / self.cost_billed * 100)
+
+
+class AnalyzerOptimize(AnalyzerBase):
+
+  def fetch(self):
+
+    # get all performance dataframes, on the cluster-aggregated level
+    for rc_describe_entry, df_single in self.iterator():
+
+      # summarize into maxmax, maxmin, minmax, minmin
+      self.analyze_list.append({
+        'ClusterIdentifier': rc_describe_entry['ClusterIdentifier'],
+        'NodeType': rc_describe_entry['NodeType'],
+        'NumberOfNodes': rc_describe_entry['NumberOfNodes'],
+
         'CpuMaxMax': df_single.Maximum.max(),
         #'CpuMaxMin': df_single.Maximum.min(),
         #'CpuMinMax': df_single.Minimum.max(),
         'CpuMinMin': df_single.Minimum.min(),
-        'Cost': redshiftPricing_dict[rc_type],
       })
 
-    # gather into a single dataframe
-    self.analyze_df = pd.DataFrame(analyze_list)
-
-    # update number of analyzed clusters
-    self.n_rc_analysed = self.analyze_df.shape[0]
- 
-
-  def calculate_cwau(self):  
-    # calculate cost-weighted utilization
-    analyze_df = self.analyze_df
-    cwau_numerator = (analyze_df.CpuMaxMax * analyze_df.Cost * analyze_df.NumberOfNodes).sum()
-    cwau_denominator = (analyze_df.Cost * analyze_df.NumberOfNodes).sum()
-    cwau_percent = cwau_numerator / cwau_denominator # since CpuMaxMax is in percentage, this will be in percentage also
-    cwau_percent = int(cwau_percent)
-    self.cwau_percent = cwau_percent
+    # done
+    super().fetch()
 
 
-  def classify(self):
+
+  def calculate(self):
     def classify_cluster_single(row):
         # classify
         if row.CpuMinMin > 70: return "Overused"

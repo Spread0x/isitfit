@@ -1,4 +1,4 @@
-from isitfit.cost.redshift.analyzer import Analyzer
+from isitfit.cost.redshift.analyzer import AnalyzerBase, AnalyzerAnalyze, AnalyzerOptimize
 
 
 def test_redshiftPricingDict():
@@ -7,9 +7,9 @@ def test_redshiftPricingDict():
 
 
 
-class TestAnalyzer:
+class TestAnalyzerBase:
   def test_init(self):
-    ra = Analyzer(None)
+    ra = AnalyzerBase()
     assert True # no exception
 
 
@@ -20,10 +20,11 @@ class TestAnalyzer:
 
     # prepare
     mi = MockIter()
-    ra = Analyzer(mi)
+    ra = AnalyzerBase()
+    ra.set_iterator(mi)
 
     # run and test
-    ra.fetch_count()
+    ra.count()
     assert ra.n_rc_total == 0
 
 
@@ -34,17 +35,55 @@ class TestAnalyzer:
 
     # prepare
     mi = MockIter()
-    ra = Analyzer(mi)
+    ra = AnalyzerBase()
+    ra.set_iterator(mi)
 
     # run and test
-    ra.fetch_count()
+    ra.count()
     assert ra.n_rc_total == 1
 
 
-  def test_fetchPerformances(self):
+class TestAnalyzerAnalyze:
+
+  def test_fetch(self):
     import pandas as pd
     ex_iter = [
       ({'ClusterIdentifier': 'abc', 'NodeType': 'dc2.large', 'NumberOfNodes': 3},
+        pd.DataFrame([{'Average': 1}]),
+      ),
+    ]
+    class MockIter:
+      def __iter__(self):
+        for i in ex_iter: yield i
+
+    # prepare
+    mi = MockIter()
+    ra = AnalyzerAnalyze()
+    ra.set_iterator(mi)
+    ra.n_rc_total = 1
+
+    # run and test
+    ra.fetch()
+    assert ra.analyze_df.shape[0] == 1
+
+
+  def test_calculate(self):
+    import pandas as pd
+
+    ra = AnalyzerAnalyze()
+    ra.analyze_df = pd.DataFrame([
+      {'CostUsed': 1, 'CostBilled': 100}
+    ])
+    ra.calculate()
+    assert ra.cwau_percent == 1
+
+
+class TestAnalyzerOptimize:
+
+  def test_fetch(self):
+    import pandas as pd
+    ex_iter = [
+      ( {'ClusterIdentifier': 'def', 'NodeType': 'dc2.large', 'NumberOfNodes': 3},
         pd.DataFrame([{'Maximum': 1, 'Minimum': 1}]),
       ),
     ]
@@ -54,32 +93,22 @@ class TestAnalyzer:
 
     # prepare
     mi = MockIter()
-    ra = Analyzer(mi)
-    ra.n_rc_total = 1
+    ra = AnalyzerOptimize()
+    ra.set_iterator(mi)
+    ra.n_rc_total = len(ex_iter)
 
     # run and test
-    ra.fetch_performances()
+    ra.fetch()
     assert ra.analyze_df.shape[0] == 1
 
 
-  def test_calculateCwau(self):
+  def test_calculate(self):
     import pandas as pd
 
-    ra = Analyzer(None)
-    ra.analyze_df = pd.DataFrame([
-      {'CpuMaxMax': 1, 'Cost': 1, 'NumberOfNodes': 3}
-    ])
-    ra.calculate_cwau()
-    assert ra.cwau_percent == 1
-
-
-  def test_classify(self):
-    import pandas as pd
-
-    ra = Analyzer(None)
+    ra = AnalyzerOptimize()
     ra.analyze_df = pd.DataFrame([
       {'CpuMaxMax': 90, 'CpuMinMin': 80, 'Cost': 1, 'NumberOfNodes': 3},
       {'CpuMaxMax': 50, 'CpuMinMin':  1, 'Cost': 1, 'NumberOfNodes': 3},
     ])
-    ra.classify()
+    ra.calculate()
     assert ra.analyze_df.classification.tolist() == ['Overused', 'Normal']

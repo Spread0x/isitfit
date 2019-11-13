@@ -6,6 +6,14 @@ Version latest (0.12.0rc?, 2019-09-24?)
 - ...
 
 
+Version 0.13.2 (2019-11-13)
+
+- enh: split the cost.redshift.analyzer into base and derived classes for cleaner code
+- enh: calculation of CWAU revised to use the average CPU, wherease the max CPU is used for the recommendations
+- enh: bring back billed/used cost entries in CWAU
+- enh: add integration tests to redshift cost analyze/optimize
+
+
 Version 0.13.{0,1} (2019-11-12)
 
 - feat: redshift clusters cost analysis/optimization (no redis caching)
