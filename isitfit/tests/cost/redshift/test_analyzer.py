@@ -15,7 +15,7 @@ class TestAnalyzerBase:
 
   def test_fetchCount_zero(self):
     class MockIter:
-      def iterate_core(self, just_counting):
+      def iterate_core(self, just_counting, display_tqdm):
         return []
 
     # prepare
@@ -30,7 +30,7 @@ class TestAnalyzerBase:
 
   def test_fetchCount_one(self):
     class MockIter:
-      def iterate_core(self, just_counting):
+      def iterate_core(self, just_counting, display_tqdm):
         yield 1
 
     # prepare
@@ -56,6 +56,7 @@ class TestAnalyzerAnalyze:
       ),
     ]
     class MockIter:
+      service_description = 'test iterator'
       def __iter__(self):
         for i in ex_iter: yield i
 
@@ -91,6 +92,7 @@ class TestAnalyzerOptimize:
       ),
     ]
     class MockIter:
+      service_description = 'test iterator'
       def __iter__(self):
         for i in ex_iter: yield i
 

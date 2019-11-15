@@ -132,6 +132,7 @@ Field                            Value
 -------------------------------  -----------
 Analysis start date              2019-06-07
 Analysis end date                2019-09-05
+Regions                          2 (us-east-1, us-west-2)
 EC2 machines (total)             8
 EC2 machines (analysed)          3
 Billed cost                      165 $
@@ -170,15 +171,15 @@ Find all recommended type changes
 Recommended savings: -74 $ (over next 3 months)
 
 EC2 Details
-+---------------------+-----------------+--------------------+------------------------------------+-----------+--------------------+-----------+--------------------------------------------------+
-| instance_id         | instance_type   | classification_1   | classification_2                   |   cost_3m | recommended_type   |   savings | tags                                             |
-|---------------------+-----------------+--------------------+------------------------------------+-----------+--------------------+-----------+--------------------------------------------------|
-| i-069a7808addd143c7 | t2.medium       | Underused          | Burstable intraday, No memory data |       117 | t2.small           |       -59 | Name = ******                                    |
-| i-34ca2fc2          | t2.nano         | Normal             | No memory data                     |        14 |                    |         0 | opsworks:layer:php-app = PHP App Server          |
-|                     |                 |                    |                                    |           |                    |           | opsworks:stack = ******************              |
-|                     |                 |                    |                                    |           |                    |           | opsworks:instance = ********************         |
-|                     |                 |                    |                                    |           |                    |           | Name = *************                             |
-+---------------------+-----------------+--------------------+------------------------------------+-----------+--------------------+-----------+--------------------------------------------------+
++-----------+---------------------+-----------------+--------------------+------------------------------------+-----------+--------------------+-----------+--------------------------------------------------+
+| region    | instance_id         | instance_type   | classification_1   | classification_2                   |   cost_3m | recommended_type   |   savings | tags                                             |
+|-----------|---------------------+-----------------+--------------------+------------------------------------+-----------+--------------------+-----------+--------------------------------------------------|
+| us-west-2 | i-069a7808addd143c7 | t2.medium       | Underused          | Burstable intraday, No memory data |       117 | t2.small           |       -59 | Name = ******                                    |
+| us-west-2 | i-34ca2fc2          | t2.nano         | Normal             | No memory data                     |        14 |                    |         0 | opsworks:layer:php-app = PHP App Server          |
+|           |                     |                 |                    |                                    |           |                    |           | opsworks:stack = ******************              |
+|           |                     |                 |                    |                                    |           |                    |           | opsworks:instance = ********************         |
+|           |                     |                 |                    |                                    |           |                    |           | Name = *************                             |
++-----------+---------------------+-----------------+--------------------+------------------------------------+-----------+--------------------+-----------+--------------------------------------------------+
 Saving final results to /tmp/isitfit-full-41o1b4o8.csv
 Save complete
 
@@ -292,7 +293,7 @@ isitfit tags suggest
 
 #### Advanced
 
-*(Work in progress. Check [here](https://trello.com/c/eKZawuvm/12-advanced-tag-suggestions) for status)*
+*(On hold. Check [here](https://trello.com/c/eKZawuvm/12-advanced-tag-suggestions) for status)*
 
 For more advanced tag suggestions, the `--advanced` option will
 send the EC2 instance names to the `isitfit` server-side API,
@@ -308,12 +309,16 @@ isitfit tags suggest --advanced
 
 ### Non-default awscli profile
 
-To specify a particular profile from `~/.aws/credentials`, set the `AWS_PROFILE` and `AWS_DEFAULT_REGION` environment variables.
+To specify a particular profile from `~/.aws/credentials`, set the `AWS_PROFILE` environment variable.
+
+Starting version 0.14, there is no need to set `AWS_DEFAULT_REGION` when using `isitfit cost` because it will already scan all regions for EC2/Redshift.
+
+You'd still need to use it for `isitfit tags` though.
 
 For example
 
 ```
-AWS_PROFILE=autofitcloud AWS_DEFAULT_REGION=eu-central-1 isitfit cost analyze
+AWS_PROFILE=autofitcloud isitfit cost analyze
 ```
 
 ### Assumed roles

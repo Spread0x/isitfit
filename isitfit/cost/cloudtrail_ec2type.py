@@ -10,20 +10,20 @@ logger = logging.getLogger('isitfit')
 
 
 class Manager:
-    def __init__(self, cloudtrail_client, EndTime, cache_man):
-        self.cloudtrail_client = cloudtrail_client
+    def __init__(self, EndTime, cache_man):
         self.EndTime = EndTime
         self.cache_man = cache_man
 
-    def init_data(self, ec2_instances, n_ec2):
+    def init_data(self, ec2_instances, region_include, n_ec2):
         # get cloudtail ec2 type changes for all instances
+        self.region_include = region_include
         self.df_cloudtrail = self._fetch_cached()
 
         # first pass to append ec2 types to cloudtrail based on "now"
         self.df_cloudtrail = self.df_cloudtrail.reset_index()
         # Edit 2019-11-12 use initial=0 otherwise if "=1" used then the tqdm output would be "101it" at conclusion, i.e.
         # First pass through EC2 instances: 101it [00:05,  5.19it/s]
-        for ec2_obj in tqdm(ec2_instances.all(), total=n_ec2, desc="Pass 1/2 through EC2 instances", initial=0):
+        for ec2_obj in tqdm(ec2_instances, total=n_ec2, desc="Pass 1/2 through EC2 instances", initial=0):
             self._appendNow(ec2_obj)
 
         # set index again, and sort decreasing this time (not like git-remote-aws default)
@@ -55,10 +55,23 @@ class Manager:
 
     def _fetch_core(self):
         # get cloudtrail ec2 type changes for all instances
-        logger.debug("Downloading cloudtrail data")
-        cloudtrail_manager = GraCloudtrailManager(self.cloudtrail_client)
-        df = cloudtrail_manager.ec2_typeChanges()
-        return df
+        logger.debug("Downloading cloudtrail data (from %i regions)"%len(self.region_include))
+        df_2 = []
+        import boto3
+        cloudtrail_client_all = {}
+        for region_name in self.region_include:
+          if region_name not in cloudtrail_client_all.keys():
+            boto3.setup_default_session(region_name = region_name)
+            cloudtrail_client_all[region_name] = boto3.client('cloudtrail')
+
+          cloudtrail_client_single = cloudtrail_client_all[region_name]
+          cloudtrail_manager = GraCloudtrailManager(cloudtrail_client_single)
+          df_1 = cloudtrail_manager.ec2_typeChanges()
+          df_2.append(df_1)
+
+        # concatenate
+        df_3 = pd.concat(df_2, axis=0)
+        return df_3
 
     """
     # Cached version ... disabled because not sure how to generalize it
@@ -73,7 +86,7 @@ class Manager:
             return df
 
         logger.debug("Downloading cloudtrail data")
-        cloudtrail_manager = GraCloudtrailManager(self.cloudtrail_client)
+        cloudtrail_manager = GraCloudtrailManager(cloudtrail_client)
         df = cloudtrail_manager.ec2_typeChanges()
 
         # save to cache
@@ -89,15 +102,14 @@ class Manager:
         # artificially append an entry for "now" with the current type
         # This is useful for instance who have no entries in the cloudtrail
         # so that their type still shows up on merge
-        self.df_cloudtrail = pd.concat([
-            self.df_cloudtrail,
-            pd.DataFrame([
+        df_new = pd.DataFrame([
               { 'instanceId': ec2_obj.instance_id,
                 'EventTime': self.EndTime,
                 'instanceType': ec2_obj.instance_type
               }
             ])
-          ])
+
+        self.df_cloudtrail = pd.concat([self.df_cloudtrail, df_new], sort=True)
 
 
     def single(self, ec2_obj):

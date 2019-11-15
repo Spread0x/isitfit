@@ -47,8 +47,6 @@ class DatadogAssistant:
         if len(m['series'])==0:
             raise DataNotFoundForHostInDdg("No %s found for %s"%(col_i, self.host_id))
         df = pd.DataFrame(m['series'][0]['pointlist'], columns=['ts_int', col_i])
-        #import pdb
-        #pdb.set_trace()
         df['ts_dt'] = pd.to_datetime(df.ts_int, origin='unix', unit='ms')
         return df
         

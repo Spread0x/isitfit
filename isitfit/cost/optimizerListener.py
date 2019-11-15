@@ -167,6 +167,7 @@ class OptimizerListener:
     taglist = "\n".join(taglist)
 
     ec2_res = OrderedDict()
+    ec2_res['region'] = ec2_obj.region_name
     ec2_res['instance_id'] = ec2_obj.instance_id
     ec2_res['instance_type'] = ec2_obj.instance_type
     ec2_res['classification_1'] = ec2_c1
@@ -191,12 +192,12 @@ class OptimizerListener:
       sub_underused = [x for x in self.ec2_classes if x['classification_1']=='Underused']
       if len(sub_underused) >= self.n:
         # break early
-        self.after_all(None, mm, None)
+        self.after_all(None, mm, None, None)
         import sys
         sys.exit(0)
 
 
-  def after_all(self, n_ec2_total, mm, n_ec2_all):
+  def after_all(self, n_ec2_total, mm, n_ec2_all, region_include):
     df_all = pd.DataFrame(self.ec2_classes)
 
     # if no data
@@ -228,7 +229,7 @@ class OptimizerListener:
     df_all['savings'] = df_all.savings.fillna(value=0).astype(int)
 
     # keep a subset of columns
-    df_all = df_all[['instance_id', 'instance_type', 'classification_1', 'classification_2', 'cost_3m', 'recommended_type', 'savings', 'tags']]
+    df_all = df_all[['region', 'instance_id', 'instance_type', 'classification_1', 'classification_2', 'cost_3m', 'recommended_type', 'savings', 'tags']]
 
     # display
     #df_all = df_all.set_index('classification_1')

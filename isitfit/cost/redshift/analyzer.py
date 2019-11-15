@@ -41,12 +41,12 @@ class AnalyzerBase:
 
   def count(self):
     # count clusters
-    for rc_describe_entry in self.rp_iter.iterate_core(just_counting=True):
+    for rc_describe_entry in self.rp_iter.iterate_core(True, True):
       self.n_rc_total += 1
 
   def iterator(self):
     # get all performance dataframes, on the cluster-aggregated level
-    for rc_describe_entry, df_single in tqdm(self.rp_iter, desc="Redshift clusters, pass 2/2 (calculating performances)", total=self.n_rc_total):
+    for rc_describe_entry, df_single in tqdm(self.rp_iter, desc="%s, fetching CPU metrics"%self.rp_iter.service_description, total=self.n_rc_total):
 
       # for types not yet in pricing dictionary above
       rc_type = rc_describe_entry['NodeType']

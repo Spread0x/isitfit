@@ -41,17 +41,21 @@ class TestMainManager:
   @mock_ec2
   @mock_cloudwatch
   # @mock_cloudtrail
-  def test_CwMetricsCore_failMultiple(self, MockCwResource):
+  def test_CwMetricsCore_failMultiple(self, MockCwResource, mocker):
     from ...cost.mainManager import MainManager
     mm = MainManager(None, None, None)
 
     # mock resource
-    mm.cloudwatch_resource = MockCwResource()
-    mm.cloudwatch_resource.metrics.n = 2 # set to 2 to trigger exception
+    mcw = MockCwResource()
+    mcw.metrics.n = 2 # set to 2 to trigger exception
+    mockreturn = lambda *args, **kwargs: mcw
+    mockee = 'isitfit.cost.mainManager.MainManager._cloudwatch_metrics_boto3'
+    mocker.patch(mockee, side_effect=mockreturn)
 
     # class for ec2_obj
     class MockEc2Obj:
-      instance_id = 1
+      region_name = 'us-west-2'
+      instance_id = 'i1'
 
     ec2_obj = MockEc2Obj()
 
@@ -66,17 +70,21 @@ class TestMainManager:
   @mock_ec2
   @mock_cloudwatch
   # @mock_cloudtrail
-  def test_CwMetricsCore_ok(self, MockCwResource):
+  def test_CwMetricsCore_ok(self, MockCwResource, mocker):
     from ...cost.mainManager import MainManager
     mm = MainManager(None, None, None)
 
     # mock resource
-    mm.cloudwatch_resource = MockCwResource()
-    mm.cloudwatch_resource.metrics.n = 1 # set to 1 to NOT trigger exception
+    mcw = MockCwResource()
+    mcw.metrics.n = 1 # set to 1 to NOT trigger exception
+    mockreturn = lambda *args, **kwargs: mcw
+    mockee = 'isitfit.cost.mainManager.MainManager._cloudwatch_metrics_boto3'
+    mocker.patch(mockee, side_effect=mockreturn)
 
     # class for ec2_obj
     class MockEc2Obj:
-      instance_id = 1
+      region_name = 'us-west-2'
+      instance_id = 'i1'
 
     ec2_obj = MockEc2Obj()
 

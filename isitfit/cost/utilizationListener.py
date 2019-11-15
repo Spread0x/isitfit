@@ -46,7 +46,7 @@ class UtilizationListener:
     self.df_all.append({'instance_id': ec2_obj.instance_id, 'capacity': res_capacity, 'used': res_used})
 
 
-  def after_all(self, n_ec2_total, mm, n_ec2_analysed):
+  def after_all(self, n_ec2_total, mm, n_ec2_analysed, region_include):
     # for debugging
     df_all = pd.DataFrame(self.df_all)
     logger.debug("\ncapacity/used per instance")
@@ -65,10 +65,15 @@ class UtilizationListener:
 
     dt_start = mm.StartTime.strftime("%Y-%m-%d")
     dt_end   = mm.EndTime.strftime("%Y-%m-%d")
+
+    ri_max = 3
+    ri_ell = "" if len(region_include)<=ri_max else "..."
+    ri_str = ", ".join(region_include[:ri_max])+ri_ell
     
     self.table = [
             {'color': '',         'label': "Start date",              'value': "%s"%dt_start                },
             {'color': '',         'label': "End date",                'value': "%s"%dt_end                  },
+            {'color': '',         'label': "Regions",    'value': "%i (%s)"%(len(region_include), ri_str)             },
             {'color': '',         'label': "EC2 machines (total)",    'value': "%i"%n_ec2_total             },
             {'color': '',         'label': "EC2 machines (analysed)", 'value': "%i"%n_ec2_analysed          },
             {'color': 'cyan',     'label': "Billed cost",             'value': "%0.0f $"%self.sum_capacity  },

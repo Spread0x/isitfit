@@ -35,3 +35,6 @@ aws-requests-auth==0.4.2
 
 # for stats to matomo
 matomo_sdk_py==0.1.0
+
+# for caching to local file
+simple-cache==0.35

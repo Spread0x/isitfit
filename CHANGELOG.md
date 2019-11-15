@@ -6,6 +6,14 @@ Version latest (0.12.0rc?, 2019-09-24?)
 - ...
 
 
+Version 0.14.0 (2019-11-15)
+
+- feat: ec2 cost analyze/optimize also covers all regions
+- bugfix: redis caching of missing data was checking for None, but should have checked for shape==0
+- enh: add dependency on `simple_cache` for caching to local file of which regions are non-empty
+- bugfix: found yet another place in the code where `tags` is None hence not iterable
+
+
 Version 0.13.{2,3} (2019-11-13)
 
 - enh: split the cost.redshift.analyzer into base and derived classes for cleaner code

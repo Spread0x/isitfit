@@ -40,9 +40,10 @@ class RedisPandas:
     return self.redis_client is not None
 
   def set(self, key, df):
+    # Note that in case data was not found, eg in mainManager._cloudwatch_metrics_core, an empty dataframe is returned (and thus passed in here)
     pybytes = self.pyarrow_context.serialize(df).to_buffer().to_pybytes()
     # set expiration of key-value pair to be 1 day if data was found, 10 minutes otherwise
-    ex = SECONDS_IN_10MINS if df is None else SECONDS_IN_ONE_DAY
+    ex = SECONDS_IN_10MINS if df.shape[0]==0 else SECONDS_IN_ONE_DAY
     # https://redis-py.readthedocs.io/en/latest/#redis.Redis.set
     self.redis_client.set(name=key, value=pybytes, ex=ex)
 
