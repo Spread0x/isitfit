@@ -11,24 +11,15 @@ import logging
 logger = logging.getLogger('isitfit')
 
 
-from ..utils import mergeSeriesOnTimestampRange, ec2_catalog, SECONDS_IN_ONE_DAY
+from ..utils import mergeSeriesOnTimestampRange, ec2_catalog, SECONDS_IN_ONE_DAY, NoCloudwatchException, myreturn
 from .cloudtrail_ec2type import Manager as CloudtrailEc2typeManager
+from isitfit.cost.redshift.cloudwatchman import CloudwatchEc2
 
 MINUTES_IN_ONE_DAY = 60*24 # 1440
 N_DAYS=90
 
 class NoCloudtrailException(Exception):
     pass
-
-class NoCloudwatchException(Exception):
-    pass
-
-
-def myreturn(df_xxx):
-    if df_xxx.shape[0] > 0:
-      return df_xxx
-    else:
-      return None # this means that the data was found in cache, but it was empty (meaning aws returned no data)
 
 
 def tagsContain(f_tn, ec2_obj):
@@ -72,6 +63,9 @@ class MainManager:
         # generic iterator (iterates over regions and items)
         from isitfit.cost.redshift.iterator import Ec2Iterator
         self.ec2_it = Ec2Iterator()
+
+        # cloudwatch manager
+        self.cloudwatchman = CloudwatchEc2(self.cache_man)
 
 
     def add_listener(self, event, listener):
@@ -240,92 +234,10 @@ And finally re-run isitfit as usual.
 
 
     def _cloudwatch_metrics_cached(self, ec2_obj):
-
-        # check cache first
-        cache_key = "mainManager._cloudwatch_metrics/%s"%ec2_obj.instance_id
-        if self.cache_man.isReady():
-          df_cache = self.cache_man.get(cache_key)
-          if df_cache is not None:
-            logger.debug("Found cloudwatch metrics in redis cache for %s, and data.shape[0] = %i"%(ec2_obj.instance_id, df_cache.shape[0]))
-            return myreturn(df_cache)
-
-        # if no cache, then download
-        df_fresh = self._cloudwatch_metrics_core(ec2_obj)
-
-        # if caching enabled, store it for later fetching
-        # https://stackoverflow.com/a/57986261/4126114
-        # Note that this even stores the result if it was "None" (meaning that no data was found)
-        if self.cache_man.isReady():
-          self.cache_man.set(cache_key, df_fresh)
-
-        # done
-        return myreturn(df_fresh)
-
-
-    def _cloudwatch_metrics_boto3(self, ec2_obj):
         """
-        Easy-to-mock function since moto mock of cloudwatch is giving pagination error
+        Raises NoCloudwatchException if no data found in cloudwatch
         """
-        boto3.setup_default_session(region_name = ec2_obj.region_name)
-        cloudwatch_resource = boto3.resource('cloudwatch')
-        return cloudwatch_resource
-
-
-    def _cloudwatch_metrics_core(self, ec2_obj):
-        """
-        Return a pandas series of CPU utilization, daily max, for 90 days
-        """
-        cloudwatch_resource = self._cloudwatch_metrics_boto3(ec2_obj)
-        metrics_iterator = cloudwatch_resource.metrics.filter(
-            Namespace='AWS/EC2',
-            MetricName='CPUUtilization',
-            Dimensions=[{'Name': 'InstanceId', 'Value': ec2_obj.instance_id}]
-          )
-        df_cw1 = []
-        for m_i in metrics_iterator:
-            json_i = m_i.get_statistics(
-              Dimensions=[{'Name': 'InstanceId', 'Value': ec2_obj.instance_id}],
-              Period=SECONDS_IN_ONE_DAY,
-              Statistics=['Average', 'SampleCount', 'Maximum'],
-              Unit='Percent',
-              StartTime=self.StartTime,
-              EndTime=self.EndTime
-            )
-            # logger.debug(json_i)
-            if len(json_i['Datapoints'])==0: continue # skip (no data)
-
-            df_i = pd.DataFrame(json_i['Datapoints'])
-
-            # edit 2019-09-13: no need to subsample columns
-            # The initial goal was to drop the "Unit" column (which just said "Percent"),
-            # but it's not such a big deal, and avoiding this subsampling simplifies the code a bit
-            # df_i = df_i[['Timestamp', 'SampleCount', 'Average']]
-
-            # sort and append in case of multiple metrics
-            df_i = df_i.sort_values(['Timestamp'], ascending=True)
-            df_cw1.append(df_i)
-
-        if len(df_cw1)==0:
-          return pd.DataFrame() # use an empty dataframe in order to distinguish when getting from cache if not available in cache or data not found but set in cache
-
-        if len(df_cw1) >1:
-          from ..utils import IsitfitCliError
-          raise IsitfitCliError("More than 1 cloudwatch metric found for %s"%ec2_obj.instance_id, self.ctx)
-
-        # merge
-        # df_cw2 = pd.concat(df_cw1, axis=1)
-
-        # dataframe to be returned
-        df_cw3 = df_cw1[0]
-
-        # before returning, convert dateutil timezone to pytz
-        # for https://github.com/pandas-dev/pandas/issues/25423
-        # via https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.dt.tz_convert.html
-        # Edit 2019-09-25 Instead of keeping the full timestamp, just truncate to date, especially that this is just daily data
-        # df_cw3['Timestamp'] = df_cw3.Timestamp.dt.tz_convert(pytz.utc)
-        df_cw3['Timestamp'] = df_cw3.Timestamp.dt.date
-
-        # done
+        df_cw3 = self.cloudwatchman.handle_main({'Region': ec2_obj.region_name}, ec2_obj.instance_id, ec2_obj.launch_time)
         return df_cw3
 
 
@@ -370,10 +282,6 @@ And finally re-run isitfit as usual.
 
         # pandas series of CPU utilization, daily max, for 90 days
         df_metrics = self._cloudwatch_metrics_cached(ec2_obj)
-
-        # no data
-        if df_metrics is None:
-          raise NoCloudwatchException("No cloudwatch data for %s"%ec2_obj.instance_id)
 
         # pandas series of number of cpu's available on the machine over time, past 90 days
         df_type_ts1 = self.cloudtrail_manager.single(ec2_obj)

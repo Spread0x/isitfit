@@ -4,7 +4,7 @@ from ...utils import SECONDS_IN_ONE_DAY
 import pandas as pd
 import boto3
 
-from isitfit.cost.mainManager import NoCloudwatchException
+from isitfit.utils import raise_noCwExc, NoCloudwatchException, myreturn
 
 import logging
 logger = logging.getLogger('isitfit')
@@ -84,56 +84,133 @@ class CloudwatchBase:
         return m_i
 
     # in case no cluster metrics found
-    return None
+    raise_noCwExc(rc_id)
+
 
 
   def handle_metric(self, m_i, rc_id, ClusterCreateTime):
     response_metric = self._metric_get_statistics(m_i)
-    #logger.debug("cw response_metric")
-    #logger.debug(response_metric)
+
+    logger.debug("cw response_metric for %s"%rc_id)
+    logger.debug(response_metric)
 
     if len(response_metric['Datapoints'])==0:
-      raise NoCloudwatchException
+      raise_noCwExc(rc_id)
 
     # convert to dataframe
     df = pd.DataFrame(response_metric['Datapoints'])
 
+    # edit 2019-09-13: no need to subsample columns
+    # The initial goal was to drop the "Unit" column (which just said "Percent"),
+    # but it's not such a big deal, and avoiding this subsampling simplifies the code a bit
+    # df = df[['Timestamp', 'SampleCount', 'Average']]
+
+    # sort and append in case of multiple metrics
+    df = df.sort_values(['Timestamp'], ascending=True)
+
+    # before returning, convert dateutil timezone to pytz
+    # for https://github.com/pandas-dev/pandas/issues/25423
+    # via https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.dt.tz_convert.html
+    # Edit 2019-09-25 Instead of keeping the full timestamp, just truncate to date, especially that this is just daily data
+    # df['Timestamp'] = df.Timestamp.dt.tz_convert(pytz.utc)
+    df['Timestamp'] = df.Timestamp.dt.date
+
     # drop points "before create time" (bug in cloudwatch?)
-    df = df[ df['Timestamp'] >= ClusterCreateTime ]
+    # Edit 2019-11-18 since this is daily data, and we don't really care about hours/minutes, just compare the y-m-d parts
+    df = df[ df['Timestamp'] >= ClusterCreateTime.date() ]
 
     # print
     return df
 
-    
+
+  def _cloudwatch_metrics_boto3(self, region_name):
+        """
+        Easy-to-mock function since moto mock of cloudwatch is giving pagination error
+        """
+        boto3.setup_default_session(region_name = region_name)
+        cloudwatch_resource = boto3.resource('cloudwatch')
+        return cloudwatch_resource
+
+
   def handle_main(self, rc_describe_entry, rc_id, rc_created):
         logger.debug("Found cluster %s"%rc_id)
 
         # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/cloudwatch.html#metric
-        region_name = rc_describe_entry['Region']
-        boto3.setup_default_session(region_name = region_name)
-        self.cloudwatch_resource = boto3.resource('cloudwatch')
+        self.cloudwatch_resource = self._cloudwatch_metrics_boto3(region_name = rc_describe_entry['Region'])
 
         # get metric
         m_i = self.handle_cluster(rc_id)
 
-        # no metrics for cluster, skip
-        if m_i is None:
-            raise NoCloudwatchException
-
-
         # dataframe of CPU Utilization, max and min, over 90 days
         df = self.handle_metric(m_i, rc_id, rc_created)
+
+        logger.debug("returning dataframe.head")
+        logger.debug(df.head())
 
         return df
 
 
+class CloudwatchCached(CloudwatchBase):
+  def __init__(self, cache_man=None):
+    """
+    cache_man - from .cacheManager import RedisPandas as RedisPandasCacheManager
 
-class CloudwatchRedshift(CloudwatchBase):
+    """
+    # manager of redis-pandas caching
+    self.cache_man = cache_man
+    super().__init__()
+
+
+  def handle_main(self, rc_describe_entry, rc_id, rc_created):
+        cache_key = "mainManager._cloudwatch_metrics/%s"%rc_id
+
+        # in case of no cache
+        if self.cache_man is None:
+          df_fresh = super().handle_main(rc_describe_entry, rc_id, rc_created)
+          return df_fresh
+
+        # check cache first
+        if self.cache_man.isReady():
+          df_cache = self.cache_man.get(cache_key)
+          if df_cache is not None:
+            logger.debug("Found cloudwatch metrics in redis cache for %s, and data.shape[0] = %i"%(rc_id, df_cache.shape[0]))
+            df_ret = myreturn(df_cache)
+            if df_ret is None: raise_noCwExc(rc_id)
+            if df_ret.shape[0]==0: raise_noCwExc(rc_id)
+            return df_ret
+
+        # if no cache, then download
+        should_raise = False
+        try:
+          df_fresh = super().handle_main(rc_describe_entry, rc_id, rc_created)
+        except NoCloudwatchException as e:
+          df_fresh = pd.DataFrame()
+          should_raise = True
+
+        # if caching enabled, store it for later fetching
+        # https://stackoverflow.com/a/57986261/4126114
+        # Note that this even stores the result if it was "None" (meaning that no data was found)
+        if self.cache_man.isReady():
+          self.cache_man.set(cache_key, df_fresh)
+
+        # check if should raise
+        if should_raise:
+          raise_noCwExc(rc_id)
+
+        # done
+        df_ret = myreturn(df_fresh)
+        if df_ret is None: raise_noCwExc(rc_id)
+        if df_ret.shape[0]==0: raise_noCwExc(rc_id)
+        return df_ret
+
+
+
+class CloudwatchRedshift(CloudwatchCached):
   cloudwatch_namespace = 'AWS/Redshift'
   entry_keyId = 'ClusterIdentifier'
 
 
-class CloudwatchEc2(CloudwatchBase):
+class CloudwatchEc2(CloudwatchCached):
   cloudwatch_namespace = 'AWS/EC2'
   entry_keyId = 'InstanceId'
 

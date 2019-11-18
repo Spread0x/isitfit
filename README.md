@@ -368,11 +368,10 @@ isitfit cost analyze
 isitfit cost optimize
 ```
 
-To clear the cache
+A few useful commands:
 
-```
-redis-cli -n 0 flushdb
-```
+- To clear the cache: `redis-cli -n 0 flushdb`
+- To list all keys: `redis-cli --scan --pattern '*'` ([ref](https://www.shellhacks.com/redis-get-all-keys-redis-cli/))
 
 Consider saving the environment variables in the `~/.bashrc` file.
 

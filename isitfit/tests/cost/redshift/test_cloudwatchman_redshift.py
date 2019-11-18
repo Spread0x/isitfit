@@ -1,4 +1,7 @@
 from ....cost.redshift.cloudwatchman import CloudwatchRedshift
+import pytest
+from isitfit.utils import NoCloudwatchException
+
 
 def test_init():
   rpi = CloudwatchRedshift()
@@ -16,8 +19,9 @@ def test_handleCluster_notFound(mocker):
 
   rpi = CloudwatchRedshift()
   dummy_id = 'abc'
-  m_i = rpi.handle_cluster(dummy_id)
-  assert m_i is None
+
+  with pytest.raises(NoCloudwatchException):
+    m_i = rpi.handle_cluster(dummy_id)
 
 
 def test_handleCluster_foundCluster(mocker):
@@ -57,8 +61,9 @@ def test_handleMetric_empty(mocker):
   mocker.patch(mockee, side_effect=mockreturn)
 
   rpi = CloudwatchRedshift()
-  df = rpi.handle_metric(None, None, None)
-  assert df is None
+  with pytest.raises(NoCloudwatchException):
+    df = rpi.handle_metric(None, None, None)
+
 
 
 def test_handleMetric_notEmpty(mocker):

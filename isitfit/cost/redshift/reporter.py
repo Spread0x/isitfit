@@ -30,8 +30,8 @@ class ReporterAnalyze(ReporterBase):
     if cwau_val >= 70: cwau_color = 'green'
     elif cwau_val <= 30: cwau_color = 'red'
 
-    dt_start = self.analyzer.rp_iter.StartTime.strftime("%Y-%m-%d")
-    dt_end   = self.analyzer.rp_iter.EndTime.strftime("%Y-%m-%d")
+    dt_start = self.analyzer.cwman.StartTime.strftime("%Y-%m-%d")
+    dt_end   = self.analyzer.cwman.EndTime.strftime("%Y-%m-%d")
 
     self.table = [
       { 'color': '',

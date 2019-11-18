@@ -7,6 +7,7 @@ from tqdm import tqdm
 import pandas as pd
 from .cloudwatchman import CloudwatchRedshift
 from isitfit.cost.mainManager import NoCloudwatchException
+from ..cacheManager import RedisPandas as RedisPandasCacheManager
 
 # redshift pricing as of 2019-11-12 in USD per hour, on-demand, ohio
 # https://aws.amazon.com/redshift/pricing/
@@ -35,6 +36,13 @@ class AnalyzerBase:
     self.analyze_list = []
     self.analyze_df = None
 
+    # manager of redis-pandas caching
+    self.cache_man = RedisPandasCacheManager()
+
+    # manager of cloudwatch
+    self.cwman = CloudwatchRedshift(self.cache_man)
+
+
   def set_iterator(self, rp_iter):
     """
     rp_iter - from .iterator import RedshiftPerformanceIterator
@@ -47,14 +55,18 @@ class AnalyzerBase:
       self.n_rc_total += 1
 
   def iterator(self):
+    # set up caching if requested
+    self.cache_man.fetch_envvars()
+    if self.cache_man.isSetup():
+      self.cache_man.connect()
+
     # get all performance dataframes, on the cluster-aggregated level
-    cwman = CloudwatchRedshift()
     iter_wrap = tqdm(self.rp_iter, desc="%s, fetching CPU metrics"%self.rp_iter.service_description, total=self.n_rc_total)
     for rc_describe_entry, rc_id, rc_created in iter_wrap:
 
       df_single = None
       try:
-        df_single = cwman.handle_main(rc_describe_entry, rc_id, rc_created)
+        df_single = self.cwman.handle_main(rc_describe_entry, rc_id, rc_created)
       except NoCloudwatchException as e:
         self.rp_iter.rc_noData.append(rc_id)
         continue

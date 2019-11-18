@@ -13,11 +13,14 @@ class TestReporterAnalyze:
 
     class MockAnalyzer:
       class MockIter:
+        pass
+      class MockCw:
         StartTime = dt_now
         EndTime = dt_now
 
       cwau_percent = 10
       rp_iter = MockIter
+      cwman = MockCw
       n_rc_total = 0
       n_rc_analysed = 0
       regions_n = 1
@@ -37,8 +40,11 @@ class TestReporterAnalyze:
     class MockAnalyzer:
       class MockIter:
         rc_noData = []
+      class MockCw:
+        pass
 
       rp_iter = MockIter
+      cwman = MockCw
 
     rb = ReporterAnalyze()
     rb.set_analyzer(MockAnalyzer)

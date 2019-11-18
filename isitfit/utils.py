@@ -1,6 +1,14 @@
 SECONDS_IN_ONE_DAY = 60*60*24 # 86400  # used for granularity (daily)
 
 
+class NoCloudwatchException(Exception):
+    pass
+
+
+def raise_noCwExc(rc_id):
+  raise NoCloudwatchException("No cloudwatch data for %s"%rc_id)
+
+
 def mergeSeriesOnTimestampRange(df_cpu, df_type):
   """
   Upsamples df_type to df_cpu.
@@ -287,3 +295,13 @@ class IsitfitCommand(ClickCommand):
         ret = super().invoke(*args, **kwargs)
         display_footer()
         return ret
+
+
+
+def myreturn(df_xxx):
+    if df_xxx.shape[0] > 0:
+      return df_xxx
+    else:
+      return None # this means that the data was found in cache, but it was empty (meaning aws returned no data)
+
+
