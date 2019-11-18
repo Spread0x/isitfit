@@ -8,15 +8,15 @@ from tabulate import tabulate
 from termcolor import colored
 
 
+
 class UtilizationListener:
 
-  def __init__(self, emailTo, ctx):
+  def __init__(self, ctx):
     # iterate over all ec2 instances
     self.sum_capacity = 0
     self.sum_used = 0
     self.df_all = []
     self.table = None # will contain the final table after calling `after_all`
-    self.emailTo = emailTo
     self.ctx = ctx
 
 
@@ -52,70 +52,4 @@ class UtilizationListener:
     logger.debug("\ncapacity/used per instance")
     logger.debug(df_all)
     logger.debug("\n")
-
-    cwau_val = 0
-    if self.sum_capacity!=0:
-      cwau_val = self.sum_used/self.sum_capacity*100
-
-    cwau_color = 'yellow'
-    if cwau_val >= 70:
-      cwau_color = 'green'
-    elif cwau_val <= 30:
-      cwau_color = 'red'
-
-    dt_start = mm.StartTime.strftime("%Y-%m-%d")
-    dt_end   = mm.EndTime.strftime("%Y-%m-%d")
-
-    ri_max = 3
-    ri_ell = "" if len(region_include)<=ri_max else "..."
-    ri_str = ", ".join(region_include[:ri_max])+ri_ell
-    
-    self.table = [
-            {'color': '',         'label': "Start date",              'value': "%s"%dt_start                },
-            {'color': '',         'label': "End date",                'value': "%s"%dt_end                  },
-            {'color': '',         'label': "Regions",    'value': "%i (%s)"%(len(region_include), ri_str)             },
-            {'color': '',         'label': "EC2 machines (total)",    'value': "%i"%n_ec2_total             },
-            {'color': '',         'label': "EC2 machines (analysed)", 'value': "%i"%n_ec2_analysed          },
-            {'color': 'cyan',     'label': "Billed cost",             'value': "%0.0f $"%self.sum_capacity  },
-            {'color': 'cyan',     'label': "Used cost",               'value': "%0.0f $"%self.sum_used      },
-            {'color': cwau_color, 'label': "CWAU (Used/Billed)",      'value': "%0.0f %%"%cwau_val          },
-    ]
-
-
-  def display_all(self, *args, **kwargs):
-    def get_row(row):
-        def get_cell(i):
-          retc = row[i] if not row['color'] else colored(row[i], row['color'])
-          return retc
-        
-        retr = [get_cell('label'), get_cell('value')]
-        return retr
-
-    dis_tab = [get_row(row) for row in self.table]
-
-    # logger.info("Summary:")
-    logger.info("Cost-Weighted Average Utilization (CWAU) of the AWS EC2 account:")
-    logger.info("")
-    logger.info(tabulate(dis_tab, headers=['Field', 'Value']))
-    logger.info("")
-    logger.info("For reference:")
-    logger.info(colored("* CWAU >= 70% is well optimized", 'green'))
-    logger.info(colored("* CWAU <= 30% is underused", 'red'))
-
-  def share_email(self, *args, **kwargs):
-      # check if email requested
-      if self.emailTo is None:
-          return
-
-      if len(self.emailTo)==0:
-          return
-
-      from ..emailMan import EmailMan
-      em = EmailMan(
-        dataType='cost analyze', # ec2, not redshift
-        dataVal={'table': self.table},
-        ctx=self.ctx
-      )
-      em.send(self.emailTo)
-
 

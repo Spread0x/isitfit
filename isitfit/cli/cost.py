@@ -30,21 +30,32 @@ def analyze(ctx, filter_tags):
     # moved these imports from outside the function to inside it so that `isitfit --version` wouldn't take 5 seconds due to the loading
     from ..cost.mainManager import MainManager
     from ..cost.utilizationListener import UtilizationListener
-    from ..cost.optimizerListener import OptimizerListener
     from ..cost.cacheManager import RedisPandas as RedisPandasCacheManager
     from ..cost.datadogManager import DatadogCached
+    from isitfit.cost.ec2.reporter import ReporterAnalyzeEc2
 
     share_email = ctx.obj.get('share_email', None)
-    ul = UtilizationListener(share_email, ctx)
+    ul = UtilizationListener(ctx)
     cache_man = RedisPandasCacheManager()
     ddg = DatadogCached(cache_man)
+    ra = ReporterAnalyzeEc2()
+    ra.set_analyzer(ul)
     mm = MainManager(ctx, ddg, filter_tags, cache_man)
+    def ra_postprocess_wrap(n_ec2_total, mm, n_ec2_analysed, region_include):
+      ul.n_ec2_total = n_ec2_total
+      ul.mm = mm
+      ul.n_ec2_analysed = n_ec2_analysed
+      ul.region_include = region_include
+      ra.postprocess()
+
+    ra_email_wrap = lambda *args, **kwargs: ra.email(share_email)
 
     # utilization listeners
     mm.add_listener('ec2', ul.per_ec2)
     mm.add_listener('all', ul.after_all)
-    mm.add_listener('all', ul.display_all)
-    mm.add_listener('all', ul.share_email)
+    mm.add_listener('all', ra_postprocess_wrap)
+    mm.add_listener('all', ra.display)
+    mm.add_listener('all', ra_email_wrap)
 
     # start download data and processing
     logger.info("Fetching history...")
@@ -74,7 +85,6 @@ def optimize(ctx, n, filter_tags):
 
     # moved these imports from outside the function to inside it so that `isitfit --version` wouldn't take 5 seconds due to the loading
     from ..cost.mainManager import MainManager
-    from ..cost.utilizationListener import UtilizationListener
     from ..cost.optimizerListener import OptimizerListener
     from ..cost.cacheManager import RedisPandas as RedisPandasCacheManager
     from ..cost.datadogManager import DatadogCached
