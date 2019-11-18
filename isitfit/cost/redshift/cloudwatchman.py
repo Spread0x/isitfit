@@ -4,6 +4,8 @@ from ...utils import SECONDS_IN_ONE_DAY
 import pandas as pd
 import boto3
 
+from isitfit.cost.mainManager import NoCloudwatchException
+
 import logging
 logger = logging.getLogger('isitfit')
 
@@ -19,7 +21,6 @@ class CloudwatchBase:
 
   def __init__(self):
     self._initDates()
-    self.rc_noCloudwatch = []
 
 
   def _initDates(self):
@@ -45,7 +46,7 @@ class CloudwatchBase:
         StartTime=self.StartTime,
         EndTime=self.EndTime,
         Period=SECONDS_IN_ONE_DAY,
-        Statistics=['Minimum', 'Average', 'Maximum'],
+        Statistics=['Minimum', 'Average', 'Maximum', 'SampleCount'],
         Unit = 'Percent'
     )
     return response
@@ -92,8 +93,7 @@ class CloudwatchBase:
     #logger.debug(response_metric)
 
     if len(response_metric['Datapoints'])==0:
-      self.rc_noCloudwatch.append(rc_id)
-      return None
+      raise NoCloudwatchException
 
     # convert to dataframe
     df = pd.DataFrame(response_metric['Datapoints'])
@@ -118,8 +118,8 @@ class CloudwatchBase:
 
         # no metrics for cluster, skip
         if m_i is None:
-            self.rc_noCloudwatch.append(rc_id)
-            return None
+            raise NoCloudwatchException
+
 
         # dataframe of CPU Utilization, max and min, over 90 days
         df = self.handle_metric(m_i, rc_id, rc_created)

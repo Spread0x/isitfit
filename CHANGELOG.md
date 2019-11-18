@@ -5,6 +5,7 @@ Version latest (0.15.0rc?, 2019-09-24?)
 
 - ...
 - enh: split out iterator from fetching cloudwatch data (in redshift.iterator)
+- enh: use exception instead of propagating missing cloudwatch data
 
 
 Version 0.14.0 (2019-11-15)

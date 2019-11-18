@@ -6,6 +6,7 @@
 from tqdm import tqdm
 import pandas as pd
 from .cloudwatchman import CloudwatchRedshift
+from isitfit.cost.mainManager import NoCloudwatchException
 
 # redshift pricing as of 2019-11-12 in USD per hour, on-demand, ohio
 # https://aws.amazon.com/redshift/pricing/
@@ -51,8 +52,11 @@ class AnalyzerBase:
     iter_wrap = tqdm(self.rp_iter, desc="%s, fetching CPU metrics"%self.rp_iter.service_description, total=self.n_rc_total)
     for rc_describe_entry, rc_id, rc_created in iter_wrap:
 
-      df_single = cwman.handle_main(rc_describe_entry, rc_id, rc_created)
-      if df_single is None:
+      df_single = None
+      try:
+        df_single = cwman.handle_main(rc_describe_entry, rc_id, rc_created)
+      except NoCloudwatchException as e:
+        self.rp_iter.rc_noData.append(rc_id)
         continue
 
       # for types not yet in pricing dictionary above
