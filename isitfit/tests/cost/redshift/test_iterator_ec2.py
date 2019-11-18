@@ -9,80 +9,6 @@ def test_init():
   rpi = Ec2Iterator()
   assert True # no exception
 
-# cannot use mock_cloudwatch
-# yields error:
-# botocore.exceptions.PaginationError: Error during pagination: The same next token was received twice
-#from moto import mock_cloudwatch
-#@mock_cloudwatch
-def test_handleCluster_notFound(mocker):
-  mockreturn = lambda *args, **kwargs: []
-  mockee = 'isitfit.cost.redshift.iterator.Ec2Iterator._metrics_filter'
-  mocker.patch(mockee, side_effect=mockreturn)
-
-  rpi = Ec2Iterator()
-  dummy_id = 'abc'
-  m_i = rpi.handle_cluster(dummy_id)
-  assert m_i is None
-
-
-def test_handleCluster_foundCluster(mocker):
-  class MockMetricCluster:
-    dimensions = [1]
-
-  mockreturn = lambda *args, **kwargs: [MockMetricCluster]
-  mockee = 'isitfit.cost.redshift.iterator.Ec2Iterator._metrics_filter'
-  mocker.patch(mockee, side_effect=mockreturn)
-
-  rpi = Ec2Iterator()
-  dummy_id = 'abc'
-  m_i = rpi.handle_cluster(dummy_id)
-  assert m_i is not None
-
-
-def test_handleCluster_foundMany(mocker):
-  class MockMetricCluster:
-    dimensions = [1]
-
-  class MockMetricNode:
-    dimensions = [1, 2]
-
-  mockreturn = lambda *args, **kwargs: [MockMetricNode, MockMetricCluster]
-  mockee = 'isitfit.cost.redshift.iterator.Ec2Iterator._metrics_filter'
-  mocker.patch(mockee, side_effect=mockreturn)
-
-  rpi = Ec2Iterator()
-  dummy_id = 'abc'
-  m_i = rpi.handle_cluster(dummy_id)
-  assert m_i is not None
-
-
-def test_handleMetric_empty(mocker):
-  mockreturn = lambda *args, **kwargs: {'Datapoints': []}
-  mockee = 'isitfit.cost.redshift.iterator.Ec2Iterator._metric_get_statistics'
-  mocker.patch(mockee, side_effect=mockreturn)
-
-  rpi = Ec2Iterator()
-  df = rpi.handle_metric(None, None, None)
-  assert df is None
-
-
-def test_handleMetric_notEmpty(mocker):
-  import datetime as dt
-  dt_now = dt.datetime.utcnow()
-
-  ex_dp = [
-    {'Timestamp': dt_now - dt.timedelta(seconds=1)},
-    {'Timestamp': dt_now - dt.timedelta(seconds=2)},
-    {'Timestamp': dt_now - dt.timedelta(seconds=3)}
-  ]
-  mockreturn = lambda *args, **kwargs: {'Datapoints': ex_dp}
-  mockee = 'isitfit.cost.redshift.iterator.Ec2Iterator._metric_get_statistics'
-  mocker.patch(mockee, side_effect=mockreturn)
-
-  rpi = Ec2Iterator()
-  df = rpi.handle_metric(None, None, dt_now)
-  assert df is not None
-
 
 from moto import mock_ec2
 @mock_ec2
@@ -144,22 +70,22 @@ def test_iteratorBuiltin(mocker):
   mocker.patch(mockee, side_effect=mockreturn)
 
   # patch 2
-  mockreturn = lambda *args, **kwargs: 1
-  mockee = 'isitfit.cost.redshift.iterator.BaseIterator.handle_cluster'
-  mocker.patch(mockee, side_effect=mockreturn)
+  #mockreturn = lambda *args, **kwargs: 1
+  #mockee = 'isitfit.cost.redshift.iterator.BaseIterator.handle_cluster'
+  #mocker.patch(mockee, side_effect=mockreturn)
 
   # patch 3
-  import pandas as pd
-  mockreturn = lambda *args, **kwargs: 'a dataframe' #pd.DataFrame()
-  mockee = 'isitfit.cost.redshift.iterator.BaseIterator.handle_metric'
-  mocker.patch(mockee, side_effect=mockreturn)
+  ## import pandas as pd
+  #mockreturn = lambda *args, **kwargs: 'a dataframe' #pd.DataFrame()
+  #mockee = 'isitfit.cost.redshift.iterator.BaseIterator.handle_metric'
+  #mocker.patch(mockee, side_effect=mockreturn)
 
   # test
   rpi = Ec2Iterator()
   x = list(rpi)
   assert len(x) == 1
   assert x[0][0] == ex_iterateCore[1]
-  assert x[0][1] == 'a dataframe'
+  assert x[0][1] == 'abc' # 'a dataframe'
 
 
 
@@ -190,5 +116,7 @@ def test_live_iterateCore():
   # again with instance iterator
   # Note that this returns 3 entries instead of 4
   # because one instance doesn't have data
+  # Edit 2019-11-18: moved cloudwatch part out of iterator,
+  # and hence this returns 4 again
   res = list(iterator)
-  assert len(res) == 3
+  assert len(res) == expect_n

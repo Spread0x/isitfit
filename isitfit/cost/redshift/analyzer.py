@@ -5,6 +5,7 @@
 
 from tqdm import tqdm
 import pandas as pd
+from .cloudwatchman import CloudwatchRedshift
 
 # redshift pricing as of 2019-11-12 in USD per hour, on-demand, ohio
 # https://aws.amazon.com/redshift/pricing/
@@ -46,7 +47,13 @@ class AnalyzerBase:
 
   def iterator(self):
     # get all performance dataframes, on the cluster-aggregated level
-    for rc_describe_entry, df_single in tqdm(self.rp_iter, desc="%s, fetching CPU metrics"%self.rp_iter.service_description, total=self.n_rc_total):
+    cwman = CloudwatchRedshift()
+    iter_wrap = tqdm(self.rp_iter, desc="%s, fetching CPU metrics"%self.rp_iter.service_description, total=self.n_rc_total)
+    for rc_describe_entry, rc_id, rc_created in iter_wrap:
+
+      df_single = cwman.handle_main(rc_describe_entry, rc_id, rc_created)
+      if df_single is None:
+        continue
 
       # for types not yet in pricing dictionary above
       rc_type = rc_describe_entry['NodeType']

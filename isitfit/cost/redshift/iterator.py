@@ -14,7 +14,6 @@ class BaseIterator:
   https://en.wikipedia.org/wiki/Iterator_pattern#Python
   """
 
-  cloudwatch_namespace = None
   service_name = None
   service_description = None
   paginator_name = None
@@ -25,8 +24,6 @@ class BaseIterator:
 
 
   def __init__(self):
-    self._initDates()
-
     # list of cluster ID's for which data is not available
     self.rc_noData = []
 
@@ -67,89 +64,6 @@ class BaseIterator:
       logger.debug("Loading regions containing EC2 from cache file")
       self.region_include = ri_cached
       self.regionInclude_ready = True
-
-
-  def _initDates(self):
-    # set start/end dates
-    N_DAYS=90
-
-    # FIXME? in mainManager, used pytz
-    # dt_now_d=dt.datetime.now().replace(tzinfo=pytz.utc)
-    dt_now_d = dt.datetime.utcnow()
-    self.StartTime = dt_now_d - dt.timedelta(days=N_DAYS)
-    self.EndTime = dt_now_d
-
-
-  def _metric_get_statistics(self, metric):
-    logger.debug("fetch cw")
-    logger.debug(metric.dimensions)
-
-    # util func
-    # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/cloudwatch.html#CloudWatch.Metric.get_statistics
-    # https://docs.aws.amazon.com/redshift/latest/mgmt/metrics-listing.html
-    response = metric.get_statistics(
-        Dimensions=metric.dimensions,
-        StartTime=self.StartTime,
-        EndTime=self.EndTime,
-        Period=SECONDS_IN_ONE_DAY,
-        Statistics=['Minimum', 'Average', 'Maximum'],
-        Unit = 'Percent'
-    )
-    return response
-
-
-  def _metrics_filter(self, rc_id):
-    if self.cloudwatch_namespace is None:
-      raise Exception("Derived class should set cloudwatch_namespace")
-
-    metrics_iterator = self.cloudwatch_resource.metrics.filter(
-        Namespace = self.cloudwatch_namespace,
-        MetricName = 'CPUUtilization',
-        Dimensions=[
-            {'Name': self.entry_keyId, 'Value': rc_id},
-        ]
-      )
-    return metrics_iterator
-
-
-  def handle_cluster(self, rc_id):
-
-    #logger.debug("redshift cluster details")
-    #logger.debug(rc_describe_entry)
-
-    # remember that max for cluster = max of stats of all nodes
-    logger.debug("Getting cloudwatch for cluster: %s"%(rc_id))
-    metrics_iterator = self._metrics_filter(rc_id)
-    for m_i in metrics_iterator:
-        # skip node stats for now, and focus on cluster stats
-        # i.e. dimensions only ClusterIdentifier, without the NodeID key
-        if len(m_i.dimensions)>1:
-          continue
-
-        # exit the for loop and return this particular metric (cluster)
-        return m_i
-
-    # in case no cluster metrics found
-    return None
-
-
-  def handle_metric(self, m_i, rc_id, ClusterCreateTime):
-    response_metric = self._metric_get_statistics(m_i)
-    #logger.debug("cw response_metric")
-    #logger.debug(response_metric)
-
-    if len(response_metric['Datapoints'])==0:
-      self.rc_noData.append(rc_id)
-      return None
-
-    # convert to dataframe
-    df = pd.DataFrame(response_metric['Datapoints'])
-
-    # drop points "before create time" (bug in cloudwatch?)
-    df = df[ df['Timestamp'] >= ClusterCreateTime ]
-
-    # print
-    return df
 
 
   def iterate_core(self, just_counting=False, display_tqdm=False):
@@ -246,24 +160,12 @@ class BaseIterator:
           continue
 
         rc_created = rc_describe_entry[self.entry_keyCreated]
-        logger.debug("Found cluster %s"%rc_id)
-        m_i = self.handle_cluster(rc_id)
 
-        # no metrics for cluster, skip
-        if m_i is None:
-            self.rc_noData.append(rc_id)
-            continue
-
-        # dataframe of CPU Utilization, max and min, over 90 days
-        df = self.handle_metric(m_i, rc_id, rc_created)
-
-
-        yield rc_describe_entry, df
+        yield rc_describe_entry, rc_id, rc_created
 
 
 
 class RedshiftPerformanceIterator(BaseIterator):
-  cloudwatch_namespace = 'AWS/Redshift'
   service_name = 'redshift'
   service_description = 'Redshift clusters'
   paginator_name = 'describe_clusters'
@@ -274,7 +176,6 @@ class RedshiftPerformanceIterator(BaseIterator):
 
 
 class Ec2Iterator(BaseIterator):
-  cloudwatch_namespace = 'AWS/EC2'
   service_name = 'ec2'
   service_description = 'EC2 instances'
   paginator_name = 'describe_instances'

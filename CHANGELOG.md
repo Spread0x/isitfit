@@ -1,9 +1,10 @@
 Semantic versioning
 
 
-Version latest (0.12.0rc?, 2019-09-24?)
+Version latest (0.15.0rc?, 2019-09-24?)
 
 - ...
+- enh: split out iterator from fetching cloudwatch data (in redshift.iterator)
 
 
 Version 0.14.0 (2019-11-15)
