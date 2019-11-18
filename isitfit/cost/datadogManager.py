@@ -104,6 +104,7 @@ class DatadogAssistant:
         df['ram_used_avg'] = 100 - df['ram_free_avg']
         return df
 
+
 class DatadogManager:
     
     def __init__(self):

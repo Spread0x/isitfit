@@ -4,7 +4,6 @@ from tqdm import tqdm
 import datetime as dt
 import numpy as np
 import pytz
-from .datadogManager import HostNotFoundInDdg, DataNotFoundForHostInDdg
 
 import logging
 logger = logging.getLogger('isitfit')
