@@ -10,6 +10,7 @@ Version latest (0.15.0rc?, 2019-09-24?)
 - enh: factor out datadog cached manager to a class, planning to inherit from the same base class as CloudwatchCached
 - enh: move datadog caching into class that inherits from non-cached class
 - enh: split out report from ec2 analyzer
+- enh: split out report from ec2 optimizer
 
 
 Version 0.14.0 (2019-11-15)

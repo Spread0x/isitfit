@@ -48,6 +48,7 @@ def analyze(ctx, filter_tags):
       ul.region_include = region_include
       ra.postprocess()
 
+    ra_display = lambda *args, **kwargs: ra.display()
     ra_email_wrap = lambda *args, **kwargs: ra.email(share_email)
 
     # utilization listeners
@@ -88,18 +89,28 @@ def optimize(ctx, n, filter_tags):
     from ..cost.optimizerListener import OptimizerListener
     from ..cost.cacheManager import RedisPandas as RedisPandasCacheManager
     from ..cost.datadogManager import DatadogCached
+    from isitfit.cost.ec2.reporter import ReporterOptimizeEc2
 
     ol = OptimizerListener(n)
     cache_man = RedisPandasCacheManager()
     ddg = DatadogCached(cache_man)
+    ra = ReporterOptimizeEc2()
+    ra.set_analyzer(ol)
     mm = MainManager(ctx, ddg, filter_tags, cache_man)
+
+    ra_display = lambda *args, **kwargs: ra.display()
+    def ra_postprocess_wrap(n_ec2_total, mm, n_ec2_analysed, region_include):
+      ol.n_ec2_total = n_ec2_total
+      ol.mm = mm
+      ol.n_ec2_analysed = n_ec2_analysed
+      ol.region_include = region_include
+      ra.postprocess()
 
     # utilization listeners
     mm.add_listener('pre', ol.handle_pre)
     mm.add_listener('ec2', ol.per_ec2)
-    mm.add_listener('all', ol.after_all)
-    mm.add_listener('all', ol.storecsv_all)
-    mm.add_listener('all', ol.display_all)
+    mm.add_listener('all', ra_postprocess_wrap)
+    mm.add_listener('all', ra_display)
 
 
     # start download data and processing
