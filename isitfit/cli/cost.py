@@ -31,12 +31,14 @@ def analyze(ctx, filter_tags):
     from ..cost.mainManager import MainManager
     from ..cost.utilizationListener import UtilizationListener
     from ..cost.optimizerListener import OptimizerListener
-    from ..cost.datadogManager import DatadogManager
+    from ..cost.cacheManager import RedisPandas as RedisPandasCacheManager
+    from ..cost.datadogManager import DatadogCached
 
     share_email = ctx.obj.get('share_email', None)
     ul = UtilizationListener(share_email, ctx)
-    ddg = DatadogManager()
-    mm = MainManager(ctx, ddg, filter_tags)
+    cache_man = RedisPandasCacheManager()
+    ddg = DatadogCached(cache_man)
+    mm = MainManager(ctx, ddg, filter_tags, cache_man)
 
     # utilization listeners
     mm.add_listener('ec2', ul.per_ec2)
@@ -74,11 +76,13 @@ def optimize(ctx, n, filter_tags):
     from ..cost.mainManager import MainManager
     from ..cost.utilizationListener import UtilizationListener
     from ..cost.optimizerListener import OptimizerListener
-    from ..cost.datadogManager import DatadogManager
+    from ..cost.cacheManager import RedisPandas as RedisPandasCacheManager
+    from ..cost.datadogManager import DatadogCached
 
     ol = OptimizerListener(n)
-    ddg = DatadogManager()
-    mm = MainManager(ctx, ddg, filter_tags)
+    cache_man = RedisPandasCacheManager()
+    ddg = DatadogCached(cache_man)
+    mm = MainManager(ctx, ddg, filter_tags, cache_man)
 
     # utilization listeners
     mm.add_listener('pre', ol.handle_pre)

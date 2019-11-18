@@ -143,3 +143,42 @@ class DatadogManager:
         )
         df_all = df_all[['ts_dt', 'cpu_used_max', 'cpu_used_avg', 'ram_used_max', 'ram_used_avg']]
         return df_all
+
+
+from ..utils import myreturn
+class DatadogCached(DatadogManager):
+    def __init__(self, cache_man):
+      """
+      cache_man - RedisPandasCacheManager
+      """
+      self.cache_man = cache_man
+      super().__init__()
+
+    def get_metrics_all(self, host_id):
+        # check cache first
+        cache_key = "mainManager._get_ddg_cached/%s"%host_id
+        if self.cache_man.isReady():
+          df_cache = self.cache_man.get(cache_key)
+          if df_cache is not None:
+            logger.debug("Found datadog metrics in redis cache for %s, and data.shape[0] = %i"%(host_id, df_cache.shape[0]))
+            return myreturn(df_cache)
+
+        # if no cache, then download
+        df_fresh = pd.DataFrame() # use an empty dataframe in order to distinguish when getting from cache if not available in cache or data not found but set in cache
+        try:
+          df_fresh = self.ddg.get_metrics_all(host_id)
+        except HostNotFoundInDdg:
+          pass
+        except DataNotFoundForHostInDdg:
+          pass
+
+        # if caching enabled, store it for later fetching
+        # https://stackoverflow.com/a/57986261/4126114
+        # Note that this even stores the result if it was "None" (meaning that no data was found)
+        if self.cache_man.isReady():
+          # print("Saving to redis %s"%host_id)
+          self.cache_man.set(cache_key, df_fresh)
+
+        # done
+        return myreturn(df_fresh)
+

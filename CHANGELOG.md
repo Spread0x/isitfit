@@ -7,6 +7,7 @@ Version latest (0.15.0rc?, 2019-09-24?)
 - enh: split out iterator from fetching cloudwatch data (in redshift.iterator)
 - enh: use exception instead of propagating missing cloudwatch data
 - enh: move cost.mainManager parts about cloudwatch to use cost.redshift.cloudwatchman. Now redshift metrics are also cached to redis
+- enh: factor out datadog cached manager to a class, planning to inherit from the same base class as CloudwatchCached
 
 
 Version 0.14.0 (2019-11-15)
