@@ -35,7 +35,7 @@ def tagsContain(f_tn, ec2_obj):
 
 from isitfit.cost.cacheManager import RedisPandas as RedisPandasCacheManager
 class MainManager:
-    def __init__(self, ctx, ddg=None, filter_tags=None):
+    def __init__(self, ctx, ddg=None, filter_tags=None, cache_man=None):
         # set start/end dates
         dt_now_d=dt.datetime.now().replace(tzinfo=pytz.utc)
         self.StartTime=dt_now_d - dt.timedelta(days=N_DAYS)
@@ -43,7 +43,7 @@ class MainManager:
         logger.debug("Metrics start..end: %s .. %s"%(self.StartTime, self.EndTime))
 
         # manager of redis-pandas caching
-        self.cache_man = RedisPandasCacheManager()
+        self.cache_man = cache_man
 
         # boto3 cloudtrail data
         self.cloudtrail_manager = CloudtrailEc2typeManager(dt_now_d, self.cache_man)
@@ -250,7 +250,7 @@ And finally re-run isitfit as usual.
           return None
 
         # check cache first
-        return self.ddg.get_metrics_all(host_id)
+        return self.ddg.get_metrics_all(ec2_obj.instance_id)
 
 
     def _handle_ec2obj(self, ec2_obj):

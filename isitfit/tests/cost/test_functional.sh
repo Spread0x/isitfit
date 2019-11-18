@@ -11,6 +11,7 @@ ISITFIT_REDIS_DB=0
 # clear caching
 rm -rf /tmp/isitfit_ec2info.cache
 redis-cli -n $ISITFIT_REDIS_DB flushdb #  || echo "redis db clear failed" (eg db number out of range)
+rm ~/.isitfit/iterator_cache-*.pkl
 
 # Set the UID to the one for testing (so as not to clutter matomo data)
 # This risks no longer testing the automatic creation of the folders

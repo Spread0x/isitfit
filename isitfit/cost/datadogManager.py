@@ -166,7 +166,7 @@ class DatadogCached(DatadogManager):
         # if no cache, then download
         df_fresh = pd.DataFrame() # use an empty dataframe in order to distinguish when getting from cache if not available in cache or data not found but set in cache
         try:
-          df_fresh = self.ddg.get_metrics_all(host_id)
+          df_fresh = super().get_metrics_all(host_id)
         except HostNotFoundInDdg:
           pass
         except DataNotFoundForHostInDdg:
