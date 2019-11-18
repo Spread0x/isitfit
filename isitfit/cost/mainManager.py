@@ -10,7 +10,7 @@ logger = logging.getLogger('isitfit')
 
 
 from ..utils import mergeSeriesOnTimestampRange, ec2_catalog, SECONDS_IN_ONE_DAY, NoCloudwatchException, myreturn
-from .cloudtrail_ec2type import Manager as CloudtrailEc2typeManager
+from .cloudtrail_ec2type import CloudtrailCached
 from isitfit.cost.redshift.cloudwatchman import CloudwatchEc2
 
 MINUTES_IN_ONE_DAY = 60*24 # 1440
@@ -45,7 +45,7 @@ class MainManager:
         self.cache_man = cache_man
 
         # boto3 cloudtrail data
-        self.cloudtrail_manager = CloudtrailEc2typeManager(dt_now_d, self.cache_man)
+        self.cloudtrail_manager = CloudtrailCached(dt_now_d, self.cache_man)
 
         # listeners post ec2 data fetch and post all activities
         self.listeners = {'pre':[], 'ec2': [], 'all': []}

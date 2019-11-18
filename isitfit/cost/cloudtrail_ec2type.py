@@ -10,14 +10,13 @@ logger = logging.getLogger('isitfit')
 
 
 class Manager:
-    def __init__(self, EndTime, cache_man):
+    def __init__(self, EndTime):
         self.EndTime = EndTime
-        self.cache_man = cache_man
 
     def init_data(self, ec2_instances, region_include, n_ec2):
         # get cloudtail ec2 type changes for all instances
         self.region_include = region_include
-        self.df_cloudtrail = self._fetch_cached()
+        self.df_cloudtrail = self._fetch()
 
         # first pass to append ec2 types to cloudtrail based on "now"
         self.df_cloudtrail = self.df_cloudtrail.reset_index()
@@ -30,30 +29,7 @@ class Manager:
         self.df_cloudtrail = self.df_cloudtrail.set_index(["instanceId", "EventTime"]).sort_index(ascending=False)
 
 
-    def _fetch_cached(self):
-        # get cloudtrail ec2 type changes for all instances
-
-        # check cache first
-        cache_key = "cloudtrail_ec2type._fetch"
-        if self.cache_man.isReady():
-          df_cache = self.cache_man.get(cache_key)
-          if df_cache is not None:
-            logger.debug("Found cloudtrail data in redis cache")
-            return df_cache
-
-        # if no cache, then download
-        df_fresh = self._fetch_core()
-
-        # if caching enabled, store it for later fetching
-        # https://stackoverflow.com/a/57986261/4126114
-        if self.cache_man.isReady():
-          self.cache_man.set(cache_key, df_fresh)
-
-        # done
-        return df_fresh
-
-
-    def _fetch_core(self):
+    def _fetch(self):
         # get cloudtrail ec2 type changes for all instances
         logger.debug("Downloading cloudtrail data (from %i regions)"%len(self.region_include))
         df_2 = []
@@ -97,7 +73,6 @@ class Manager:
     """
 
 
-
     def _appendNow(self, ec2_obj):
         # artificially append an entry for "now" with the current type
         # This is useful for instance who have no entries in the cloudtrail
@@ -120,4 +95,33 @@ class Manager:
 
         return self.df_cloudtrail.loc[ec2_obj.instance_id]
 
+
+
+class CloudtrailCached(Manager):
+    def __init__(self, EndTime, cache_man):
+        super().__init__(EndTime)
+        self.cache_man = cache_man
+
+
+    def _fetch(self):
+        # get cloudtrail ec2 type changes for all instances
+
+        # check cache first
+        cache_key = "cloudtrail_ec2type._fetch"
+        if self.cache_man.isReady():
+          df_cache = self.cache_man.get(cache_key)
+          if df_cache is not None:
+            logger.debug("Found cloudtrail data in redis cache")
+            return df_cache
+
+        # if no cache, then download
+        df_fresh = super()._fetch()
+
+        # if caching enabled, store it for later fetching
+        # https://stackoverflow.com/a/57986261/4126114
+        if self.cache_man.isReady():
+          self.cache_man.set(cache_key, df_fresh)
+
+        # done
+        return df_fresh
 
