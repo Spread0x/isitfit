@@ -93,7 +93,7 @@ class ReporterAnalyzeEc2(ReporterBase):
       if len(emailTo)==0:
           return
 
-      from ..emailMan import EmailMan
+      from isitfit.emailMan import EmailMan
       em = EmailMan(
         dataType='cost analyze', # ec2, not redshift
         dataVal={'table': self.table},

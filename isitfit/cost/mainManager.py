@@ -34,7 +34,7 @@ def tagsContain(f_tn, ec2_obj):
 
 from isitfit.cost.cacheManager import RedisPandas as RedisPandasCacheManager
 class MainManager:
-    def __init__(self, ctx, filter_tags=None, cache_man=None):
+    def __init__(self, ctx, cache_man=None):
         # set start/end dates
         dt_now_d=dt.datetime.now().replace(tzinfo=pytz.utc)
         self.StartTime=dt_now_d - dt.timedelta(days=N_DAYS)
@@ -49,9 +49,6 @@ class MainManager:
 
         # listeners post ec2 data fetch and post all activities
         self.listeners = {'pre':[], 'ec2': [], 'all': []}
-
-        # filtering by tags
-        self.filter_tags = filter_tags
 
         # click context for errors
         self.ctx = ctx
@@ -173,26 +170,21 @@ And finally re-run isitfit as usual.
         ec2_noCloudtrail = []
         # Edit 2019-11-12 use "initial=0" instead of "=1". Check more details in a similar note in "cloudtrail_ec2type.py"
         for ec2_obj in tqdm(self.ec2_iterator(), total=n_ec2_total, desc="Pass 2/2 through EC2 instances", initial=0):
-          # if filters requested, check that this instance passes
-          if self.filter_tags is not None:
-            f_tn = self.filter_tags.lower()
-            passesFilter = tagsContain(f_tn, ec2_obj)
-            if not passesFilter:
-              continue
 
           try:
-            ec2_df = self._handle_ec2obj(ec2_obj)
-            n_ec2_analysed += 1
-
             # context dict to be passed between listeners
             context_ec2 = {}
             context_ec2['ec2_obj'] = ec2_obj
-            context_ec2['ec2_df'] = ec2_df
             context_ec2['mainManager'] = self
 
+            n_ec2_analysed += 1
+
             # call listeners
+            # Listener can return None to break out of loop,
+            # i.e. to stop processing with other listeners
             for l in self.listeners['ec2']:
               context_ec2 = l(context_ec2)
+              if context_ec2 is None: break
 
           except NoCloudwatchException:
             ec2_noCloudwatch.append(ec2_obj.instance_id)
@@ -243,7 +235,10 @@ And finally re-run isitfit as usual.
         return df_cw3
 
 
-    def _handle_ec2obj(self, ec2_obj):
+    def _handle_ec2obj(self, context_ec2):
+        # parse out
+        ec2_obj = context_ec2['ec2_obj']
+
         # logger.debug("%s, %s"%(ec2_obj.instance_id, ec2_obj.instance_type))
 
         # pandas series of CPU utilization, daily max, for 90 days
@@ -285,4 +280,8 @@ And finally re-run isitfit as usual.
         # A: ... For example, if you request for 1-minute data for a day from 10 days ago, you will receive the 1440 data points ...
         ec2_df['nhours'] = np.ceil(ec2_df.SampleCount/60)
 
-        return ec2_df
+        # set in context
+        context_ec2['ec2_df'] = ec2_df
+
+        # done
+        return context_ec2

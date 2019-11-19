@@ -159,9 +159,9 @@ class OptimizerListener:
     if taglist is None:
       taglist = []
 
-    if mm.filter_tags is not None:
+    if context_ec2['filter_tags'] is not None:
       # filter the tag list for only those containing the filter-tags string
-      f_tn = mm.filter_tags.lower()
+      f_tn = context_ec2['filter_tags'].lower()
       # similar to the isitfit.mainManager.tagsContain function, but filtering the tags themselves
       taglist = [x for x in taglist if (f_tn in x['Key'].lower()) or (f_tn in x['Value'].lower())]
 
