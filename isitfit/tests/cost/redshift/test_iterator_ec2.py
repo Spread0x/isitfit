@@ -37,8 +37,8 @@ def test_iterateCore_exists(mocker):
 
   # create mock redshift
   import boto3
-  redshift_client = boto3.resource('ec2')
-  redshift_client.create_instances(
+  ec2_client = boto3.resource('ec2')
+  ec2_client.create_instances(
     MinCount = 1,
     MaxCount = 1,
     InstanceType='t2.medium'
@@ -53,14 +53,26 @@ def test_iterateCore_exists(mocker):
 
 # cannot name function "test_iterator" because the filename is as such
 # pytest .../test_iterator.py -k 'test_iterator' would run all tests, not just this one
+@mock_ec2
 def test_iteratorBuiltin(mocker):
+  # create an instance
+  import boto3
+  ec2_client = boto3.resource('ec2')
+  response_created = ec2_client.create_instances(
+    MinCount = 1,
+    MaxCount = 1,
+    InstanceType='t2.medium'
+  )
+  response_created = response_created[0]
+
+  # proceed
   import datetime as dt
   dt_now = dt.datetime.utcnow()
 
   # patch 1
   ex_iterateCore = [
-    {'InstanceId': 'abc'}, # no creation time
-    {'InstanceId': 'abc', 'LaunchTime': dt_now}, # with creation time
+    {'Region': 'us-east-1', 'InstanceId': response_created.instance_id}, # no creation time
+    {'Region': 'us-east-1', 'InstanceId': response_created.instance_id, 'LaunchTime': dt_now}, # with creation time
   ]
   def mockreturn(*args, **kwargs):
     for x in ex_iterateCore:
@@ -84,8 +96,7 @@ def test_iteratorBuiltin(mocker):
   rpi = Ec2Iterator()
   x = list(rpi)
   assert len(x) == 1
-  assert x[0][0] == ex_iterateCore[1]
-  assert x[0][1] == 'abc' # 'a dataframe'
+  assert x[0] == response_created
 
 
 

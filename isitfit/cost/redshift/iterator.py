@@ -124,6 +124,7 @@ class BaseIterator:
             self.region_include.append(region_name)
 
       except botocore.exceptions.ClientError as e:
+        # Exception that means "no access to region"
         if e.response['Error']['Code']==self.paginator_exception:
           continue
 

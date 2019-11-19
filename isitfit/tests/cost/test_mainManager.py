@@ -4,7 +4,7 @@ class TestMainManager:
 
   def test_addListener_failInvalid(self):
     from ...cost.mainManager import MainManager
-    mm = MainManager(None, None)
+    mm = MainManager(None)
     import pytest
     from ...utils import IsitfitCliError
     with pytest.raises(IsitfitCliError) as e:
