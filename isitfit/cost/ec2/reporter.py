@@ -85,7 +85,10 @@ class ReporterAnalyzeEc2(ReporterBase):
     logger.info(colored("* CWAU >= 70% is well optimized", 'green'))
     logger.info(colored("* CWAU <= 30% is underused", 'red'))
 
-  def email(self, emailTo):
+  def email(self, emailTo, ctx):
+      """
+      ctx - click context
+      """
       # check if email requested
       if emailTo is None:
           return
@@ -97,7 +100,7 @@ class ReporterAnalyzeEc2(ReporterBase):
       em = EmailMan(
         dataType='cost analyze', # ec2, not redshift
         dataVal={'table': self.table},
-        ctx=self.ctx
+        ctx=ctx
       )
       em.send(emailTo)
 

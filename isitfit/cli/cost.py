@@ -53,7 +53,7 @@ def analyze(ctx, filter_tags):
       ra.postprocess()
 
     ra_display = lambda *args, **kwargs: ra.display()
-    ra_email_wrap = lambda *args, **kwargs: ra.email(share_email)
+    ra_email_wrap = lambda *args, **kwargs: ra.email(share_email, ctx)
 
     # utilization listeners
     mm.add_listener('ec2', etf.per_ec2)
