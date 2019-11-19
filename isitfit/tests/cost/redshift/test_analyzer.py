@@ -17,36 +17,6 @@ class TestAnalyzerBase:
     assert True # no exception
 
 
-  def test_fetchCount_zero(self):
-    class MockIter:
-      def iterate_core(self, display_tqdm):
-        return []
-
-    # prepare
-    mi = MockIter()
-    ra = AnalyzerBase()
-    ra.set_iterator(mi)
-
-    # run and test
-    ra.count()
-    assert ra.n_rc_total == 0
-
-
-  def test_fetchCount_one(self):
-    class MockIter:
-      def iterate_core(self, display_tqdm):
-        yield 1
-
-    # prepare
-    mi = MockIter()
-    ra = AnalyzerBase()
-    ra.set_iterator(mi)
-
-    # run and test
-    ra.count()
-    assert ra.n_rc_total == 1
-
-
 class TestAnalyzerAnalyze:
 
   def test_fetch(self, mocker):
@@ -64,19 +34,13 @@ class TestAnalyzerAnalyze:
         dt_now_d
       ),
     ]
-    class MockIter:
-      service_description = 'test iterator'
-      def __iter__(self):
-        for i in ex_iter: yield i
 
     # prepare
-    mi = MockIter()
     ra = AnalyzerAnalyze()
-    ra.set_iterator(mi)
-    ra.n_rc_total = 1
+    ra.analyze_list = ex_iter
 
     # run and test
-    ra.fetch()
+    ra.after_all({'click_ctx': None})
     assert ra.analyze_df.shape[0] == 1
 
 
@@ -85,7 +49,7 @@ class TestAnalyzerAnalyze:
     ra.analyze_df = pd.DataFrame([
       {'CostUsed': 1, 'CostBilled': 100, 'Region': 'bla'}
     ])
-    ra.calculate()
+    ra.calculate({})
     assert ra.cwau_percent == 1
 
 
@@ -103,19 +67,13 @@ class TestAnalyzerOptimize:
         dt_now_d
       ),
     ]
-    class MockIter:
-      service_description = 'test iterator'
-      def __iter__(self):
-        for i in ex_iter: yield i
 
     # prepare
-    mi = MockIter()
     ra = AnalyzerOptimize()
-    ra.set_iterator(mi)
-    ra.n_rc_total = len(ex_iter)
+    ra.analyze_list = ex_iter
 
     # run and test
-    ra.fetch()
+    ra.after_all({'click_ctx': None})
     assert ra.analyze_df.shape[0] == 1
 
 
@@ -125,5 +83,5 @@ class TestAnalyzerOptimize:
       {'CpuMaxMax': 90, 'CpuMinMin': 80, 'Cost': 1, 'NumberOfNodes': 3},
       {'CpuMaxMax': 50, 'CpuMinMin':  1, 'Cost': 1, 'NumberOfNodes': 3},
     ])
-    ra.calculate()
+    ra.calculate({})
     assert ra.analyze_df.classification.tolist() == ['Overused', 'Normal']

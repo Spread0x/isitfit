@@ -41,6 +41,13 @@ class BaseIterator:
     self.n_entry = None
 
 
+  def get_regionInclude(self):
+    """
+    for the sake of mocking in the test tests/cost/redshift/test_cli.py:15
+    """
+    return self.region_include
+
+
   def _initCache(self):
     """
     # try to load region_include from cache
@@ -151,8 +158,8 @@ class BaseIterator:
 
     self.n_entry = len(list(self.iterate_core(True)))
 
-    msg_count = "Found a total of %i EC2 instance(s) in %i region(s) (other regions do not hold any EC2)"
-    logger.warning(msg_count%(self.n_entry, len(self.region_include)))
+    msg_count = "Found a total of %i %s in %i region(s) (other regions do not hold any %s)"
+    logger.warning(msg_count%(self.n_entry, self.service_description, len(self.region_include), self.service_name))
 
     return self.n_entry
 
@@ -180,7 +187,8 @@ class BaseIterator:
 
         rc_created = rc_describe_entry[self.entry_keyCreated]
 
-        yield rc_describe_entry, rc_id, rc_created
+        # None below is a placeholder for ec2_obj in case of ec2
+        yield rc_describe_entry, rc_id, rc_created, None
 
 
 
@@ -222,7 +230,7 @@ class Ec2Iterator(BaseIterator):
     # Once the redshift.iterator can cache to redis, then the cloudwatch part here
     # can also be dropped, as well as using the "ec2_it" iterator directly
     # for ec2_dict in self.ec2_it:
-    for ec2_dict, ec2_id, ec2_launctime in super().__iter__():
+    for ec2_dict, ec2_id, ec2_launchtime, _ in super().__iter__():
       if ec2_dict['Region'] not in ec2_resource_all.keys():
         boto3.setup_default_session(region_name = ec2_dict['Region'])
         ec2_resource_all[ec2_dict['Region']] = boto3.resource('ec2')
@@ -236,6 +244,6 @@ class Ec2Iterator(BaseIterator):
       # yield first entry
       ec2_obj = ec2_l[0]
       ec2_obj.region_name = ec2_dict['Region']
-      yield ec2_obj
 
+      yield ec2_dict, ec2_id, ec2_launchtime, ec2_obj
 

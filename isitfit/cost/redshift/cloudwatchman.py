@@ -150,16 +150,6 @@ class CloudwatchBase:
         return df
 
 
-  def per_ec2(self, context_ec2):
-        """
-        Raises NoCloudwatchException if no data found in cloudwatch
-        """
-        ec2_obj = context_ec2['ec2_obj']
-        df_cw3 = self.handle_main({'Region': ec2_obj.region_name}, ec2_obj.instance_id, ec2_obj.launch_time)
-        context_ec2['df_metrics'] = df_cw3
-        return context_ec2
-
-
 class CloudwatchCached(CloudwatchBase):
   def __init__(self, cache_man=None):
     """
@@ -219,8 +209,27 @@ class CloudwatchRedshift(CloudwatchCached):
   cloudwatch_namespace = 'AWS/Redshift'
   entry_keyId = 'ClusterIdentifier'
 
+  def per_ec2(self, context_ec2):
+        """
+        Raises NoCloudwatchException if no data found in cloudwatch
+        """
+        rc_describe_entry, rc_id, rc_created = context_ec2['ec2_dict'], context_ec2['ec2_id'], context_ec2['ec2_launchtime']
+        df_single = self.handle_main(rc_describe_entry, rc_id, rc_created)
+        context_ec2['df_single'] = df_single
+        return context_ec2
+
+
 
 class CloudwatchEc2(CloudwatchCached):
   cloudwatch_namespace = 'AWS/EC2'
   entry_keyId = 'InstanceId'
+
+  def per_ec2(self, context_ec2):
+        """
+        Raises NoCloudwatchException if no data found in cloudwatch
+        """
+        ec2_obj = context_ec2['ec2_obj']
+        df_cw3 = self.handle_main({'Region': ec2_obj.region_name}, ec2_obj.instance_id, ec2_obj.launch_time)
+        context_ec2['df_metrics'] = df_cw3
+        return context_ec2
 

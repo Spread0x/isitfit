@@ -96,7 +96,7 @@ def test_iteratorBuiltin(mocker):
   rpi = Ec2Iterator()
   x = list(rpi)
   assert len(x) == 1
-  assert x[0] == response_created
+  assert x[0][3] == response_created
 
 
 

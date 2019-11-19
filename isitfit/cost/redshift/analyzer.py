@@ -5,9 +5,7 @@
 
 from tqdm import tqdm
 import pandas as pd
-from .cloudwatchman import CloudwatchRedshift
 from isitfit.cost.mainManager import NoCloudwatchException
-from ..cacheManager import RedisPandas as RedisPandasCacheManager
 
 # redshift pricing as of 2019-11-12 in USD per hour, on-demand, ohio
 # https://aws.amazon.com/redshift/pricing/
@@ -27,8 +25,7 @@ redshiftPricing_dict = {
 
 
 class AnalyzerBase:
-  n_rc_total = 0
-  n_rc_analysed = 0
+
 
   def __init__(self):
     # define the list in the constructor because if I define it as a class member above,
@@ -36,51 +33,22 @@ class AnalyzerBase:
     self.analyze_list = []
     self.analyze_df = None
 
-    # manager of redis-pandas caching
-    self.cache_man = RedisPandasCacheManager()
-
-    # manager of cloudwatch
-    self.cwman = CloudwatchRedshift(self.cache_man)
+    self.n_rc_total = 0
+    self.n_rc_analysed = 0
 
 
-  def set_iterator(self, rp_iter):
-    """
-    rp_iter - from .iterator import RedshiftPerformanceIterator
-    """
-    self.rp_iter = rp_iter
-
-  def count(self):
-    # count clusters
-    for rc_describe_entry in self.rp_iter.iterate_core(True):
-      self.n_rc_total += 1
-
-  def iterator(self):
-    # set up caching if requested
-    self.cache_man.fetch_envvars()
-    if self.cache_man.isSetup():
-      self.cache_man.connect()
-
-    # get all performance dataframes, on the cluster-aggregated level
-    iter_wrap = tqdm(self.rp_iter, desc="%s, fetching CPU metrics"%self.rp_iter.service_description, total=self.n_rc_total)
-    for rc_describe_entry, rc_id, rc_created in iter_wrap:
-
-      df_single = None
-      try:
-        df_single = self.cwman.handle_main(rc_describe_entry, rc_id, rc_created)
-      except NoCloudwatchException as e:
-        self.rp_iter.rc_noData.append(rc_id)
-        continue
+  def per_ec2(self, context_ec2):
+      rc_describe_entry = context_ec2['ec2_dict']
 
       # for types not yet in pricing dictionary above
       rc_type = rc_describe_entry['NodeType']
       if rc_type not in redshiftPricing_dict.keys():
-        rc_id = rc_describe_entry['ClusterIdentifier']
-        self.rp_iter.rc_noData.append(rc_id)
-        continue
+        raise NoCloudwatchException
 
-      yield rc_describe_entry, df_single
+      return context_ec2
 
-  def fetch(self):
+
+  def after_all(self, context_all):
     # To be used by derived class *after* its own implementation
 
     # gather into a single dataframe
@@ -89,21 +57,35 @@ class AnalyzerBase:
     # update number of analyzed clusters
     self.n_rc_analysed = self.analyze_df.shape[0]
 
-  def calculate(self):
+    if self.n_rc_analysed==0:
+      from isitfit.utils import IsitfitCliError
+      raise IsitfitCliError("No redshift clusters analyzed", context_all['click_ctx'])
+
+    return context_all
+
+
+  def calculate(self, context_all):
     raise Exception("To be implemented by derived class")
 
 
 
+import datetime as dt
+import pytz
+import math
+dt_now_d = dt.datetime.utcnow().replace(tzinfo=pytz.utc)
+
 class AnalyzerAnalyze(AnalyzerBase):
 
-  def fetch(self):
-    # get all performance dataframes, on the cluster-aggregated level
-    import datetime as dt
-    import pytz
-    import math
-    dt_now_d = dt.datetime.utcnow().replace(tzinfo=pytz.utc)
+  def per_ec2(self, context_ec2):
+      # parent
+      context_ec2 = super().per_ec2(context_ec2)
 
-    for rc_describe_entry, df_single in self.iterator():
+      # unpack
+      rc_describe_entry, rc_id, rc_created = context_ec2['ec2_dict'], context_ec2['ec2_id'], context_ec2['ec2_launchtime']
+
+      # get all performance dataframes, on the cluster-aggregated level
+      df_single = context_ec2['df_single']
+
       rc_type = rc_describe_entry['NodeType']
 
       # append a n_hours field per day
@@ -141,11 +123,12 @@ class AnalyzerAnalyze(AnalyzerBase):
         'CostBilled': (1                       * redshiftPricing_dict[rc_type] * df_single.n_hours * rc_describe_entry['NumberOfNodes']).sum()
       })
 
-    # done
-    super().fetch()
+      # done
+      return context_ec2
 
 
-  def calculate(self):
+
+  def calculate(self, context_all):
     # calculate cost-weighted utilization
     analyze_df = self.analyze_df
     self.cost_used   = analyze_df.CostUsed.fillna(value=0).sum()
@@ -154,17 +137,25 @@ class AnalyzerAnalyze(AnalyzerBase):
 
     if self.cost_billed == 0:
       self.cwau_percent = 0
-      return
+      return context_all
 
     self.cwau_percent = int(self.cost_used / self.cost_billed * 100)
+    return context_all
 
 
 class AnalyzerOptimize(AnalyzerBase):
 
-  def fetch(self):
+  def per_ec2(self, context_ec2):
+      """
+      # get all performance dataframes, on the cluster-aggregated level
+      """
 
-    # get all performance dataframes, on the cluster-aggregated level
-    for rc_describe_entry, df_single in self.iterator():
+      # parent
+      context_ec2 = super().per_ec2(context_ec2)
+
+      # unpack
+      rc_describe_entry = context_ec2['ec2_dict']
+      df_single = context_ec2['df_single']
 
       # summarize into maxmax, maxmin, minmax, minmin
       self.analyze_list.append({
@@ -179,12 +170,12 @@ class AnalyzerOptimize(AnalyzerBase):
         'CpuMinMin': df_single.Minimum.min(),
       })
 
-    # done
-    super().fetch()
+      # done
+      return context_ec2
 
 
 
-  def calculate(self):
+  def calculate(self, context_all):
     def classify_cluster_single(row):
         # classify
         if row.CpuMinMin > 70: return "Overused"
@@ -195,4 +186,4 @@ class AnalyzerOptimize(AnalyzerBase):
     # convert percentages to int since fractions are not very useful
     analyze_df = self.analyze_df
     analyze_df['classification'] = analyze_df.apply(classify_cluster_single, axis=1)
-
+    return context_all

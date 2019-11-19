@@ -56,7 +56,7 @@ class MainManager:
         # context for pre listeners
         context_pre = {}
         context_pre['ec2_instances'] = self.ec2_it
-        context_pre['region_include'] = self.ec2_it.region_include
+        context_pre['region_include'] = self.ec2_it.get_regionInclude()
         context_pre['n_ec2_total'] = n_ec2_total
         context_pre['click_ctx'] = self.ctx
 
@@ -75,17 +75,21 @@ class MainManager:
         df_all = []
         ec2_noCloudwatch = []
         ec2_noCloudtrail = []
+
         # Edit 2019-11-12 use "initial=0" instead of "=1". Check more details in a similar note in "cloudtrail_ec2type.py"
         iter_wrap = tqdm(self.ec2_it, total=n_ec2_total, desc="Pass 2/2 through %s"%self.ec2_it.service_description, initial=0)
-        for ec2_obj in iter_wrap:
+        for ec2_dict, ec2_id, ec2_launchtime, ec2_obj in iter_wrap:
+
+          # context dict to be passed between listeners
+          context_ec2 = {}
+          context_ec2['mainManager'] = self
+          if 'df_cat' in context_pre: context_ec2['df_cat'] = context_pre['df_cat'] # copy object between contexts
+          context_ec2['ec2_dict'] = ec2_dict
+          context_ec2['ec2_id'] = ec2_id
+          context_ec2['ec2_launchtime'] = ec2_launchtime
+          context_ec2['ec2_obj'] = ec2_obj
 
           try:
-            # context dict to be passed between listeners
-            context_ec2 = {}
-            context_ec2['ec2_obj'] = ec2_obj
-            context_ec2['mainManager'] = self
-            context_ec2['df_cat'] = context_pre['df_cat'] # copy object between contexts
-
             n_ec2_analysed += 1
 
             # call listeners
@@ -96,9 +100,9 @@ class MainManager:
               if context_ec2 is None: break
 
           except NoCloudwatchException:
-            ec2_noCloudwatch.append(ec2_obj.instance_id)
+            ec2_noCloudwatch.append(ec2_id)
           except NoCloudtrailException:
-            ec2_noCloudtrail.append(ec2_obj.instance_id)
+            ec2_noCloudtrail.append(ec2_id)
 
         # call listeners
         logger.info("... done")
@@ -111,11 +115,12 @@ class MainManager:
         context_all['mainManager'] = self
         context_all['n_ec2_analysed'] = n_ec2_analysed
         context_all['region_include'] = self.ec2_it.region_include
-        context_all['df_cat'] = context_pre['df_cat'] # copy object between contexts
+        if 'df_cat' in context_pre: context_all['df_cat'] = context_pre['df_cat'] # copy object between contexts
 
         # more
         context_all['ec2_noCloudwatch'] = ec2_noCloudwatch
         context_all['ec2_noCloudtrail'] = ec2_noCloudtrail
+        context_all['click_ctx'] = self.ctx
 
         # call listeners
         for l in self.listeners['all']:

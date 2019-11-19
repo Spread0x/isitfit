@@ -51,7 +51,6 @@ def analyze(ctx, filter_tags):
     etf = Ec2TagFilter(filter_tags)
     cloudwatchman = CloudwatchEc2(cache_man)
     ra = ReporterAnalyzeEc2()
-    ra.set_analyzer(ul)
     mm = MainManager(ctx)
     ec2_cat = Ec2Catalog()
     ec2_common = Ec2Common()
@@ -62,7 +61,8 @@ def analyze(ctx, filter_tags):
 
     # update dict and return it
     # https://stackoverflow.com/a/1453013/4126114
-    inject_email_in_context = lambda context_all: dict({'emailTo': share_email, 'ctx': ctx}, **context_all)
+    inject_email_in_context = lambda context_all: dict({'emailTo': share_email}, **context_all)
+    inject_analyzer = lambda context_all: dict({'analyzer': ul}, **context_all)
 
     # utilization listeners
     mm.set_iterator(ec2_it)
@@ -77,6 +77,7 @@ def analyze(ctx, filter_tags):
     mm.add_listener('ec2', ul.per_ec2)
     mm.add_listener('all', ec2_common.after_all)
     mm.add_listener('all', ul.after_all)
+    mm.add_listener('all', inject_analyzer)
     mm.add_listener('all', ra.postprocess)
     mm.add_listener('all', ra.display)
     mm.add_listener('all', inject_email_in_context)
@@ -130,7 +131,6 @@ def optimize(ctx, n, filter_tags):
     etf = Ec2TagFilter(filter_tags)
     cloudwatchman = CloudwatchEc2(cache_man)
     ra = ReporterOptimizeEc2()
-    ra.set_analyzer(ol)
     mm = MainManager(ctx)
     ec2_cat = Ec2Catalog()
     ec2_common = Ec2Common()
@@ -139,6 +139,9 @@ def optimize(ctx, n, filter_tags):
     # boto3 cloudtrail data
     cloudtrail_manager = CloudtrailCached(mm.EndTime, cache_man)
 
+    # update dict and return it
+    # https://stackoverflow.com/a/1453013/4126114
+    inject_analyzer = lambda context_all: dict({'analyzer': ol}, **context_all)
 
     # utilization listeners
     mm.set_iterator(ec2_it)
@@ -153,6 +156,7 @@ def optimize(ctx, n, filter_tags):
     mm.add_listener('ec2', ddg.per_ec2)
     mm.add_listener('ec2', ol.per_ec2)
     mm.add_listener('all', ec2_common.after_all)
+    mm.add_listener('all', inject_analyzer)
     mm.add_listener('all', ra.postprocess)
     mm.add_listener('all', ra.display)
 

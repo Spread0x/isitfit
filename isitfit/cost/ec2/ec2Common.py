@@ -58,7 +58,6 @@ class Ec2Common:
 
     def after_all(self, context_all):
         # unpack
-        n_ec2_total, mainManager, n_ec2_analysed, region_include = context_all['n_ec2_total'], context_all['mainManager'], context_all['n_ec2_analysed'], context_all['region_include']
         ec2_noCloudwatch, ec2_noCloudtrail = context_all['ec2_noCloudwatch'], context_all['ec2_noCloudtrail']
 
 
@@ -74,7 +73,7 @@ class Ec2Common:
           n_no_cw = len(ec2_noCloudwatch)
           has_more_cw = "..." if n_no_cw>5 else ""
           l_no_cw = ", ".join(ec2_noCloudwatch[:5])
-          logger.warning("No cloudwatch data for %i instances: %s%s"%(n_no_cw, l_no_cw, has_more_cw))
+          logger.warning("No cloudwatch data for %i resources: %s%s"%(n_no_cw, l_no_cw, has_more_cw))
           logger.warning("Try again in %i minutes (at %s) to check for new data"%(TRY_IN, now_plus_10))
           logger.info("")
 
@@ -82,7 +81,7 @@ class Ec2Common:
           n_no_ct = len(ec2_noCloudtrail)
           has_more_ct = "..." if n_no_ct>5 else ""
           l_no_ct = ", ".join(ec2_noCloudtrail[:5])
-          logger.warning("No cloudtrail data for %i instances: %s%s"%(n_no_ct, l_no_ct, has_more_ct))
+          logger.warning("No cloudtrail data for %i resources: %s%s"%(n_no_ct, l_no_ct, has_more_ct))
           logger.warning("Try again in %i minutes (at %s) to check for new data"%(TRY_IN, now_plus_10))
           logger.info("")
 

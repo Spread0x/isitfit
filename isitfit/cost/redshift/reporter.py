@@ -9,29 +9,56 @@ logger = logging.getLogger('isitfit')
 
 
 class ReporterBase:
-  def set_analyzer(self, analyzer):
-    self.analyzer = analyzer
-
-  def postprocess(self):
+  def postprocess(self, context_all):
     raise Exception("To be implemented by derived class")
 
-  def display(self):
+  def display(self, context_all):
     raise Exception("To be implemented by derived class")
 
-  def email(self):
-    raise Exception("To be implemented by derived class")
+  def email(self, context_all):
+      """
+      ctx - click context
+      """
+      for fx in ['dataType', 'dataVal']:
+        if not fx in context_all:
+          raise Exception("Missing field from context: %s. This function should be implemented by the derived class"%fx)
+
+      # unpack
+      emailTo, ctx = context_all['emailTo'], context_all['click_ctx']
+
+      # check if email requested
+      if emailTo is None:
+          return context_all
+
+      if len(emailTo)==0:
+          return context_all
+
+      from isitfit.emailMan import EmailMan
+      em = EmailMan(
+        dataType=context_all['dataType'], # ec2, not redshift
+        dataVal=context_all['dataVal'],
+        ctx=ctx
+      )
+      em.send(emailTo)
+
+      return context_all
+
 
 
 class ReporterAnalyze(ReporterBase):
   def postprocess(self, context_all):
+    # unpack
+    self.analyzer = context_all['analyzer']
+    mm = context_all['mainManager']
+
     # copied from isitfit.cost.utilizationListener.after_all
     cwau_val = self.analyzer.cwau_percent
     cwau_color = 'yellow'
     if cwau_val >= 70: cwau_color = 'green'
     elif cwau_val <= 30: cwau_color = 'red'
 
-    dt_start = self.analyzer.cwman.StartTime.strftime("%Y-%m-%d")
-    dt_end   = self.analyzer.cwman.EndTime.strftime("%Y-%m-%d")
+    dt_start = mm.StartTime.strftime("%Y-%m-%d")
+    dt_end   = mm.EndTime.strftime("%Y-%m-%d")
 
     self.table = [
       { 'color': '',
@@ -83,11 +110,6 @@ class ReporterAnalyze(ReporterBase):
 
     dis_tab = [get_row(row) for row in self.table]
 
-    # warn missing data
-    rc_noData = self.analyzer.rp_iter.rc_noData
-    warning_noData = "Redshift clusters without data (%i): %s..."%(len(rc_noData), ", ".join(rc_noData[:5]))
-    logger.warning(warning_noData)
-
     from tabulate import tabulate
 
     # logger.info("Summary:")
@@ -104,14 +126,13 @@ class ReporterAnalyze(ReporterBase):
 
 
   def email(self, context_all):
-      emailTo = context_all['emailTo']
-      from ...emailMan import EmailMan
-      em = EmailMan(
-        dataType='cost analyze', # redshift, not ec2
-        dataVal={'table': self.table},
-        ctx=None
-      )
-      em.send(emailTo)
+      context_2 = {}
+      context_2['emailTo'] = context_all['emailTo']
+      context_2['click_ctx'] = context_all['click_ctx']
+      context_2['dataType'] = 'cost analyze' # redshift, not ec2
+      context_2['dataVal'] = {'table': self.table}
+      super().email(context_2)
+
       return context_all
 
 
@@ -119,6 +140,10 @@ class ReporterAnalyze(ReporterBase):
 
 class ReporterOptimize(ReporterBase):
   def postprocess(self, context_all):
+    # unpack
+    self.analyzer = context_all['analyzer']
+
+    # proceed
     analyze_df = self.analyzer.analyze_df
     analyze_df['CpuMaxMax'] = analyze_df['CpuMaxMax'].fillna(value=0).astype(int)
     analyze_df['CpuMinMin'] = analyze_df['CpuMinMin'].fillna(value=0).astype(int)
@@ -151,4 +176,6 @@ class ReporterOptimize(ReporterBase):
 
 
   def email(self, context_all):
-      raise Exception("Error emailing optimization: Not yet implemented")
+      # silently return
+      # raise Exception("Error emailing optimization: Not yet implemented")
+      return context_all

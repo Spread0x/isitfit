@@ -12,6 +12,8 @@ from isitfit.cost.redshift.reporter import ReporterBase
 class ReporterAnalyzeEc2(ReporterBase):
 
   def postprocess(self, context_all):
+    self.analyzer = context_all['analyzer']
+
     # unpack
     n_ec2_total, mm, n_ec2_analysed, region_include = context_all['n_ec2_total'], context_all['mainManager'], context_all['n_ec2_analysed'], context_all['region_include']
     self.analyzer.n_ec2_total = n_ec2_total
@@ -103,23 +105,12 @@ class ReporterAnalyzeEc2(ReporterBase):
       """
       ctx - click context
       """
-      # unpack
-      emailTo, ctx = context_all['emailTo'], context_all['ctx']
-
-      # check if email requested
-      if emailTo is None:
-          return context_all
-
-      if len(emailTo)==0:
-          return context_all
-
-      from isitfit.emailMan import EmailMan
-      em = EmailMan(
-        dataType='cost analyze', # ec2, not redshift
-        dataVal={'table': self.table},
-        ctx=ctx
-      )
-      em.send(emailTo)
+      context_2 = {}
+      context_2['emailTo'] = context_all['emailTo']
+      context_2['click_ctx'] = context_all['click_ctx']
+      context_2['dataType'] = 'cost analyze' # ec2, not redshift
+      context_2['dataVal'] = {'table': self.table}
+      super().email(context_2)
 
       return context_all
 
@@ -133,6 +124,8 @@ class ReporterOptimizeEc2(ReporterBase):
 
 
   def postprocess(self, context_all):
+    self.analyzer = context_all['analyzer']
+
     # unpack
     n_ec2_total, mm, n_ec2_analysed, region_include, df_cat = context_all['n_ec2_total'], context_all['mainManager'], context_all['n_ec2_analysed'], context_all['region_include'], context_all['df_cat']
     self.analyzer.n_ec2_total = n_ec2_total

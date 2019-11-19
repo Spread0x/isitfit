@@ -11,16 +11,16 @@ class TestReporterAnalyze:
     import datetime as dt
     dt_now = dt.datetime.utcnow()
 
+    class MockMm:
+      StartTime = dt_now
+      EndTime = dt_now
+
     class MockAnalyzer:
       class MockIter:
         pass
-      class MockCw:
-        StartTime = dt_now
-        EndTime = dt_now
 
       cwau_percent = 10
       rp_iter = MockIter
-      cwman = MockCw
       n_rc_total = 0
       n_rc_analysed = 0
       regions_n = 1
@@ -28,8 +28,7 @@ class TestReporterAnalyze:
       cost_used = 1
 
     rb = ReporterAnalyze()
-    rb.set_analyzer(MockAnalyzer)
-    rb.postprocess()
+    rb.postprocess({'analyzer': MockAnalyzer, 'mainManager': MockMm})
     assert rb.table is not None
 
 
@@ -47,11 +46,11 @@ class TestReporterAnalyze:
       cwman = MockCw
 
     rb = ReporterAnalyze()
-    rb.set_analyzer(MockAnalyzer)
     rb.table = [
       {'color': '', 'label': 'bla', 'value': 'foo'}
     ]
-    rb.display()
+    rb.analyzer = MockAnalyzer
+    rb.display({})
     assert True # no exception
 
 
@@ -60,7 +59,7 @@ class TestReporterAnalyze:
     mocker.patch(mockee, autospec=True)
     rb = ReporterAnalyze()
     rb.table = []
-    rb.email([])
+    rb.email({'emailTo': [], 'click_ctx': None})
     assert True # no exception
 
 
@@ -72,8 +71,7 @@ class TestReporterOptimize:
       analyze_df = pd.DataFrame([{'CpuMaxMax': 1, 'CpuMinMin': 1}])
 
     rb = ReporterOptimize()
-    rb.set_analyzer(MockAnalyzer)
-    rb.postprocess()
+    rb.postprocess({'analyzer': MockAnalyzer})
     assert True # no exception
 
 
@@ -86,9 +84,9 @@ class TestReporterOptimize:
       analyze_df = pd.DataFrame([{'CpuMaxMax': 1, 'CpuMinMin': 1}])
 
     rb = ReporterOptimize()
-    rb.set_analyzer(MockAnalyzer)
     rb.csv_fn_final = 'bla.csv'
-    rb.display()
+    rb.analyzer = MockAnalyzer
+    rb.display({})
     assert True # no exception
 
 
@@ -96,5 +94,5 @@ class TestReporterOptimize:
     import pytest
     with pytest.raises(Exception):
       rb = ReporterOptimize()
-      rb.email([])
+      rb.email({'emailTo': []})
 

@@ -21,6 +21,7 @@ Version latest (0.15.0rc?, 2019-09-24?)
 - enh: move iterator out of mainManager to cli.cost
 - bugfix: ec2.reporter objects were not compliant with the new `context_all` argument format. Fixed.
 - enh: redshift reports now compatible with the `context_all` argument format
+- enh: (major) redshift pipelines now use the mainmanager runner, similar to the ec2 pipeline
 
 
 Version 0.14.0 (2019-11-15)
