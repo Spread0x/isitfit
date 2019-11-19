@@ -1,3 +1,16 @@
+def tagsContain(f_tn, ec2_obj):
+  if ec2_obj.tags is None:
+    return False
+  
+  for t in ec2_obj.tags:
+    for k in ['Key', 'Value']:
+      if f_tn in t[k].lower():
+        return True
+  
+  return False
+
+
+
 class Ec2TagFilter:
   def __init__(self, filter_tags):
     self.filter_tags = filter_tags

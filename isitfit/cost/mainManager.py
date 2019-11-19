@@ -19,17 +19,6 @@ class NoCloudtrailException(Exception):
     pass
 
 
-def tagsContain(f_tn, ec2_obj):
-  if ec2_obj.tags is None:
-    return False
-
-  for t in ec2_obj.tags:
-    for k in ['Key', 'Value']:
-      if f_tn in t[k].lower():
-        return True
-
-  return False
-
 
 from isitfit.cost.cacheManager import RedisPandas as RedisPandasCacheManager
 class MainManager:
