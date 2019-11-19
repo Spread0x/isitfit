@@ -52,3 +52,42 @@ class RedisPandas:
     if not v1: return v1
     v2 = self.pyarrow_context.deserialize(v1)
     return v2
+
+  def handle_pre(self, context_pre):
+        # set up caching if requested
+        self.fetch_envvars()
+        if self.isSetup():
+          self.connect()
+
+        # 0th pass to count
+        n_ec2_total = context_pre['n_ec2_total']
+
+        # if more than 10 servers, recommend caching with redis
+        if n_ec2_total > 10 and not self.isSetup():
+            from termcolor import colored
+            logger.warning(colored(
+"""Since the number of EC2 instances is %i,
+it is recommended to use redis for caching of downloaded CPU/memory metrics.
+To do so
+- install redis
+
+    [sudo] apt-get install redis-server
+
+- export environment variables
+
+    export ISITFIT_REDIS_HOST=localhost
+    export ISITFIT_REDIS_PORT=6379
+    export ISITFIT_REDIS_DB=0
+
+where ISITFIT_REDIS_DB is the ID of an unused database in redis.
+
+And finally re-run isitfit as usual.
+"""%n_ec2_total, "yellow"))
+            continue_wo_redis = input(colored('Would you like to continue without redis caching (not recommended)? yes/[no] ', 'cyan'))
+            if not (continue_wo_redis.lower() == 'yes' or continue_wo_redis.lower() == 'y'):
+                from isitfit.utils import IsitfitCliError
+                raise IsitfitCliError("Aborting.", context_pre['click_ctx'])
+
+
+        # done
+        return context_pre

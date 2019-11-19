@@ -16,6 +16,7 @@ Version latest (0.15.0rc?, 2019-09-24?)
 - enh: move `filter_tags` and `handle_ec2obj` out of mainManager ec2 loop and into listeners
 - enh: move `cloudwatchman` out of `mainManager.handle_ec2obj` into listener
 - enh: move `cloudtrail` manager out of `mainManger` to listeners
+- enh: move `cache_man` to listener
 
 
 Version 0.14.0 (2019-11-15)

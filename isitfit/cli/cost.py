@@ -61,6 +61,7 @@ def analyze(ctx, filter_tags):
     ra_email_wrap = lambda *args, **kwargs: ra.email(share_email, ctx)
 
     # utilization listeners
+    mm.add_listener('pre', cache_man.handle_pre)
     mm.add_listener('pre', cloudtrail_manager.init_data)
     mm.add_listener('ec2', etf.per_ec2)
     mm.add_listener('ec2', cloudwatchman.per_ec2)
@@ -130,6 +131,7 @@ def optimize(ctx, n, filter_tags):
       ra.postprocess()
 
     # utilization listeners
+    mm.add_listener('pre', cache_man.handle_pre)
     mm.add_listener('pre', cloudtrail_manager.init_data)
     mm.add_listener('pre', ol.handle_pre)
     mm.add_listener('ec2', etf.per_ec2)

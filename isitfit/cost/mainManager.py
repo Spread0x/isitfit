@@ -43,7 +43,8 @@ class MainManager:
     def add_listener(self, event, listener):
       if event not in self.listeners:
         from ..utils import IsitfitCliError
-        raise IsitfitCliError("Internal dev error: Event %s is not supported for listeners. Use: %s"%(event, ",".join(self.listeners.keys())), self.ctx)
+        err_msg = "Internal dev error: Event %s is not supported for listeners. Use: %s"%(event, ",".join(self.listeners.keys()))
+        raise IsitfitCliError(err_msg, self.ctx)
 
       self.listeners[event].append(listener)
 
@@ -92,49 +93,19 @@ class MainManager:
 
 
     def get_ifi(self):
-        # set up caching if requested
-        self.cache_man.fetch_envvars()
-        if self.cache_man.isSetup():
-          self.cache_man.connect()
-
         # 0th pass to count
         n_ec2_total = self.ec2_count()
 
         if n_ec2_total==0:
           return
 
-        # if more than 10 servers, recommend caching with redis
-        if n_ec2_total > 10 and not self.cache_man.isSetup():
-            from termcolor import colored
-            logger.warning(colored(
-"""Since the number of EC2 instances is %i,
-it is recommended to use redis for caching of downloaded CPU/memory metrics.
-To do so
-- install redis
-
-    [sudo] apt-get install redis-server
-
-- export environment variables
-
-    export ISITFIT_REDIS_HOST=localhost
-    export ISITFIT_REDIS_PORT=6379
-    export ISITFIT_REDIS_DB=0
-
-where ISITFIT_REDIS_DB is the ID of an unused database in redis.
-
-And finally re-run isitfit as usual.
-"""%n_ec2_total, "yellow"))
-            continue_wo_redis = input(colored('Would you like to continue without redis caching (not recommended)? yes/[no] ', 'cyan'))
-            if not (continue_wo_redis.lower() == 'yes' or continue_wo_redis.lower() == 'y'):
-                logger.warning("Aborting.")
-                return
-
-
         # context for pre listeners
         context_pre = {}
         context_pre['ec2_instances'] = self.ec2_iterator()
         context_pre['region_include'] = self.ec2_it.region_include
         context_pre['n_ec2_total'] = n_ec2_total
+        context_pre['click_ctx'] = self.ctx
+
 
         # call listeners
         for l in self.listeners['pre']:
