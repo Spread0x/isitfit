@@ -86,7 +86,7 @@ And finally re-run isitfit as usual.
             continue_wo_redis = input(colored('Would you like to continue without redis caching (not recommended)? yes/[no] ', 'cyan'))
             if not (continue_wo_redis.lower() == 'yes' or continue_wo_redis.lower() == 'y'):
                 from isitfit.utils import IsitfitCliError
-                raise IsitfitCliError("Aborting.", context_pre['click_ctx'])
+                raise IsitfitCliError("Aborting to set up redis.", context_pre['click_ctx'])
 
 
         # done
