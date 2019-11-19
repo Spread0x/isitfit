@@ -105,12 +105,12 @@ def test_live_iterateCore():
   iterator = Ec2Iterator()
   expect_n = 4 # as of 2019-11-15
 
-  # res = [x1 for x1 in iterator.iterate_core(just_counting=True)]
-  res = list(iterator.iterate_core(just_counting=True))
+  # res = [x1 for x1 in iterator.iterate_core()]
+  res = list(iterator.iterate_core())
   assert len(res) == expect_n
 
   # again with full iteration
-  res = list(iterator.iterate_core(just_counting=False))
+  res = list(iterator)
   assert len(res) == expect_n
 
   # again with instance iterator

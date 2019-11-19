@@ -38,6 +38,8 @@ def analyze(ctx, filter_tags):
     from isitfit.cost.ec2.reporter import ReporterAnalyzeEc2
     from isitfit.ec2_catalog import Ec2Catalog
     from isitfit.cost.ec2.ec2Common import Ec2Common
+    from isitfit.cost.redshift.iterator import Ec2Iterator
+
 
     share_email = ctx.obj.get('share_email', None)
     ul = UtilizationListener(ctx)
@@ -53,6 +55,7 @@ def analyze(ctx, filter_tags):
     mm = MainManager(ctx)
     ec2_cat = Ec2Catalog()
     ec2_common = Ec2Common()
+    ec2_it = Ec2Iterator()
 
     # boto3 cloudtrail data
     cloudtrail_manager = CloudtrailCached(mm.EndTime, cache_man)
@@ -68,6 +71,7 @@ def analyze(ctx, filter_tags):
     ra_email_wrap = lambda *args, **kwargs: ra.email(share_email, ctx)
 
     # utilization listeners
+    mm.set_iterator(ec2_it)
     mm.add_listener('pre', cache_man.handle_pre)
     mm.add_listener('pre', cloudtrail_manager.init_data)
     mm.add_listener('pre', ec2_cat.handle_pre)
@@ -120,6 +124,7 @@ def optimize(ctx, n, filter_tags):
     from isitfit.cost.ec2.reporter import ReporterOptimizeEc2
     from isitfit.ec2_catalog import Ec2Catalog
     from isitfit.cost.ec2.ec2Common import Ec2Common
+    from isitfit.cost.redshift.iterator import Ec2Iterator
 
     ol = OptimizerListener(n)
 
@@ -134,6 +139,7 @@ def optimize(ctx, n, filter_tags):
     mm = MainManager(ctx)
     ec2_cat = Ec2Catalog()
     ec2_common = Ec2Common()
+    ec2_it = Ec2Iterator()
 
     # boto3 cloudtrail data
     cloudtrail_manager = CloudtrailCached(mm.EndTime, cache_man)
@@ -147,6 +153,7 @@ def optimize(ctx, n, filter_tags):
       ra.postprocess()
 
     # utilization listeners
+    mm.set_iterator(ec2_it)
     mm.add_listener('pre', cache_man.handle_pre)
     mm.add_listener('pre', cloudtrail_manager.init_data)
     mm.add_listener('pre', ol.handle_pre)

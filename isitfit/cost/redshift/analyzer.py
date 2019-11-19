@@ -51,7 +51,7 @@ class AnalyzerBase:
 
   def count(self):
     # count clusters
-    for rc_describe_entry in self.rp_iter.iterate_core(True, True):
+    for rc_describe_entry in self.rp_iter.iterate_core(True):
       self.n_rc_total += 1
 
   def iterator(self):

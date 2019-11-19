@@ -19,7 +19,7 @@ class TestAnalyzerBase:
 
   def test_fetchCount_zero(self):
     class MockIter:
-      def iterate_core(self, just_counting, display_tqdm):
+      def iterate_core(self, display_tqdm):
         return []
 
     # prepare
@@ -34,7 +34,7 @@ class TestAnalyzerBase:
 
   def test_fetchCount_one(self):
     class MockIter:
-      def iterate_core(self, just_counting, display_tqdm):
+      def iterate_core(self, display_tqdm):
         yield 1
 
     # prepare

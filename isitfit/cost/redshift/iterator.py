@@ -37,6 +37,9 @@ class BaseIterator:
     # init cache
     self._initCache()
 
+    # count of entries
+    self.n_entry = None
+
 
   def _initCache(self):
     """
@@ -66,7 +69,7 @@ class BaseIterator:
       self.regionInclude_ready = True
 
 
-  def iterate_core(self, just_counting=False, display_tqdm=False):
+  def iterate_core(self, display_tqdm=False):
     fx_l = ['service_name', 'service_description', 'paginator_name', 'paginator_entryJmespath', 'paginator_exception', 'entry_keyId', 'entry_keyCreated']
     for fx_i in fx_l:
       # https://stackoverflow.com/a/9058315/4126114
@@ -81,7 +84,7 @@ class BaseIterator:
     # redshift_regions = ['us-west-2'] # FIXME
 
     region_iterator = redshift_regions
-    if just_counting and display_tqdm:
+    if display_tqdm:
       from tqdm import tqdm
       region_iterator = tqdm(region_iterator, total = len(redshift_regions), desc="%s, counting in all regions"%self.service_description)
 
@@ -128,7 +131,7 @@ class BaseIterator:
         raise e
 
     # before exiting, check if a count just completed, and mark region_include as usable
-    if just_counting:
+    if not self.regionInclude_ready:
       self.regionInclude_ready = True
 
       # save to cache
@@ -137,9 +140,24 @@ class BaseIterator:
       simple_cache.save_key(filename=self.cache_filename, key=self.cache_key, value=self.region_include, ttl=SECONDS_PER_HOUR)
 
 
+  def count(self):
+      # method 1
+      # ec2_it = self.ec2_resource.instances.all()
+      # return len(list(ec2_it))
+
+    if self.n_entry is not None:
+      return self.n_entry
+
+    self.n_entry = len(list(self.iterate_core(True)))
+
+    msg_count = "Found a total of %i EC2 instance(s) in %i region(s) (other regions do not hold any EC2)"
+    logger.warning(msg_count%(self.n_entry, len(self.region_include)))
+
+    return self.n_entry
+
 
   def __iter__(self):
-    for rc_describe_entry in self.iterate_core(False, False):
+    for rc_describe_entry in self.iterate_core(False):
         #print("response, entry")
         #print(rc_describe_entry)
 
@@ -185,4 +203,38 @@ class Ec2Iterator(BaseIterator):
   paginator_exception = 'AuthFailure'
   entry_keyId = 'InstanceId'
   entry_keyCreated = 'LaunchTime'
+
+  def __iter__(self):
+    # over-ride the __iter__ to get the ec2 resource object for the current code (backwards compatibility)
+
+    # method 1 for ec2
+    # ec2_it = self.ec2_resource.instances.all()
+    # return ec2_it
+
+    # boto3 ec2 and cloudwatch data
+    ec2_resource_all = {}
+    import boto3
+
+    # TODO cannot use directly use the iterator exposed in "ec2_it"
+    # because it would return the dataframes from Cloudwatch,
+    # whereas in the cloudwatch data fetch here, the data gets cached to redis.
+    # Once the redshift.iterator can cache to redis, then the cloudwatch part here
+    # can also be dropped, as well as using the "ec2_it" iterator directly
+    # for ec2_dict in self.ec2_it:
+    for ec2_dict, ec2_id, ec2_launctime in super().__iter__():
+      if ec2_dict['Region'] not in ec2_resource_all.keys():
+        boto3.setup_default_session(region_name = ec2_dict['Region'])
+        ec2_resource_all[ec2_dict['Region']] = boto3.resource('ec2')
+
+      ec2_resource_single = ec2_resource_all[ec2_dict['Region']]
+      ec2_l = ec2_resource_single.instances.filter(InstanceIds=[ec2_dict['InstanceId']])
+      ec2_l = list(ec2_l)
+      if len(ec2_l)==0:
+        continue # not found
+
+      # yield first entry
+      ec2_obj = ec2_l[0]
+      ec2_obj.region_name = ec2_dict['Region']
+      yield ec2_obj
+
 
