@@ -150,6 +150,16 @@ class CloudwatchBase:
         return df
 
 
+  def per_ec2(self, context_ec2):
+        """
+        Raises NoCloudwatchException if no data found in cloudwatch
+        """
+        ec2_obj = context_ec2['ec2_obj']
+        df_cw3 = self.cloudwatchman.handle_main({'Region': ec2_obj.region_name}, ec2_obj.instance_id, ec2_obj.launch_time)
+        context_ec2['df_metrics'] = df_cw3
+        return context_ec2
+
+
 class CloudwatchCached(CloudwatchBase):
   def __init__(self, cache_man=None):
     """

@@ -14,6 +14,7 @@ Version latest (0.15.0rc?, 2019-09-24?)
 - enh: share a context dict between `per_ec2` listeners instead of passing a list of objects
 - enh: move datadog out of mainManager and into listeners
 - enh: move `filter_tags` and `handle_ec2obj` out of mainManager ec2 loop and into listeners
+- enh: move `cloudwatchman` out of `mainManager.handle_ec2obj` into listener
 
 
 Version 0.14.0 (2019-11-15)

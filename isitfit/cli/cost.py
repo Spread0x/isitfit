@@ -33,6 +33,7 @@ def analyze(ctx, filter_tags):
     from ..cost.cacheManager import RedisPandas as RedisPandasCacheManager
     from ..cost.datadogManager import DatadogCached
     from ..cost.ec2TagFilter import Ec2TagFilter
+    from isitfit.cost.redshift.cloudwatchman import CloudwatchEc2
     from isitfit.cost.ec2.reporter import ReporterAnalyzeEc2
 
     share_email = ctx.obj.get('share_email', None)
@@ -40,6 +41,7 @@ def analyze(ctx, filter_tags):
     cache_man = RedisPandasCacheManager()
     ddg = DatadogCached(cache_man)
     etf = Ec2TagFilter(filter_tags)
+    cloudwatchman = CloudwatchEc2(cache_man)
     ra = ReporterAnalyzeEc2()
     ra.set_analyzer(ul)
     mm = MainManager(ctx, cache_man)
@@ -55,6 +57,7 @@ def analyze(ctx, filter_tags):
 
     # utilization listeners
     mm.add_listener('ec2', etf.per_ec2)
+    mm.add_listener('ec2', cloudwatchman.per_ec2)
     mm.add_listener('ec2', mm._handle_ec2obj)
     mm.add_listener('ec2', ddg.per_ec2)
     mm.add_listener('ec2', ul.per_ec2)
@@ -95,12 +98,14 @@ def optimize(ctx, n, filter_tags):
     from ..cost.cacheManager import RedisPandas as RedisPandasCacheManager
     from ..cost.datadogManager import DatadogCached
     from ..cost.ec2TagFilter import Ec2TagFilter
+    from isitfit.cost.redshift.cloudwatchman import CloudwatchEc2
     from isitfit.cost.ec2.reporter import ReporterOptimizeEc2
 
     ol = OptimizerListener(n)
     cache_man = RedisPandasCacheManager()
     ddg = DatadogCached(cache_man)
     etf = Ec2TagFilter(filter_tags)
+    cloudwatchman = CloudwatchEc2(cache_man)
     ra = ReporterOptimizeEc2()
     ra.set_analyzer(ol)
     mm = MainManager(ctx, cache_man)
@@ -116,6 +121,7 @@ def optimize(ctx, n, filter_tags):
     # utilization listeners
     mm.add_listener('pre', ol.handle_pre)
     mm.add_listener('ec2', etf.per_ec2)
+    mm.add_listener('ec2', cloudwatchman.per_ec2)
     mm.add_listener('ec2', mm._handle_ec2obj)
     mm.add_listener('ec2', ddg.per_ec2)
     mm.add_listener('ec2', ol.per_ec2)

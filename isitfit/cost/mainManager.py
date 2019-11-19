@@ -11,7 +11,6 @@ logger = logging.getLogger('isitfit')
 
 from ..utils import mergeSeriesOnTimestampRange, ec2_catalog, SECONDS_IN_ONE_DAY, NoCloudwatchException, myreturn
 from .cloudtrail_ec2type import CloudtrailCached
-from isitfit.cost.redshift.cloudwatchman import CloudwatchEc2
 
 MINUTES_IN_ONE_DAY = 60*24 # 1440
 N_DAYS=90
@@ -56,9 +55,6 @@ class MainManager:
         # generic iterator (iterates over regions and items)
         from isitfit.cost.redshift.iterator import Ec2Iterator
         self.ec2_it = Ec2Iterator()
-
-        # cloudwatch manager
-        self.cloudwatchman = CloudwatchEc2(self.cache_man)
 
 
     def add_listener(self, event, listener):
@@ -227,14 +223,6 @@ And finally re-run isitfit as usual.
         return
 
 
-    def _cloudwatch_metrics_cached(self, ec2_obj):
-        """
-        Raises NoCloudwatchException if no data found in cloudwatch
-        """
-        df_cw3 = self.cloudwatchman.handle_main({'Region': ec2_obj.region_name}, ec2_obj.instance_id, ec2_obj.launch_time)
-        return df_cw3
-
-
     def _handle_ec2obj(self, context_ec2):
         # parse out
         ec2_obj = context_ec2['ec2_obj']
@@ -242,7 +230,7 @@ And finally re-run isitfit as usual.
         # logger.debug("%s, %s"%(ec2_obj.instance_id, ec2_obj.instance_type))
 
         # pandas series of CPU utilization, daily max, for 90 days
-        df_metrics = self._cloudwatch_metrics_cached(ec2_obj)
+        df_metrics = context_ec2['df_metrics']
 
         # pandas series of number of cpu's available on the machine over time, past 90 days
         df_type_ts1 = self.cloudtrail_manager.single(ec2_obj)
