@@ -60,15 +60,9 @@ def analyze(ctx, filter_tags):
     # boto3 cloudtrail data
     cloudtrail_manager = CloudtrailCached(mm.EndTime, cache_man)
 
-    def ra_postprocess_wrap(n_ec2_total, mm, n_ec2_analysed, region_include):
-      ul.n_ec2_total = n_ec2_total
-      ul.mm = mm
-      ul.n_ec2_analysed = n_ec2_analysed
-      ul.region_include = region_include
-      ra.postprocess()
-
-    ra_display = lambda *args, **kwargs: ra.display()
-    ra_email_wrap = lambda *args, **kwargs: ra.email(share_email, ctx)
+    # update dict and return it
+    # https://stackoverflow.com/a/1453013/4126114
+    inject_email_in_context = lambda context_all: dict({'emailTo': share_email, 'ctx': ctx}, **context_all)
 
     # utilization listeners
     mm.set_iterator(ec2_it)
@@ -83,9 +77,10 @@ def analyze(ctx, filter_tags):
     mm.add_listener('ec2', ul.per_ec2)
     mm.add_listener('all', ec2_common.after_all)
     mm.add_listener('all', ul.after_all)
-    mm.add_listener('all', ra_postprocess_wrap)
-    mm.add_listener('all', ra_display)
-    mm.add_listener('all', ra_email_wrap)
+    mm.add_listener('all', ra.postprocess)
+    mm.add_listener('all', ra.display)
+    mm.add_listener('all', inject_email_in_context)
+    mm.add_listener('all', ra.email)
 
     # start download data and processing
     logger.info("Fetching history...")
@@ -144,13 +139,6 @@ def optimize(ctx, n, filter_tags):
     # boto3 cloudtrail data
     cloudtrail_manager = CloudtrailCached(mm.EndTime, cache_man)
 
-    ra_display = lambda *args, **kwargs: ra.display()
-    def ra_postprocess_wrap(n_ec2_total, mm, n_ec2_analysed, region_include):
-      ol.n_ec2_total = n_ec2_total
-      ol.mm = mm
-      ol.n_ec2_analysed = n_ec2_analysed
-      ol.region_include = region_include
-      ra.postprocess()
 
     # utilization listeners
     mm.set_iterator(ec2_it)
@@ -165,8 +153,8 @@ def optimize(ctx, n, filter_tags):
     mm.add_listener('ec2', ddg.per_ec2)
     mm.add_listener('ec2', ol.per_ec2)
     mm.add_listener('all', ec2_common.after_all)
-    mm.add_listener('all', ra_postprocess_wrap)
-    mm.add_listener('all', ra_display)
+    mm.add_listener('all', ra.postprocess)
+    mm.add_listener('all', ra.display)
 
 
     # start download data and processing

@@ -11,7 +11,15 @@ from isitfit.cost.redshift.reporter import ReporterBase
 
 class ReporterAnalyzeEc2(ReporterBase):
 
-  def postprocess(self):
+  def postprocess(self, context_all):
+    # unpack
+    n_ec2_total, mm, n_ec2_analysed, region_include = context_all['n_ec2_total'], context_all['mainManager'], context_all['n_ec2_analysed'], context_all['region_include']
+    self.analyzer.n_ec2_total = n_ec2_total
+    self.analyzer.mm = mm
+    self.analyzer.n_ec2_analysed = n_ec2_analysed
+    self.analyzer.region_include = region_include
+
+    # proceed
     cwau_val = 0
     if self.analyzer.sum_capacity!=0:
       cwau_val = self.analyzer.sum_used/self.analyzer.sum_capacity*100
@@ -64,8 +72,11 @@ class ReporterAnalyzeEc2(ReporterBase):
             },
     ]
 
+    # done
+    return context_all
 
-  def display(self):
+
+  def display(self, context_all):
     def get_row(row):
         def get_cell(i):
           retc = row[i] if not row['color'] else colored(row[i], row['color'])
@@ -85,16 +96,22 @@ class ReporterAnalyzeEc2(ReporterBase):
     logger.info(colored("* CWAU >= 70% is well optimized", 'green'))
     logger.info(colored("* CWAU <= 30% is underused", 'red'))
 
-  def email(self, emailTo, ctx):
+    return context_all
+
+
+  def email(self, context_all):
       """
       ctx - click context
       """
+      # unpack
+      emailTo, ctx = context_all['emailTo'], context_all['ctx']
+
       # check if email requested
       if emailTo is None:
-          return
+          return context_all
 
       if len(emailTo)==0:
-          return
+          return context_all
 
       from isitfit.emailMan import EmailMan
       em = EmailMan(
@@ -103,6 +120,8 @@ class ReporterAnalyzeEc2(ReporterBase):
         ctx=ctx
       )
       em.send(emailTo)
+
+      return context_all
 
 
 
@@ -113,9 +132,19 @@ class ReporterOptimizeEc2(ReporterBase):
     self.csv_fn_final = None
 
 
-  def postprocess(self):
+  def postprocess(self, context_all):
+    # unpack
+    n_ec2_total, mm, n_ec2_analysed, region_include, df_cat = context_all['n_ec2_total'], context_all['mainManager'], context_all['n_ec2_analysed'], context_all['region_include'], context_all['df_cat']
+    self.analyzer.n_ec2_total = n_ec2_total
+    mm.df_cat = df_cat
+    self.analyzer.mm = mm
+    self.analyzer.n_ec2_analysed = n_ec2_analysed
+    self.analyzer.region_include = region_include
+
+    # process
     self._after_all()
     self._storecsv_all()
+    return context_all
 
   def _after_all(self):
     df_all = pd.DataFrame(self.analyzer.ec2_classes)
@@ -180,10 +209,10 @@ class ReporterOptimizeEc2(ReporterBase):
         logger.debug(colored("Save complete", "cyan"))
 
 
-  def display(self):
+  def display(self, context_all):
     if self.df_sort is None:
       logger.info(colored("No EC2 instances found", "red"))
-      return
+      return context_all
 
     # display
     # Edit 2019-09-25 just show the full list. Will add filtering later. This way it's less ambiguous when all instances are "Normal"
@@ -192,7 +221,7 @@ class ReporterOptimizeEc2(ReporterBase):
     # if no recommendations
     if self.df_sort.shape[0]==0:
       logger.info(colored("No optimizations from isitfit for this AWS EC2 account", "red"))
-      return
+      return context_all
     
     # if there are recommendations, show them
     sum_comment = "extra cost" if self.sum_val>0 else "savings"
@@ -229,3 +258,4 @@ class ReporterOptimizeEc2(ReporterBase):
     if self.analyzer.n!=0:
       logger.info(colored("This table has been filtered for only the 1st %i underused results"%self.analyzer.n, "cyan"))
 
+    return context_all

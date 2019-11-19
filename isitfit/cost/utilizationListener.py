@@ -56,3 +56,4 @@ class UtilizationListener:
     logger.debug(df_all)
     logger.debug("\n")
 
+    return context_all

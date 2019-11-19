@@ -64,7 +64,9 @@ class MainManager:
         # call listeners
         for l in self.listeners['pre']:
           context_pre = l(context_pre)
-          if context_pre is None: break
+          if context_pre is None:
+            raise Exception("Breaking the chain is not allowed in listener/pre")
+
 
         # iterate over all ec2 instances
         n_ec2_analysed = 0
@@ -109,6 +111,7 @@ class MainManager:
         context_all['mainManager'] = self
         context_all['n_ec2_analysed'] = n_ec2_analysed
         context_all['region_include'] = self.ec2_it.region_include
+        context_all['df_cat'] = context_pre['df_cat'] # copy object between contexts
 
         # more
         context_all['ec2_noCloudwatch'] = ec2_noCloudwatch
@@ -117,7 +120,8 @@ class MainManager:
         # call listeners
         for l in self.listeners['all']:
           context_all = l(context_all)
-          if context_all is None: break
+          if context_all is None:
+            raise Exception("Breaking the chain is not allowed in listener/all: %s"%str(l))
 
         logger.info("")
         logger.info("")

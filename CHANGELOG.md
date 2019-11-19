@@ -19,6 +19,7 @@ Version latest (0.15.0rc?, 2019-09-24?)
 - enh: move `cache_man` to listener
 - enh: move `ec2_catalog` and create `ec2_common` out of the code in `mainManager` which isn't really part of the workflow
 - enh: move iterator out of mainManager to cli.cost
+- bugfix: ec2.reporter objects were not compliant with the new `context_all` argument format. Fixed.
 
 
 Version 0.14.0 (2019-11-15)
