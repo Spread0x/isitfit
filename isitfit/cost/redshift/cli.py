@@ -30,7 +30,7 @@ def cost_core(ra, rr, share_email):
     rr.display()
     if share_email is not None:
       if len(share_email) > 0:
-        rr.email(share_email)
+        rr.email({'emailTo': share_email})
 
 
 def cost_analyze(share_email):

@@ -23,7 +23,7 @@ class ReporterBase:
 
 
 class ReporterAnalyze(ReporterBase):
-  def postprocess(self):
+  def postprocess(self, context_all):
     # copied from isitfit.cost.utilizationListener.after_all
     cwau_val = self.analyzer.cwau_percent
     cwau_color = 'yellow'
@@ -67,9 +67,10 @@ class ReporterAnalyze(ReporterBase):
         'value': "%0.0f %%"%cwau_val
       },
     ]
+    return context_all
 
 
-  def display(self, *args, **kwargs):
+  def display(self, context_all):
     # copied from isitfit.cost.utilizationListener.display_all
 
     def get_row(row):
@@ -99,9 +100,11 @@ class ReporterAnalyze(ReporterBase):
     logger.info(colored("* CWAU <= 30% is underused", 'red'))
     logger.info("")
     logger.info("For the EC2 analysis, scroll up to the previous table.")
+    return context_all
 
 
-  def email(self, emailTo):
+  def email(self, context_all):
+      emailTo = context_all['emailTo']
       from ...emailMan import EmailMan
       em = EmailMan(
         dataType='cost analyze', # redshift, not ec2
@@ -109,12 +112,13 @@ class ReporterAnalyze(ReporterBase):
         ctx=None
       )
       em.send(emailTo)
+      return context_all
 
 
 
 
 class ReporterOptimize(ReporterBase):
-  def postprocess(self):
+  def postprocess(self, context_all):
     analyze_df = self.analyzer.analyze_df
     analyze_df['CpuMaxMax'] = analyze_df['CpuMaxMax'].fillna(value=0).astype(int)
     analyze_df['CpuMinMin'] = analyze_df['CpuMinMin'].fillna(value=0).astype(int)
@@ -127,8 +131,10 @@ class ReporterOptimize(ReporterBase):
       analyze_df.to_csv(csv_fh_final.name, index=False)
       logger.debug(colored("Save complete", "cyan"))
 
+    return context_all
 
-  def display(self):
+
+  def display(self, context_all):
     # copied from isitfit.cost.optimizationListener.display_all
     analyze_df = self.analyzer.analyze_df
 
@@ -141,7 +147,8 @@ class ReporterOptimize(ReporterBase):
       analyze_df.shape,
       logger
     )
+    return context_all
 
 
-  def email(self, emailTo):
+  def email(self, context_all):
       raise Exception("Error emailing optimization: Not yet implemented")
