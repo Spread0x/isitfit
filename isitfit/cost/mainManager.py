@@ -2,14 +2,13 @@ import boto3
 import pandas as pd
 from tqdm import tqdm
 import datetime as dt
-import numpy as np
 import pytz
 
 import logging
 logger = logging.getLogger('isitfit')
 
 
-from ..utils import mergeSeriesOnTimestampRange, SECONDS_IN_ONE_DAY, NoCloudwatchException, myreturn, NoCloudtrailException
+from ..utils import SECONDS_IN_ONE_DAY, NoCloudwatchException, myreturn, NoCloudtrailException
 
 MINUTES_IN_ONE_DAY = 60*24 # 1440
 N_DAYS=90

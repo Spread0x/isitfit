@@ -1,6 +1,8 @@
 import logging
 logger = logging.getLogger('isitfit')
 
+from isitfit.utils import mergeSeriesOnTimestampRange
+import numpy as np
 
 
 class Ec2Common:
