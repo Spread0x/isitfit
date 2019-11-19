@@ -29,6 +29,7 @@ def analyze(ctx, filter_tags):
 
     # moved these imports from outside the function to inside it so that `isitfit --version` wouldn't take 5 seconds due to the loading
     from ..cost.mainManager import MainManager
+    from ..cost.cloudtrail_ec2type import CloudtrailCached
     from ..cost.utilizationListener import UtilizationListener
     from ..cost.cacheManager import RedisPandas as RedisPandasCacheManager
     from ..cost.datadogManager import DatadogCached
@@ -45,6 +46,10 @@ def analyze(ctx, filter_tags):
     ra = ReporterAnalyzeEc2()
     ra.set_analyzer(ul)
     mm = MainManager(ctx, cache_man)
+
+    # boto3 cloudtrail data
+    cloudtrail_manager = CloudtrailCached(mm.EndTime, cache_man)
+
     def ra_postprocess_wrap(n_ec2_total, mm, n_ec2_analysed, region_include):
       ul.n_ec2_total = n_ec2_total
       ul.mm = mm
@@ -56,8 +61,10 @@ def analyze(ctx, filter_tags):
     ra_email_wrap = lambda *args, **kwargs: ra.email(share_email, ctx)
 
     # utilization listeners
+    mm.add_listener('pre', cloudtrail_manager.init_data)
     mm.add_listener('ec2', etf.per_ec2)
     mm.add_listener('ec2', cloudwatchman.per_ec2)
+    mm.add_listener('ec2', cloudtrail_manager.single)
     mm.add_listener('ec2', mm._handle_ec2obj)
     mm.add_listener('ec2', ddg.per_ec2)
     mm.add_listener('ec2', ul.per_ec2)
@@ -94,6 +101,7 @@ def optimize(ctx, n, filter_tags):
 
     # moved these imports from outside the function to inside it so that `isitfit --version` wouldn't take 5 seconds due to the loading
     from ..cost.mainManager import MainManager
+    from ..cost.cloudtrail_ec2type import CloudtrailCached
     from ..cost.optimizerListener import OptimizerListener
     from ..cost.cacheManager import RedisPandas as RedisPandasCacheManager
     from ..cost.datadogManager import DatadogCached
@@ -110,6 +118,9 @@ def optimize(ctx, n, filter_tags):
     ra.set_analyzer(ol)
     mm = MainManager(ctx, cache_man)
 
+    # boto3 cloudtrail data
+    cloudtrail_manager = CloudtrailCached(mm.EndTime, cache_man)
+
     ra_display = lambda *args, **kwargs: ra.display()
     def ra_postprocess_wrap(n_ec2_total, mm, n_ec2_analysed, region_include):
       ol.n_ec2_total = n_ec2_total
@@ -119,9 +130,11 @@ def optimize(ctx, n, filter_tags):
       ra.postprocess()
 
     # utilization listeners
+    mm.add_listener('pre', cloudtrail_manager.init_data)
     mm.add_listener('pre', ol.handle_pre)
     mm.add_listener('ec2', etf.per_ec2)
     mm.add_listener('ec2', cloudwatchman.per_ec2)
+    mm.add_listener('ec2', cloudtrail_manager.single)
     mm.add_listener('ec2', mm._handle_ec2obj)
     mm.add_listener('ec2', ddg.per_ec2)
     mm.add_listener('ec2', ol.per_ec2)

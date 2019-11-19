@@ -2,7 +2,7 @@ import pandas as pd
 from tqdm import tqdm
 from .pull_cloudtrail_lookupEvents import GeneralManager as GraCloudtrailManager
 import os
-
+from ..utils import NoCloudtrailException
 
 import logging
 logger = logging.getLogger('isitfit')
@@ -13,7 +13,10 @@ class Manager:
     def __init__(self, EndTime):
         self.EndTime = EndTime
 
-    def init_data(self, ec2_instances, region_include, n_ec2):
+    def init_data(self, context_pre):
+        # parse out of context
+        ec2_instances, region_include, n_ec2 = context_pre['ec2_instances'], context_pre['region_include'], context_pre['n_ec2_total']
+
         # get cloudtail ec2 type changes for all instances
         self.region_include = region_include
         self.df_cloudtrail = self._fetch()
@@ -27,6 +30,9 @@ class Manager:
 
         # set index again, and sort decreasing this time (not like git-remote-aws default)
         self.df_cloudtrail = self.df_cloudtrail.set_index(["instanceId", "EventTime"]).sort_index(ascending=False)
+
+        # done
+        return context_pre
 
 
     def _fetch(self):
@@ -87,14 +93,23 @@ class Manager:
         self.df_cloudtrail = pd.concat([self.df_cloudtrail, df_new], sort=True)
 
 
-    def single(self, ec2_obj):
+    def single(self, context_ec2):
+        ec2_obj = context_ec2['ec2_obj']
+
         # pandas series of number of cpu's available on the machine over time, past 90 days
         # series_type_ts1 = self.cloudtrail_client.get_ec2_type(ec2_obj.instance_id)
         if not ec2_obj.instance_id in self.df_cloudtrail.index:
             return None
 
-        return self.df_cloudtrail.loc[ec2_obj.instance_id]
+        df_type_ts1 = self.df_cloudtrail.loc[ec2_obj.instance_id]
+        if df_type_ts1 is None:
+          raise NoCloudtrailException("No cloudtrail data for %s"%ec2_obj.instance_id)
 
+        # set in context
+        context_ec2['df_type_ts1'] = df_type_ts1
+
+        # done
+        return context_ec2
 
 
 class CloudtrailCached(Manager):

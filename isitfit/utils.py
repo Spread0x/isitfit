@@ -9,6 +9,10 @@ def raise_noCwExc(rc_id):
   raise NoCloudwatchException("No cloudwatch data for %s"%rc_id)
 
 
+class NoCloudtrailException(Exception):
+    pass
+
+
 def mergeSeriesOnTimestampRange(df_cpu, df_type):
   """
   Upsamples df_type to df_cpu.

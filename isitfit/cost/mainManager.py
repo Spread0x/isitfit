@@ -9,14 +9,11 @@ import logging
 logger = logging.getLogger('isitfit')
 
 
-from ..utils import mergeSeriesOnTimestampRange, ec2_catalog, SECONDS_IN_ONE_DAY, NoCloudwatchException, myreturn
-from .cloudtrail_ec2type import CloudtrailCached
+from ..utils import mergeSeriesOnTimestampRange, ec2_catalog, SECONDS_IN_ONE_DAY, NoCloudwatchException, myreturn, NoCloudtrailException
 
 MINUTES_IN_ONE_DAY = 60*24 # 1440
 N_DAYS=90
 
-class NoCloudtrailException(Exception):
-    pass
 
 
 
@@ -31,9 +28,6 @@ class MainManager:
 
         # manager of redis-pandas caching
         self.cache_man = cache_man
-
-        # boto3 cloudtrail data
-        self.cloudtrail_manager = CloudtrailCached(dt_now_d, self.cache_man)
 
         # listeners post ec2 data fetch and post all activities
         self.listeners = {'pre':[], 'ec2': [], 'all': []}
@@ -136,15 +130,19 @@ And finally re-run isitfit as usual.
                 return
 
 
+        # context for pre listeners
+        context_pre = {}
+        context_pre['ec2_instances'] = self.ec2_iterator()
+        context_pre['region_include'] = self.ec2_it.region_include
+        context_pre['n_ec2_total'] = n_ec2_total
+
         # call listeners
         for l in self.listeners['pre']:
-          l()
+          context_pre = l(context_pre)
+          if context_pre is None: break
 
         # download ec2 catalog: 2 columns: ec2 type, ec2 cost per hour
         self.df_cat = ec2_catalog()
-
-        # get cloudtail ec2 type changes for all instances
-        self.cloudtrail_manager.init_data(self.ec2_iterator(), self.ec2_it.region_include, n_ec2_total)
 
         # iterate over all ec2 instances
         n_ec2_analysed = 0
@@ -222,9 +220,7 @@ And finally re-run isitfit as usual.
         df_metrics = context_ec2['df_metrics']
 
         # pandas series of number of cpu's available on the machine over time, past 90 days
-        df_type_ts1 = self.cloudtrail_manager.single(ec2_obj)
-        if df_type_ts1 is None:
-          raise NoCloudtrailException("No cloudtrail data for %s"%ec2_obj.instance_id)
+        df_type_ts1 = context_ec2['df_type_ts1']
 
         # this is redundant with the implementation in _cloudwatch_metrics_core,
         # and it's here just in case the cached redis version is not a date,
