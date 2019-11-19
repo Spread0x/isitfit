@@ -1,3 +1,8 @@
+import logging
+logger = logging.getLogger('isitfit')
+
+
+
 class Ec2Common:
     def _handle_ec2obj(self, context_ec2):
         # parse out

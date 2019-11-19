@@ -49,7 +49,7 @@ class UtilizationListener:
     self.df_all.append({'instance_id': ec2_obj.instance_id, 'capacity': res_capacity, 'used': res_used})
 
 
-  def after_all(self, n_ec2_total, mm, n_ec2_analysed, region_include):
+  def after_all(self, context_all):
     # for debugging
     df_all = pd.DataFrame(self.df_all)
     logger.debug("\ncapacity/used per instance")
