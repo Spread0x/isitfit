@@ -19,15 +19,12 @@ N_DAYS=90
 
 from isitfit.cost.cacheManager import RedisPandas as RedisPandasCacheManager
 class MainManager:
-    def __init__(self, ctx, cache_man=None):
+    def __init__(self, ctx):
         # set start/end dates
         dt_now_d=dt.datetime.now().replace(tzinfo=pytz.utc)
         self.StartTime=dt_now_d - dt.timedelta(days=N_DAYS)
         self.EndTime=dt_now_d
         logger.debug("Metrics start..end: %s .. %s"%(self.StartTime, self.EndTime))
-
-        # manager of redis-pandas caching
-        self.cache_man = cache_man
 
         # listeners post ec2 data fetch and post all activities
         self.listeners = {'pre':[], 'ec2': [], 'all': []}

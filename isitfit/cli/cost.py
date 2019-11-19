@@ -41,13 +41,16 @@ def analyze(ctx, filter_tags):
 
     share_email = ctx.obj.get('share_email', None)
     ul = UtilizationListener(ctx)
+
+    # manager of redis-pandas caching
     cache_man = RedisPandasCacheManager()
+
     ddg = DatadogCached(cache_man)
     etf = Ec2TagFilter(filter_tags)
     cloudwatchman = CloudwatchEc2(cache_man)
     ra = ReporterAnalyzeEc2()
     ra.set_analyzer(ul)
-    mm = MainManager(ctx, cache_man)
+    mm = MainManager(ctx)
     ec2_cat = Ec2Catalog()
     ec2_common = Ec2Common()
 
@@ -119,13 +122,16 @@ def optimize(ctx, n, filter_tags):
     from isitfit.cost.ec2.ec2Common import Ec2Common
 
     ol = OptimizerListener(n)
+
+    # manager of redis-pandas caching
     cache_man = RedisPandasCacheManager()
+
     ddg = DatadogCached(cache_man)
     etf = Ec2TagFilter(filter_tags)
     cloudwatchman = CloudwatchEc2(cache_man)
     ra = ReporterOptimizeEc2()
     ra.set_analyzer(ol)
-    mm = MainManager(ctx, cache_man)
+    mm = MainManager(ctx)
     ec2_cat = Ec2Catalog()
     ec2_common = Ec2Common()
 
