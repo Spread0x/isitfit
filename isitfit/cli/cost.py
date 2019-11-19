@@ -9,8 +9,10 @@ from ..utils import IsitfitCommand
 
 
 @click.group(help="Evaluate AWS EC2 costs", invoke_without_command=False)
+@click.option('--filter-region', default=None, help='specify a single region against which to run cost analysis/optimization')
 @click.pass_context
-def cost(ctx):
+def cost(ctx, filter_region):
+  ctx.obj['filter_region'] = filter_region
   pass
 
 
@@ -54,7 +56,7 @@ def analyze(ctx, filter_tags):
     mm = MainManager(ctx)
     ec2_cat = Ec2Catalog()
     ec2_common = Ec2Common()
-    ec2_it = Ec2Iterator()
+    ec2_it = Ec2Iterator(filter_region=ctx.obj['filter_region'])
 
     # boto3 cloudtrail data
     cloudtrail_manager = CloudtrailCached(mm.EndTime, cache_man)
@@ -92,7 +94,7 @@ def analyze(ctx, filter_tags):
     logger.info("")
     logger.info("-"*20)
     from ..cost.redshift.cli import cost_analyze
-    cost_analyze(share_email)
+    cost_analyze(share_email, filter_region=ctx.obj['filter_region'])
     logger.info("-"*20)
 
 
@@ -134,7 +136,7 @@ def optimize(ctx, n, filter_tags):
     mm = MainManager(ctx)
     ec2_cat = Ec2Catalog()
     ec2_common = Ec2Common()
-    ec2_it = Ec2Iterator()
+    ec2_it = Ec2Iterator(filter_region=ctx.obj['filter_region'])
 
     # boto3 cloudtrail data
     cloudtrail_manager = CloudtrailCached(mm.EndTime, cache_man)
@@ -170,6 +172,6 @@ def optimize(ctx, n, filter_tags):
     logger.info("")
     logger.info("-"*20)
     from ..cost.redshift.cli import cost_optimize
-    cost_optimize()
+    cost_optimize(filter_region=ctx.obj['filter_region'])
     logger.info("-"*20)
 

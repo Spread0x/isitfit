@@ -17,6 +17,7 @@ A simple command-line tool to check if an AWS EC2/Redshift account is fit or und
   - [Display version](#display-version)
   - [Cost-weighted average utilization](#cost-weighted-average-utilization)
   - [Recommended optimizations](#recommended-optimizations)
+  - [Filtering on region](#filtering-on-region)
   - [Filtering on tags](#filtering-on-tags)
   - [Dumping tags to CSV](#dumping-tags-to-csv)
   - [Pushing tags from CSV](#pushing-tags-from-csv)
@@ -214,6 +215,16 @@ Details
 ...
 ```
 
+### Filtering on region
+
+Filter all output from `isitfit cost analyze` or `isitfit cost optimize` on a certain region by using the `--filter-region` option as follows
+
+```
+isitfit cost --filter-region=us-east-1 analyze
+isitfit cost --filter-region=us-east-1 optimize
+```
+
+
 ### Filtering on tags
 
 Filter optimizations for a particular tag name or tag value
@@ -311,15 +322,18 @@ isitfit tags suggest --advanced
 
 To specify a particular profile from `~/.aws/credentials`, set the `AWS_PROFILE` environment variable.
 
-Starting version 0.14, there is no need to set `AWS_DEFAULT_REGION` when using `isitfit cost` because it will already scan all regions for EC2/Redshift.
-
-You'd still need to use it for `isitfit tags` though.
-
 For example
 
 ```
 AWS_PROFILE=autofitcloud isitfit cost analyze
 ```
+
+Starting version 0.14, there is no need to set `AWS_DEFAULT_REGION` when using `isitfit cost` because it will already scan all regions for EC2/Redshift.
+
+You'd still need to use it for `isitfit tags` though.
+
+To specify a single region to scan, check the section [Filtering on region](#filtering-on-region).
+
 
 ### Assumed roles
 

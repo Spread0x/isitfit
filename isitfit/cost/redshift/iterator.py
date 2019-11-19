@@ -6,6 +6,8 @@ import pandas as pd
 import logging
 logger = logging.getLogger('isitfit')
 
+from isitfit.utils import IsitfitCliError
+
 
 class BaseIterator:
   """
@@ -23,7 +25,10 @@ class BaseIterator:
   entry_keyCreated = None
 
 
-  def __init__(self):
+  def __init__(self, filter_region=None):
+    # filter for certain region
+    self.filter_region = filter_region
+
     # list of cluster ID's for which data is not available
     self.rc_noData = []
 
@@ -52,6 +57,10 @@ class BaseIterator:
     """
     # try to load region_include from cache
     """
+    if self.filter_region is not None:
+      self.region_include = [self.filter_region]
+      self.regionInclude_ready = True
+      return
 
     # need to use the profile name
     # because a profile could have ec2 in us-east-1
@@ -90,13 +99,23 @@ class BaseIterator:
     redshift_regions = boto3.Session().get_available_regions(self.service_name)
     # redshift_regions = ['us-west-2'] # FIXME
 
+    if self.filter_region is not None:
+      if self.filter_region not in redshift_regions:
+        msg_err = "Invalid region specified: %s. Supported values: %s"
+        msg_err = msg_err%(self.filter_region, ", ".join(redshift_regions))
+        raise IsitfitCliError(msg_err, None) # passing None for click context
+
+      # over-ride
+      redshift_regions = [self.filter_region]
+
+    # iterate
     region_iterator = redshift_regions
     if display_tqdm:
       from tqdm import tqdm
       region_iterator = tqdm(region_iterator, total = len(redshift_regions), desc="%s, counting in all regions"%self.service_description)
 
     for region_name in region_iterator:
-      if self.regionInclude_ready:
+      if self.regionInclude_ready and self.filter_region is None:
         if region_name not in self.region_include:
           # skip since already failed to use it
           continue
@@ -125,7 +144,7 @@ class BaseIterator:
             # yield
             yield rc_describe_entry
 
-        if not self.regionInclude_ready:
+        if not self.regionInclude_ready and self.filter_region is None:
           if region_anyClusterFound:
             # only include if found clusters in this region
             self.region_include.append(region_name)
@@ -139,7 +158,7 @@ class BaseIterator:
         raise e
 
     # before exiting, check if a count just completed, and mark region_include as usable
-    if not self.regionInclude_ready:
+    if not self.regionInclude_ready and self.filter_region is None:
       self.regionInclude_ready = True
 
       # save to cache
