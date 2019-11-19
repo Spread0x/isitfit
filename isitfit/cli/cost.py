@@ -36,6 +36,8 @@ def analyze(ctx, filter_tags):
     from ..cost.ec2TagFilter import Ec2TagFilter
     from isitfit.cost.redshift.cloudwatchman import CloudwatchEc2
     from isitfit.cost.ec2.reporter import ReporterAnalyzeEc2
+    from isitfit.ec2_catalog import Ec2Catalog
+    from isitfit.cost.ec2.ec2Common import Ec2Common
 
     share_email = ctx.obj.get('share_email', None)
     ul = UtilizationListener(ctx)
@@ -46,6 +48,8 @@ def analyze(ctx, filter_tags):
     ra = ReporterAnalyzeEc2()
     ra.set_analyzer(ul)
     mm = MainManager(ctx, cache_man)
+    ec2_cat = Ec2Catalog()
+    ec2_common = Ec2Common()
 
     # boto3 cloudtrail data
     cloudtrail_manager = CloudtrailCached(mm.EndTime, cache_man)
@@ -63,12 +67,14 @@ def analyze(ctx, filter_tags):
     # utilization listeners
     mm.add_listener('pre', cache_man.handle_pre)
     mm.add_listener('pre', cloudtrail_manager.init_data)
+    mm.add_listener('pre', ec2_cat.handle_pre)
     mm.add_listener('ec2', etf.per_ec2)
     mm.add_listener('ec2', cloudwatchman.per_ec2)
     mm.add_listener('ec2', cloudtrail_manager.single)
-    mm.add_listener('ec2', mm._handle_ec2obj)
+    mm.add_listener('ec2', ec2_common._handle_ec2obj)
     mm.add_listener('ec2', ddg.per_ec2)
     mm.add_listener('ec2', ul.per_ec2)
+    mm.add_listener('all', ec2_common.after_all)
     mm.add_listener('all', ul.after_all)
     mm.add_listener('all', ra_postprocess_wrap)
     mm.add_listener('all', ra_display)
@@ -109,6 +115,8 @@ def optimize(ctx, n, filter_tags):
     from ..cost.ec2TagFilter import Ec2TagFilter
     from isitfit.cost.redshift.cloudwatchman import CloudwatchEc2
     from isitfit.cost.ec2.reporter import ReporterOptimizeEc2
+    from isitfit.ec2_catalog import Ec2Catalog
+    from isitfit.cost.ec2.ec2Common import Ec2Common
 
     ol = OptimizerListener(n)
     cache_man = RedisPandasCacheManager()
@@ -118,6 +126,8 @@ def optimize(ctx, n, filter_tags):
     ra = ReporterOptimizeEc2()
     ra.set_analyzer(ol)
     mm = MainManager(ctx, cache_man)
+    ec2_cat = Ec2Catalog()
+    ec2_common = Ec2Common()
 
     # boto3 cloudtrail data
     cloudtrail_manager = CloudtrailCached(mm.EndTime, cache_man)
@@ -134,12 +144,14 @@ def optimize(ctx, n, filter_tags):
     mm.add_listener('pre', cache_man.handle_pre)
     mm.add_listener('pre', cloudtrail_manager.init_data)
     mm.add_listener('pre', ol.handle_pre)
+    mm.add_listener('pre', ec2_cat.handle_pre)
     mm.add_listener('ec2', etf.per_ec2)
     mm.add_listener('ec2', cloudwatchman.per_ec2)
     mm.add_listener('ec2', cloudtrail_manager.single)
-    mm.add_listener('ec2', mm._handle_ec2obj)
+    mm.add_listener('ec2', ec2_common._handle_ec2obj)
     mm.add_listener('ec2', ddg.per_ec2)
     mm.add_listener('ec2', ol.per_ec2)
+    mm.add_listener('all', ec2_common.after_all)
     mm.add_listener('all', ra_postprocess_wrap)
     mm.add_listener('all', ra_display)
 

@@ -17,6 +17,7 @@ Version latest (0.15.0rc?, 2019-09-24?)
 - enh: move `cloudwatchman` out of `mainManager.handle_ec2obj` into listener
 - enh: move `cloudtrail` manager out of `mainManger` to listeners
 - enh: move `cache_man` to listener
+- enh: move `ec2_catalog` and create `ec2_common` out of the code in `mainManager` which isn't really part of the workflow
 
 
 Version 0.14.0 (2019-11-15)
