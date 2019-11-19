@@ -155,7 +155,7 @@ class CloudwatchBase:
         Raises NoCloudwatchException if no data found in cloudwatch
         """
         ec2_obj = context_ec2['ec2_obj']
-        df_cw3 = self.cloudwatchman.handle_main({'Region': ec2_obj.region_name}, ec2_obj.instance_id, ec2_obj.launch_time)
+        df_cw3 = self.handle_main({'Region': ec2_obj.region_name}, ec2_obj.instance_id, ec2_obj.launch_time)
         context_ec2['df_metrics'] = df_cw3
         return context_ec2
 
