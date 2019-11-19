@@ -55,7 +55,7 @@ def analyze(ctx, filter_tags):
     mm.add_listener('ec2', ul.per_ec2)
     mm.add_listener('all', ul.after_all)
     mm.add_listener('all', ra_postprocess_wrap)
-    mm.add_listener('all', ra.display)
+    mm.add_listener('all', ra_display)
     mm.add_listener('all', ra_email_wrap)
 
     # start download data and processing
