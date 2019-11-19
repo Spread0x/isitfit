@@ -128,6 +128,33 @@ class DatadogManager:
       return False
 
 
+    def per_ec2(self, context_ec2):
+        if not self.is_configured():
+          return None
+
+        # parse out keys
+        host_id = context_ec2['ec2_obj'].instance_id
+
+        # get data
+        ddg_df = self.get_metrics_all(host_id)
+        ec2_df = context_ec2['ec2_df']
+
+        if ddg_df is not None:
+          # convert from datetime to date to be able to merge with ec2_df
+          ddg_df['ts_dt'] = ddg_df.ts_dt.dt.date
+          # append the datadog suffix
+          ddg_df = ddg_df.add_suffix('.datadog')
+          # merge
+          ec2_df = ec2_df.merge(ddg_df, how='outer', left_on='Timestamp', right_on='ts_dt.datadog')
+
+        # add to context
+        context_ec2['ddg_df'] = ddg_df
+        context_ec2['ec2_df'] = ec2_df
+
+        # return
+        return context_ec2
+
+
     def get_metrics_all(self, host_id):
         # FIXME: we already have cpu from cloudwatch, so maybe just focus on ram from datadog
         logger.debug("Fetching datadog data for %s"%host_id)

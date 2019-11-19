@@ -143,7 +143,10 @@ class OptimizerListener:
       self.csv_writer = csv.writer(self.csv_fh)
 
 
-  def per_ec2(self, ec2_obj, ec2_df, mm, ddg_df):
+  def per_ec2(self, context_ec2):
+    # parse out context keys
+    ec2_obj, ec2_df, mm, ddg_df = context_ec2['ec2_obj'], context_ec2['ec2_df'], context_ec2['mainManager'], context_ec2['ddg_df']
+
     #print(ec2_obj.instance_id)
     ec2_c1, ec2_c2 = self._ec2df_to_classification(ec2_df, ddg_df)
 

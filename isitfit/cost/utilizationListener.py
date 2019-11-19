@@ -20,7 +20,7 @@ class UtilizationListener:
     self.ctx = ctx
 
 
-  def per_ec2(self, ec2_obj, ec2_df, mm, ddg_df):
+  def per_ec2(self, context_ec2):
     """
     Listener function to be called upon the download of each EC2 instance's data
     ec2_obj - boto3 resource
@@ -28,6 +28,9 @@ class UtilizationListener:
     mm - mainManager class
     ddg_df - dataframe of data from datadog: {cpu,ram}-{max,avg}
     """
+    # parse out context keys
+    ec2_obj, ec2_df, mm, ddg_df = context_ec2['ec2_obj'], context_ec2['ec2_df'], context_ec2['mainManager'], context_ec2['ddg_df']
+
     # results: 2 numbers: capacity (USD), used (USD)
     res_capacity = (ec2_df.nhours*ec2_df.cost_hourly).sum()
 

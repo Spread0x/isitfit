@@ -34,7 +34,7 @@ def tagsContain(f_tn, ec2_obj):
 
 from isitfit.cost.cacheManager import RedisPandas as RedisPandasCacheManager
 class MainManager:
-    def __init__(self, ctx, ddg=None, filter_tags=None, cache_man=None):
+    def __init__(self, ctx, filter_tags=None, cache_man=None):
         # set start/end dates
         dt_now_d=dt.datetime.now().replace(tzinfo=pytz.utc)
         self.StartTime=dt_now_d - dt.timedelta(days=N_DAYS)
@@ -49,9 +49,6 @@ class MainManager:
 
         # listeners post ec2 data fetch and post all activities
         self.listeners = {'pre':[], 'ec2': [], 'all': []}
-
-        # datadog manager
-        self.ddg = ddg
 
         # filtering by tags
         self.filter_tags = filter_tags
@@ -184,12 +181,18 @@ And finally re-run isitfit as usual.
               continue
 
           try:
-            ec2_df, ddg_df = self._handle_ec2obj(ec2_obj)
+            ec2_df = self._handle_ec2obj(ec2_obj)
             n_ec2_analysed += 1
+
+            # context dict to be passed between listeners
+            context_ec2 = {}
+            context_ec2['ec2_obj'] = ec2_obj
+            context_ec2['ec2_df'] = ec2_df
+            context_ec2['mainManager'] = self
 
             # call listeners
             for l in self.listeners['ec2']:
-              l(ec2_obj, ec2_df, self, ddg_df)
+              context_ec2 = l(context_ec2)
 
           except NoCloudwatchException:
             ec2_noCloudwatch.append(ec2_obj.instance_id)
@@ -240,18 +243,6 @@ And finally re-run isitfit as usual.
         return df_cw3
 
 
-    def _get_ddg_cached(self, ec2_obj):
-        # check if we can get datadog data
-        if not self.ddg:
-          return None
-
-        if not self.ddg.is_configured():
-          return None
-
-        # check cache first
-        return self.ddg.get_metrics_all(ec2_obj.instance_id)
-
-
     def _handle_ec2obj(self, ec2_obj):
         # logger.debug("%s, %s"%(ec2_obj.instance_id, ec2_obj.instance_type))
 
@@ -294,16 +285,4 @@ And finally re-run isitfit as usual.
         # A: ... For example, if you request for 1-minute data for a day from 10 days ago, you will receive the 1440 data points ...
         ec2_df['nhours'] = np.ceil(ec2_df.SampleCount/60)
 
-        # check if we can get datadog data
-        ddg_df = self._get_ddg_cached(ec2_obj)
-        # print("ddg data", ddg_df)
-
-        if ddg_df is not None:
-          # convert from datetime to date to be able to merge with ec2_df
-          ddg_df['ts_dt'] = ddg_df.ts_dt.dt.date
-          # append the datadog suffix
-          ddg_df = ddg_df.add_suffix('.datadog')
-          # merge
-          ec2_df = ec2_df.merge(ddg_df, how='outer', left_on='Timestamp', right_on='ts_dt.datadog')
-
-        return ec2_df, ddg_df
+        return ec2_df

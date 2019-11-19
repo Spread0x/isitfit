@@ -40,7 +40,7 @@ def analyze(ctx, filter_tags):
     ddg = DatadogCached(cache_man)
     ra = ReporterAnalyzeEc2()
     ra.set_analyzer(ul)
-    mm = MainManager(ctx, ddg, filter_tags, cache_man)
+    mm = MainManager(ctx, filter_tags, cache_man)
     def ra_postprocess_wrap(n_ec2_total, mm, n_ec2_analysed, region_include):
       ul.n_ec2_total = n_ec2_total
       ul.mm = mm
@@ -52,6 +52,7 @@ def analyze(ctx, filter_tags):
     ra_email_wrap = lambda *args, **kwargs: ra.email(share_email)
 
     # utilization listeners
+    mm.add_listener('ec2', ddg.per_ec2)
     mm.add_listener('ec2', ul.per_ec2)
     mm.add_listener('all', ul.after_all)
     mm.add_listener('all', ra_postprocess_wrap)
@@ -96,7 +97,7 @@ def optimize(ctx, n, filter_tags):
     ddg = DatadogCached(cache_man)
     ra = ReporterOptimizeEc2()
     ra.set_analyzer(ol)
-    mm = MainManager(ctx, ddg, filter_tags, cache_man)
+    mm = MainManager(ctx, filter_tags, cache_man)
 
     ra_display = lambda *args, **kwargs: ra.display()
     def ra_postprocess_wrap(n_ec2_total, mm, n_ec2_analysed, region_include):
@@ -108,6 +109,7 @@ def optimize(ctx, n, filter_tags):
 
     # utilization listeners
     mm.add_listener('pre', ol.handle_pre)
+    mm.add_listener('ec2', ddg.per_ec2)
     mm.add_listener('ec2', ol.per_ec2)
     mm.add_listener('all', ra_postprocess_wrap)
     mm.add_listener('all', ra_display)

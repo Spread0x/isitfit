@@ -11,6 +11,8 @@ Version latest (0.15.0rc?, 2019-09-24?)
 - enh: move datadog caching into class that inherits from non-cached class
 - enh: split out report from ec2 analyzer
 - enh: split out report from ec2 optimizer
+- enh: share a context dict between `per_ec2` listeners instead of passing a list of objects
+- enh: move datadog out of mainManager and into listeners
 
 
 Version 0.14.0 (2019-11-15)
