@@ -26,7 +26,7 @@ class Ec2TagFilter:
       return context_ec2
 
     f_tn = self.filter_tags.lower()
-    passesFilter = tagsContain(f_tn, ec2_obj)
+    passesFilter = tagsContain(f_tn, context_ec2['ec2_obj'])
     if not passesFilter:
       # break other listeners
       return None
