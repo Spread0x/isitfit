@@ -63,7 +63,7 @@ def optimize(ctx, n, filter_tags):
     logger.info("Initializing...")
 
     from isitfit.cost.ec2.pipeline_factory import ec2_cost_optimize
-    from isitfit.cost.redshift.cli import redshift_cost_optimize
+    from isitfit.cost.redshift.pipeline_factory import redshift_cost_optimize
     mm_eco = ec2_cost_optimize(ctx, n, filter_tags)
     mm_rco = redshift_cost_optimize(filter_region=ctx.obj['filter_region'])
 

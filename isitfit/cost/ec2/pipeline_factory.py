@@ -62,7 +62,7 @@ def ec2_cost_optimize(ctx, n, filter_tags):
     # moved these imports from outside the function to inside it so that `isitfit --version` wouldn't take 5 seconds due to the loading
     from isitfit.cost.mainManager import MainManager
     from isitfit.cost.cloudtrail_ec2type import CloudtrailCached
-    from isitfit.cost.calculator_optimize import CalculatorOptimizeEc2
+    from isitfit.cost.ec2.calculator_optimize import CalculatorOptimizeEc2
     from isitfit.cost.cacheManager import RedisPandas as RedisPandasCacheManager
     from isitfit.cost.datadogManager import DatadogCached
     from isitfit.cost.ec2TagFilter import Ec2TagFilter
