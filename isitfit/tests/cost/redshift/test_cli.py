@@ -6,8 +6,8 @@ import pytest
 def test_costCore(mocker):
     mockee_list = [
       'isitfit.cost.redshift.iterator.RedshiftPerformanceIterator',
-      'isitfit.cost.redshift.analyzer.AnalyzerAnalyze',
-      'isitfit.cost.redshift.analyzer.AnalyzerOptimize',
+      'isitfit.cost.redshift.analyzer.CalculatorAnalyzeRedshift',
+      'isitfit.cost.redshift.analyzer.CalculatorOptimizeRedshift',
       'isitfit.cost.redshift.reporter.ReporterAnalyze',
       'isitfit.cost.redshift.reporter.ReporterOptimize',
     ]

@@ -1,4 +1,4 @@
-from isitfit.cost.redshift.analyzer import AnalyzerBase, AnalyzerAnalyze, AnalyzerOptimize
+from isitfit.cost.redshift.calculator import CalculatorBaseRedshift, CalculatorAnalyzeRedshift, CalculatorOptimizeRedshift
 import datetime as dt
 import pandas as pd
 import pytz
@@ -6,18 +6,18 @@ dt_now_d = dt.datetime.utcnow().replace(tzinfo=pytz.utc)
 
 
 def test_redshiftPricingDict():
-  from isitfit.cost.redshift.analyzer import redshiftPricing_dict
+  from isitfit.cost.redshift.calculator import redshiftPricing_dict
   assert len(redshiftPricing_dict.keys()) > 0
 
 
 
-class TestAnalyzerBase:
+class TestCalculatorBaseRedshift:
   def test_init(self):
-    ra = AnalyzerBase()
+    ra = CalculatorBaseRedshift()
     assert True # no exception
 
 
-class TestAnalyzerAnalyze:
+class TestCalculatorAnalyzeRedshift:
 
   def test_fetch(self, mocker):
     mockreturn = lambda *args, **kwargs: pd.DataFrame({'Timestamp': [], 'Average': []})
@@ -36,7 +36,7 @@ class TestAnalyzerAnalyze:
     ]
 
     # prepare
-    ra = AnalyzerAnalyze()
+    ra = CalculatorAnalyzeRedshift()
     ra.analyze_list = ex_iter
 
     # run and test
@@ -45,7 +45,7 @@ class TestAnalyzerAnalyze:
 
 
   def test_calculate(self):
-    ra = AnalyzerAnalyze()
+    ra = CalculatorAnalyzeRedshift()
     ra.analyze_df = pd.DataFrame([
       {'CostUsed': 1, 'CostBilled': 100, 'Region': 'bla'}
     ])
@@ -53,7 +53,7 @@ class TestAnalyzerAnalyze:
     assert ra.cwau_percent == 1
 
 
-class TestAnalyzerOptimize:
+class TestCalculatorOptimizeRedshift:
 
   def test_fetch(self, mocker):
     mockreturn = lambda *args, **kwargs: pd.DataFrame({'Timestamp': [], 'Average': [], 'Maximum': [], 'Minimum': []})
@@ -69,7 +69,7 @@ class TestAnalyzerOptimize:
     ]
 
     # prepare
-    ra = AnalyzerOptimize()
+    ra = CalculatorOptimizeRedshift()
     ra.analyze_list = ex_iter
 
     # run and test
@@ -78,7 +78,7 @@ class TestAnalyzerOptimize:
 
 
   def test_calculate(self):
-    ra = AnalyzerOptimize()
+    ra = CalculatorOptimizeRedshift()
     ra.analyze_df = pd.DataFrame([
       {'CpuMaxMax': 90, 'CpuMinMin': 80, 'Cost': 1, 'NumberOfNodes': 3},
       {'CpuMaxMax': 50, 'CpuMinMin':  1, 'Cost': 1, 'NumberOfNodes': 3},

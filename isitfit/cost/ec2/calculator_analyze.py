@@ -9,7 +9,7 @@ from termcolor import colored
 
 
 
-class UtilizationListener:
+class CalculatorAnalyzeEc2:
 
   def __init__(self, ctx):
     # iterate over all ec2 instances

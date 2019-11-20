@@ -24,7 +24,7 @@ redshiftPricing_dict = {
 
 
 
-class AnalyzerBase:
+class CalculatorBaseRedshift:
 
 
   def __init__(self):
@@ -71,7 +71,7 @@ import pytz
 import math
 dt_now_d = dt.datetime.utcnow().replace(tzinfo=pytz.utc)
 
-class AnalyzerAnalyze(AnalyzerBase):
+class CalculatorAnalyzeRedshift(CalculatorBaseRedshift):
 
   def per_ec2(self, context_ec2):
       # parent
@@ -140,7 +140,7 @@ class AnalyzerAnalyze(AnalyzerBase):
     return context_all
 
 
-class AnalyzerOptimize(AnalyzerBase):
+class CalculatorOptimizeRedshift(CalculatorBaseRedshift):
 
   def per_ec2(self, context_ec2):
       """

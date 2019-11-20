@@ -2,7 +2,7 @@ def ec2_cost_analyze(ctx, filter_tags):
     # moved these imports from outside the function to inside it so that `isitfit --version` wouldn't take 5 seconds due to the loading
     from isitfit.cost.mainManager import MainManager
     from isitfit.cost.cloudtrail_ec2type import CloudtrailCached
-    from isitfit.cost.utilizationListener import UtilizationListener
+    from isitfit.cost.ec2.calculator_analyze import CalculatorAnalyzeEc2
     from isitfit.cost.cacheManager import RedisPandas as RedisPandasCacheManager
     from isitfit.cost.datadogManager import DatadogCached
     from isitfit.cost.ec2TagFilter import Ec2TagFilter
@@ -14,7 +14,7 @@ def ec2_cost_analyze(ctx, filter_tags):
 
 
     share_email = ctx.obj.get('share_email', None)
-    ul = UtilizationListener(ctx)
+    ul = CalculatorAnalyzeEc2(ctx)
 
     # manager of redis-pandas caching
     cache_man = RedisPandasCacheManager()
@@ -62,7 +62,7 @@ def ec2_cost_optimize(ctx, n, filter_tags):
     # moved these imports from outside the function to inside it so that `isitfit --version` wouldn't take 5 seconds due to the loading
     from isitfit.cost.mainManager import MainManager
     from isitfit.cost.cloudtrail_ec2type import CloudtrailCached
-    from isitfit.cost.optimizerListener import OptimizerListener
+    from isitfit.cost.calculator_optimize import CalculatorOptimizeEc2
     from isitfit.cost.cacheManager import RedisPandas as RedisPandasCacheManager
     from isitfit.cost.datadogManager import DatadogCached
     from isitfit.cost.ec2TagFilter import Ec2TagFilter
@@ -72,7 +72,7 @@ def ec2_cost_optimize(ctx, n, filter_tags):
     from isitfit.cost.ec2.ec2Common import Ec2Common
     from isitfit.cost.redshift.iterator import Ec2Iterator
 
-    ol = OptimizerListener(n)
+    ol = CalculatorOptimizeEc2(n)
 
     # manager of redis-pandas caching
     cache_man = RedisPandasCacheManager()

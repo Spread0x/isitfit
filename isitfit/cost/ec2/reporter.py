@@ -160,7 +160,7 @@ class ReporterOptimizeEc2(ReporterBase):
       df_all[fx1] = df_all[fx1].fillna(value=0).astype(int)
 
     # imply a recommended type
-    from isitfit.cost.optimizerListener import class2recommendedType, class2recommendedCost
+    from isitfit.cost.ec2.calculator_optimize import class2recommendedType, class2recommendedCost
     df_all['recommended_type'] = df_all.apply(class2recommendedType, axis=1)
     df_all['savings'] = df_all.apply(class2recommendedCost, axis=1)
     df_all['savings'] = df_all.savings.fillna(value=0).astype(int)

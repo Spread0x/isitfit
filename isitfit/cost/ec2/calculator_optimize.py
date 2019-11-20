@@ -50,7 +50,7 @@ def ec2obj_to_name(ec2_obj):
     return ec2_name[0]['Value']
 
 
-class OptimizerListener:
+class CalculatorOptimizeEc2:
 
   def __init__(self, n, thresholds = None):
     self.n = n

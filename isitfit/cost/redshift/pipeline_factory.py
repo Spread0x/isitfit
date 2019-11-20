@@ -52,9 +52,9 @@ def redshift_cost_core(ra, rr, share_email, filter_region):
 def redshift_cost_analyze(share_email, filter_region):
   logger.info("Analyzing redshift clusters")
 
-  from .analyzer import AnalyzerAnalyze
+  from .calculator import CalculatorAnalyzeRedshift
   from .reporter import ReporterAnalyze
-  ra = AnalyzerAnalyze()
+  ra = CalculatorAnalyzeRedshift()
   rr = ReporterAnalyze()
   mm = redshift_cost_core(ra, rr, share_email, filter_region)
   return mm
@@ -63,9 +63,9 @@ def redshift_cost_analyze(share_email, filter_region):
 def redshift_cost_optimize(filter_region):
   logger.info("Optimizing redshift clusters")
 
-  from .analyzer import AnalyzerOptimize
+  from .calculator import CalculatorOptimizeRedshift
   from .reporter import ReporterOptimize
-  ra = AnalyzerOptimize()
+  ra = CalculatorOptimizeRedshift()
   rr = ReporterOptimize()
   mm = redshift_cost_core(ra, rr, None, filter_region)
   return mm

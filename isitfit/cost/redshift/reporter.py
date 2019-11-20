@@ -53,7 +53,7 @@ class ReporterAnalyze(ReporterBase):
     n_rc_total = context_all['n_ec2_total']
     n_rc_analysed = context_all['n_rc_analysed']
 
-    # copied from isitfit.cost.utilizationListener.after_all
+    # copied from isitfit.cost.ec2.calculator_analyze.after_all
     cwau_val = self.analyzer.cwau_percent
     cwau_color = 'yellow'
     if cwau_val >= 70: cwau_color = 'green'
@@ -100,7 +100,7 @@ class ReporterAnalyze(ReporterBase):
 
 
   def display(self, context_all):
-    # copied from isitfit.cost.utilizationListener.display_all
+    # copied from isitfit.cost.ec2.calculator_analyze.display_all
 
     def get_row(row):
         def get_cell(i):
