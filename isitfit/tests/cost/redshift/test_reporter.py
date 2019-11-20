@@ -21,13 +21,12 @@ class TestReporterAnalyze:
 
       cwau_percent = 10
       rp_iter = MockIter
-      n_rc_analysed = 0
       regions_n = 1
       cost_billed = 1
       cost_used = 1
 
     rb = ReporterAnalyze()
-    rb.postprocess({'analyzer': MockAnalyzer, 'mainManager': MockMm})
+    rb.postprocess({'analyzer': MockAnalyzer, 'mainManager': MockMm, 'n_ec2_total': 1, 'n_rc_analysed': 0})
     assert rb.table is not None
 
 
@@ -91,7 +90,6 @@ class TestReporterOptimize:
 
   def test_email(self):
     import pytest
-    with pytest.raises(Exception):
-      rb = ReporterOptimize()
-      rb.email({'emailTo': []})
-
+    rb = ReporterOptimize()
+    context_all = rb.email({'emailTo': []})
+    assert True # assert no exceptions. The above .email will just return silently without doing anything since it is not implemented

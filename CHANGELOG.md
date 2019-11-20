@@ -9,6 +9,7 @@ Version latest (0.15.1rc?, 2019-09-24?)
 - bugfix: ec2 reporters: cleaned up usage of `n_{ec2,rc}_{total,analysed}` and `region_include`; calculating `n_*_analysed` in the analyzer; dropping `n_ec2_analysed` from mainManager
 - bugfix: when datadog is not configured, the `per_ec2` listener should return the context as is, not None, thus breaking the chain for the `optimizerListener`
 - enh: reporters: clean up usage of `analyzer` and `mainManager` in reporters
+- enh: small test improvements
 
 
 Version 0.15.0 (2019-11-19)

@@ -41,17 +41,17 @@ echo "Test 0b: version takes less than 1 sec (visual check ATM, 0.7s on local, 0
 time isitfit version
 
 
-echo "Test 1: on profile shadiakiki1986@gmail.com@amazonaws.com"
-AWS_PROFILE=shadi_shadi AWS_DEFAULT_REGION=us-west-2 isitfit cost analyze
+echo "Test 1: on profile shadiakiki1986@gmail.com@amazonaws.com (expect in AWS_DEFAULT_REGION=us-west-2)"
+AWS_PROFILE=shadi_shadi isitfit cost analyze
 
 
-echo "Test 2: on profile shadi@autofitcloud.com@amazonaws.com"
-AWS_PROFILE=afc_shadi_useast1 AWS_DEFAULT_REGION=eu-central-1 isitfit cost analyze
+echo "Test 2: on profile shadi@autofitcloud.com@amazonaws.com (expect in AWS_DEFAULT_REGION=eu-central-1)"
+AWS_PROFILE=afc_shadi_useast1 isitfit cost analyze
 
 
 echo "Test 3: default profile in region with 0 ec2 instances"
 # Note, unlike isitfit tags dump which returns a non-0 code if 0 ec2 found, this one just returns 0
-AWS_DEFAULT_REGION=eu-central-1 isitfit cost analyze
+isitfit cost --filter-region=eu-central-1 analyze
 
 
 echo "Test 4: optimize with default profile"
@@ -60,7 +60,7 @@ isitfit cost optimize
 
 echo "Test 5: optimize in region with 0 ec2 instances"
 # Note, unlike isitfit tags dump which returns a non-0 code if 0 ec2 found, this one just returns 0
-AWS_DEFAULT_REGION=eu-central-1 isitfit cost optimize
+isitfit cost --filter-region=eu-central-1 optimize
 
 
 echo "Test 6a: optimize with n=1 on shadi@autofitcloud.com@amazonaws.com"
