@@ -6,6 +6,8 @@ Version latest (0.15.1rc?, 2019-09-24?)
 - ...
 - enh: simplify cli.cost code by gathering all the mainManager setup code into `pipeline_factory` files
 - enh: refactor to rename `*Listener` to `Calculator*Ec2` and `Analyzer*` to `Calculator*Redshift`
+- bugfix: when redshift total > 0 but analysed = 0, do not throw exception
+- enh: when iterator total=0, do not show message saying 0 resources in 0 regions
 
 
 Version 0.15.1 (2019-11-20)

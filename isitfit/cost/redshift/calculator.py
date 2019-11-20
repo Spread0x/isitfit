@@ -54,9 +54,11 @@ class CalculatorBaseRedshift:
     # update number of analyzed clusters
     context_all['n_rc_analysed'] = self.analyze_df.shape[0]
 
-    if context_all['n_rc_analysed']==0:
-      from isitfit.utils import IsitfitCliError
-      raise IsitfitCliError("No redshift clusters analyzed", context_all['click_ctx'])
+    # Edit 2019-11-20 no need to through exception here
+    # This way, the code can proceed to show a report, and possibly proceed to other services than redshift
+    #if context_all['n_rc_analysed']==0:
+    #  from isitfit.utils import IsitfitCliError
+    #  raise IsitfitCliError("No redshift clusters analyzed", context_all['click_ctx'])
 
     return context_all
 
