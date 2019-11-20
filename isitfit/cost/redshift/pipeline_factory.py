@@ -2,7 +2,7 @@ import logging
 logger = logging.getLogger('isitfit')
 
 
-def cost_core(ra, rr, share_email, filter_region):
+def redshift_cost_core(ra, rr, share_email, filter_region):
     """
     ra - Analyzer
     rr - Reporter
@@ -46,25 +46,26 @@ def cost_core(ra, rr, share_email, filter_region):
     mm.add_listener('all', inject_email_in_context)
     mm.add_listener('all', rr.email)
 
-    # kickoff
-    mm.get_ifi()
+    return mm
 
 
-def cost_analyze(share_email, filter_region):
+def redshift_cost_analyze(share_email, filter_region):
   logger.info("Analyzing redshift clusters")
 
   from .analyzer import AnalyzerAnalyze
   from .reporter import ReporterAnalyze
   ra = AnalyzerAnalyze()
   rr = ReporterAnalyze()
-  cost_core(ra, rr, share_email, filter_region)
+  mm = redshift_cost_core(ra, rr, share_email, filter_region)
+  return mm
 
 
-def cost_optimize(filter_region):
+def redshift_cost_optimize(filter_region):
   logger.info("Optimizing redshift clusters")
 
   from .analyzer import AnalyzerOptimize
   from .reporter import ReporterOptimize
   ra = AnalyzerOptimize()
   rr = ReporterOptimize()
-  cost_core(ra, rr, None, filter_region)
+  mm = redshift_cost_core(ra, rr, None, filter_region)
+  return mm

@@ -4,6 +4,7 @@ Semantic versioning
 Version latest (0.15.1rc?, 2019-09-24?)
 
 - ...
+- enh: simplify cli.cost code by gathering all the mainManager setup code into `pipeline_factory` files
 
 
 Version 0.15.1 (2019-11-20)
