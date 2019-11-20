@@ -41,11 +41,11 @@ echo "Test 0b: version takes less than 1 sec (visual check ATM, 0.7s on local, 0
 time isitfit version
 
 
-echo "Test 1: default profile (shadiakiki1986@gmail.com@amazonaws.com)"
+echo "Test 1: on profile shadiakiki1986@gmail.com@amazonaws.com"
 AWS_PROFILE=shadi_shadi AWS_DEFAULT_REGION=us-west-2 isitfit cost analyze
 
 
-echo "Test 2: non-default profile (shadi@autofitcloud.com@amazonaws.com)"
+echo "Test 2: on profile shadi@autofitcloud.com@amazonaws.com"
 AWS_PROFILE=afc_shadi_useast1 AWS_DEFAULT_REGION=eu-central-1 isitfit cost analyze
 
 
@@ -63,8 +63,11 @@ echo "Test 5: optimize in region with 0 ec2 instances"
 AWS_DEFAULT_REGION=eu-central-1 isitfit cost optimize
 
 
-echo "Test 6: optimize with n=1"
-isitfit cost optimize --n=1
+echo "Test 6a: optimize with n=1 on shadi@autofitcloud.com@amazonaws.com"
+AWS_PROFILE=default isitfit cost optimize --n=1
+
+echo "Test 6b: optimize with n=1 on shadiakiki1986@gmail.com@amazonaws.com"
+AWS_PROFILE=shadi_shadi isitfit cost optimize --n=1
 
 
 echo "Test 7: {analyse,optimize} filter-tags {ffa,inexistant}"

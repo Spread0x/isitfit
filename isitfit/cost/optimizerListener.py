@@ -193,12 +193,11 @@ class OptimizerListener:
     self.ec2_classes.append(ec2_res)
 
     # check if should return early
-    if self.n!=0:
+    if self.n!=-1:
       sub_underused = [x for x in self.ec2_classes if x['classification_1']=='Underused']
       if len(sub_underused) >= self.n:
         # break early
-        self.after_all(None, mm, None, None)
-        import sys
-        sys.exit(0)
+        context_ec2['break_iterator'] = True
 
-
+    # done
+    return context_ec2

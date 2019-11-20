@@ -104,6 +104,13 @@ class MainManager:
           except NoCloudtrailException:
             ec2_noCloudtrail.append(ec2_id)
 
+          # check special keyword for breaking from the iterator loop
+          # eg for isitfit cost optimize --n=1
+          if context_ec2 is not None:
+            if "break_iterator" in context_ec2:
+              if context_ec2["break_iterator"]:
+                break
+
         # call listeners
         logger.info("... done")
         logger.info("")

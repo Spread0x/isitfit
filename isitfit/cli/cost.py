@@ -100,7 +100,7 @@ def analyze(ctx, filter_tags):
 
 
 @cost.command(help='Generate recommendations of optimal EC2 sizes', cls=IsitfitCommand)
-@click.option('--n', default=0, help='number of underused ec2 optimizations to find before stopping. Skip to get all optimizations')
+@click.option('--n', default=-1, help='number of underused ec2 optimizations to find before stopping. Skip to get all optimizations')
 @click.option('--filter-tags', default=None, help='filter instances for only those carrying this value in the tag name or value')
 @click.pass_context
 def optimize(ctx, n, filter_tags):

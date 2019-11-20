@@ -48,6 +48,8 @@ class UtilizationListener:
     self.sum_used += res_used
     self.df_all.append({'instance_id': ec2_obj.instance_id, 'capacity': res_capacity, 'used': res_used})
 
+    return context_ec2
+
 
   def after_all(self, context_all):
     # for debugging

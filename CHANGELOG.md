@@ -5,6 +5,7 @@ Version latest (0.15.1rc?, 2019-09-24?)
 
 - ...
 - bugfix: redshift cost optimize total number analyzed was always 0. Fixed to use context variable
+- bugfix: `isitfit cost optimize --n=1` was not breaking early properly. fixed
 
 
 Version 0.15.0 (2019-11-19)
