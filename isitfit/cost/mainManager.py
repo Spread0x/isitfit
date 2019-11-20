@@ -69,7 +69,6 @@ class MainManager:
 
 
         # iterate over all ec2 instances
-        n_ec2_analysed = 0
         sum_capacity = 0
         sum_used = 0
         df_all = []
@@ -90,8 +89,6 @@ class MainManager:
           context_ec2['ec2_obj'] = ec2_obj
 
           try:
-            n_ec2_analysed += 1
-
             # call listeners
             # Listener can return None to break out of loop,
             # i.e. to stop processing with other listeners
@@ -120,7 +117,6 @@ class MainManager:
         context_all = {}
         context_all['n_ec2_total'] = n_ec2_total
         context_all['mainManager'] = self
-        context_all['n_ec2_analysed'] = n_ec2_analysed
         context_all['region_include'] = self.ec2_it.region_include
         if 'df_cat' in context_pre: context_all['df_cat'] = context_pre['df_cat'] # copy object between contexts
 

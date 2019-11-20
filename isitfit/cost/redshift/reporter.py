@@ -51,6 +51,7 @@ class ReporterAnalyze(ReporterBase):
     self.analyzer = context_all['analyzer']
     mm = context_all['mainManager']
     n_rc_total = context_all['n_ec2_total']
+    n_rc_analysed = context_all['n_rc_analysed']
 
     # copied from isitfit.cost.utilizationListener.after_all
     cwau_val = self.analyzer.cwau_percent
@@ -80,7 +81,7 @@ class ReporterAnalyze(ReporterBase):
       },
       { 'color': '',
         'label': "Redshift clusters (analysed)",
-        'value': "%i"%self.analyzer.n_rc_analysed
+        'value': "%i"%n_rc_analysed
       },
       { 'color': '',
         'label': "Billed cost",

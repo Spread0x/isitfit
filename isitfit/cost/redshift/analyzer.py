@@ -33,9 +33,6 @@ class AnalyzerBase:
     self.analyze_list = []
     self.analyze_df = None
 
-    self.n_rc_total = 0
-    self.n_rc_analysed = 0
-
 
   def per_ec2(self, context_ec2):
       rc_describe_entry = context_ec2['ec2_dict']
@@ -55,9 +52,9 @@ class AnalyzerBase:
     self.analyze_df = pd.DataFrame(self.analyze_list)
 
     # update number of analyzed clusters
-    self.n_rc_analysed = self.analyze_df.shape[0]
+    context_all['n_rc_analysed'] = self.analyze_df.shape[0]
 
-    if self.n_rc_analysed==0:
+    if context_all['n_rc_analysed']==0:
       from isitfit.utils import IsitfitCliError
       raise IsitfitCliError("No redshift clusters analyzed", context_all['click_ctx'])
 

@@ -58,4 +58,7 @@ class UtilizationListener:
     logger.debug(df_all)
     logger.debug("\n")
 
+    # set n analysed
+    context_all['n_ec2_analysed'] = len(self.df_all)
+
     return context_all

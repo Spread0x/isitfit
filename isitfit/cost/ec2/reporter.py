@@ -16,10 +16,7 @@ class ReporterAnalyzeEc2(ReporterBase):
 
     # unpack
     n_ec2_total, mm, n_ec2_analysed, region_include = context_all['n_ec2_total'], context_all['mainManager'], context_all['n_ec2_analysed'], context_all['region_include']
-    self.analyzer.n_ec2_total = n_ec2_total
     self.analyzer.mm = mm
-    self.analyzer.n_ec2_analysed = n_ec2_analysed
-    self.analyzer.region_include = region_include
 
     # proceed
     cwau_val = 0
@@ -36,8 +33,8 @@ class ReporterAnalyzeEc2(ReporterBase):
     dt_end   = self.analyzer.mm.EndTime.strftime("%Y-%m-%d")
 
     ri_max = 3
-    ri_ell = "" if len(self.analyzer.region_include)<=ri_max else "..."
-    ri_str = ", ".join(self.analyzer.region_include[:ri_max])+ri_ell
+    ri_ell = "" if len(region_include)<=ri_max else "..."
+    ri_str = ", ".join(region_include[:ri_max])+ri_ell
     
     self.table = [
             {'color': '',
@@ -50,15 +47,15 @@ class ReporterAnalyzeEc2(ReporterBase):
             },
             {'color': '',
              'label': "Regions",
-             'value': "%i (%s)"%(len(self.analyzer.region_include), ri_str)
+             'value': "%i (%s)"%(len(region_include), ri_str)
             },
             {'color': '',
              'label': "EC2 machines (total)",
-             'value': "%i"%self.analyzer.n_ec2_total
+             'value': "%i"%n_ec2_total
             },
             {'color': '',
              'label': "EC2 machines (analysed)",
-             'value': "%i"%self.analyzer.n_ec2_analysed
+             'value': "%i"%n_ec2_analysed
             },
             {'color': 'cyan',
              'label': "Billed cost",
@@ -127,12 +124,9 @@ class ReporterOptimizeEc2(ReporterBase):
     self.analyzer = context_all['analyzer']
 
     # unpack
-    n_ec2_total, mm, n_ec2_analysed, region_include, df_cat = context_all['n_ec2_total'], context_all['mainManager'], context_all['n_ec2_analysed'], context_all['region_include'], context_all['df_cat']
-    self.analyzer.n_ec2_total = n_ec2_total
+    mm, df_cat = context_all['mainManager'], context_all['df_cat']
     mm.df_cat = df_cat
     self.analyzer.mm = mm
-    self.analyzer.n_ec2_analysed = n_ec2_analysed
-    self.analyzer.region_include = region_include
 
     # process
     self._after_all()

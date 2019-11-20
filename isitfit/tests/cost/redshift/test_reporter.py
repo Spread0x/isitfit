@@ -21,7 +21,6 @@ class TestReporterAnalyze:
 
       cwau_percent = 10
       rp_iter = MockIter
-      n_rc_total = 0
       n_rc_analysed = 0
       regions_n = 1
       cost_billed = 1
