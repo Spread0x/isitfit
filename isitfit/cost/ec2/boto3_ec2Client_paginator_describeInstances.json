@@ -1,0 +1,100 @@
+{
+	"AmiLaunchIndex": 0,
+	"ImageId": "ami-089ca11903ef1567b",
+	"InstanceId": "i-0fd6d8b37fb78b638",
+	"InstanceType": "t3a.large",
+	"KeyName": "aws-keypair-autofitcloud-1",
+	"LaunchTime": datetime.datetime(2019, 9, 5, 9, 58, 25, tzinfo = tzutc()),
+	"Monitoring": {
+		"State": "disabled"
+	},
+	"Placement": {
+		"AvailabilityZone": "eu-central-1a",
+		"GroupName": "",
+		"Tenancy": "default"
+	},
+	"Platform": "windows",
+	"PrivateDnsName": "ip-172-31-16-125.eu-central-1.compute.internal",
+	"PrivateIpAddress": "172.31.16.125",
+	"ProductCodes": [],
+	"PublicDnsName": "",
+	"State": {
+		"Code": 80,
+		"Name": "stopped"
+	},
+	"StateTransitionReason": "User initiated (2019-09-05 10:33:52 GMT)",
+	"SubnetId": "subnet-93c81ef9",
+	"VpcId": "vpc-a3a846c9",
+	"Architecture": "x86_64",
+	"BlockDeviceMappings": [{
+		"DeviceName": "/dev/sda1",
+		"Ebs": {
+			"AttachTime": datetime.datetime(2019, 9, 5, 9, 58, 26, tzinfo = tzutc()),
+			"DeleteOnTermination": True,
+			"Status": "attached",
+			"VolumeId": "vol-04972c27d03cfda61"
+		}
+	}],
+	"ClientToken": "",
+	"EbsOptimized": True,
+	"EnaSupport": True,
+	"Hypervisor": "xen",
+	"NetworkInterfaces": [{
+		"Attachment": {
+			"AttachTime": datetime.datetime(2019, 9, 5, 9, 58, 25, tzinfo = tzutc()),
+			"AttachmentId": "eni-attach-0984756a2ee932ec5",
+			"DeleteOnTermination": True,
+			"DeviceIndex": 0,
+			"Status": "attached"
+		},
+		"Description": "",
+		"Groups": [{
+			"GroupName": "launch-wizard-3",
+			"GroupId": "sg-0707354536f543091"
+		}],
+		"Ipv6Addresses": [],
+		"MacAddress": "02:98:54:81:da:80",
+		"NetworkInterfaceId": "eni-0710f5c750e3b0df2",
+		"OwnerId": "974668457921",
+		"PrivateDnsName": "ip-172-31-16-125.eu-central-1.compute.internal",
+		"PrivateIpAddress": "172.31.16.125",
+		"PrivateIpAddresses": [{
+			"Primary": True,
+			"PrivateDnsName": "ip-172-31-16-125.eu-central-1.compute.internal",
+			"PrivateIpAddress": "172.31.16.125"
+		}],
+		"SourceDestCheck": True,
+		"Status": "in-use",
+		"SubnetId": "subnet-93c81ef9",
+		"VpcId": "vpc-a3a846c9",
+		"InterfaceType": "interface"
+	}],
+	"RootDeviceName": "/dev/sda1",
+	"RootDeviceType": "ebs",
+	"SecurityGroups": [{
+		"GroupName": "launch-wizard-3",
+		"GroupId": "sg-0707354536f543091"
+	}],
+	"SourceDestCheck": True,
+	"StateReason": {
+		"Code": "Client.UserInitiatedShutdown",
+		"Message": "Client.UserInitiatedShutdown: User initiated shutdown"
+	},
+	"Tags": [{
+		"Key": "Name",
+		"Value": "test excel addin with office.js"
+	}],
+	"VirtualizationType": "hvm",
+	"CpuOptions": {
+		"CoreCount": 1,
+		"ThreadsPerCore": 2
+	},
+	"CapacityReservationSpecification": {
+		"CapacityReservationPreference": "open"
+	},
+	"HibernationOptions": {
+		"Configured": False
+	},
+	"Region": "eu-central-1",
+	"service_name": "EC2"
+}

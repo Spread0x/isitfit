@@ -13,31 +13,41 @@ class NoCloudtrailException(Exception):
     pass
 
 
-def mergeSeriesOnTimestampRange(df_cpu, df_type):
+def mergeSeriesOnTimestampRange(df_cpu, df_type, fields):
   """
   Upsamples df_type to df_cpu.
-  Example:
-    Input
-      df_cpu = pd.Series({'time': [1,2,3,4], 'field_1': [5,6,7,8]})
-      df_type = pd.Series({'time': [1,3], 'field_2': ['a','b']})
-    Returns
-      pd.Series({'time': [1,2,3,4], 'field_1': [5,6,7,8], 'field_2': ['a','a','b','b']})
+  Check unit test for an example
   """
+  # check that df_type dataframe are sorted descending
+  # This does not apply to df_cpu
+  #if df_cpu.Timestamp.iloc[0] < df_cpu.Timestamp.iloc[-1]:
+  #  raise Exception("CPU Dataframe should be sorted descending for utils.mergeSeriesOnTimestampRange")
+
+  if df_type.iloc[0].name < df_type.iloc[-1].name:
+    raise Exception("Types Dataframe should be sorted descending for utils.mergeSeriesOnTimestampRange")
+
   import numpy as np
 
-  df_cpu['instanceType'] = None
+  for f in fields:
+    df_cpu[f] = None
+
   # assume df_type is sorted in decreasing EventTime order (very important)
   # NB: since some instances are not present in the cloudtrail (for which we append artificially the "now" type)
   #     Need to traverse the df_type matrix backwards
   for index, row_type in df_type.iterrows():
+    row_i = np.where(df_cpu.Timestamp <= row_type.name)[0]
+    for f in fields:
       # use row_type.name instead of row_type['EventTime']
       # check note above about needing to traverse backwards
       # df_cpu.iloc[np.where(df_cpu.Timestamp >= row_type.name)[0], df_cpu.columns.get_loc('instanceType')] = row_type['instanceType']
-      df_cpu.iloc[np.where(df_cpu.Timestamp <= row_type.name)[0], df_cpu.columns.get_loc('instanceType')] = row_type['instanceType']
+      col_i = df_cpu.columns.get_loc(f)
+      df_cpu.iloc[row_i, col_i] = row_type[f]
 
   # fill na at beginning with back-fill
   # (artifact of cloudwatch having data at days before the creation of the instance)
-  df_cpu['instanceType'] = df_cpu['instanceType'].fillna(method='backfill')
+  for f in fields:
+    df_cpu[f] = df_cpu[f].fillna(method='backfill')
+
   return df_cpu
 
 

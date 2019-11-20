@@ -17,6 +17,7 @@ class Ec2Common:
 
         # pandas series of number of cpu's available on the machine over time, past 90 days
         df_type_ts1 = context_ec2['df_type_ts1']
+        df_type_ts1 = df_type_ts1.rename(columns={'ResourceSize1': 'instanceType'})
 
         # this is redundant with the implementation in _cloudwatch_metrics_core,
         # and it's here just in case the cached redis version is not a date,
@@ -29,7 +30,7 @@ class Ec2Common:
 
         # convert type timeseries to the same timeframes as pcpu and n5mn
         #if ec2_obj.instance_id=='i-069a7808addd143c7':
-        ec2_df = mergeSeriesOnTimestampRange(df_metrics, df_type_ts1)
+        ec2_df = mergeSeriesOnTimestampRange(df_metrics, df_type_ts1, ['instanceType'])
         #logger.debug("\nafter merge series on timestamp range")
         #logger.debug(ec2_df.head())
 

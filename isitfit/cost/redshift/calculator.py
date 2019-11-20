@@ -6,6 +6,8 @@
 from tqdm import tqdm
 import pandas as pd
 from isitfit.cost.mainManager import NoCloudwatchException
+from isitfit.utils import mergeSeriesOnTimestampRange
+
 
 # redshift pricing as of 2019-11-12 in USD per hour, on-demand, ohio
 # https://aws.amazon.com/redshift/pricing/
@@ -17,8 +19,10 @@ redshiftPricing_dict = {
   'dc1.large': 0.25,
   'dc1.8xlarge': 4.80,
 }
-#redshiftPricing_df = [{'NodeType': k, 'Cost': v} for k, v in redshiftPricing_dict.items()]
-#redshiftPricing_df = pd.DataFrame(redshiftPricing_df)
+
+# convert above dict to pandas dataframe
+redshiftPricing_df = [{'NodeType': k, 'Cost': v} for k, v in redshiftPricing_dict.items()]
+redshiftPricing_df = pd.DataFrame(redshiftPricing_df)
 #print("redshift pricing")
 #print(redshiftPricing_df)
 
@@ -82,6 +86,10 @@ class CalculatorAnalyzeRedshift(CalculatorBaseRedshift):
       # unpack
       rc_describe_entry, rc_id, rc_created = context_ec2['ec2_dict'], context_ec2['ec2_id'], context_ec2['ec2_launchtime']
 
+      # pandas series of number of nodes available, and node type, over time, past 90 days
+      df_type_ts1 = context_ec2['df_type_ts1']
+      df_type_ts1 = df_type_ts1.rename(columns={'ResourceSize1': 'NodeType', 'ResourceSize2': 'NumberOfNodes'})
+
       # get all performance dataframes, on the cluster-aggregated level
       df_single = context_ec2['df_single']
 
@@ -90,6 +98,17 @@ class CalculatorAnalyzeRedshift(CalculatorBaseRedshift):
       # append a n_hours field per day
       # and correct for number of hours on first and last day
       # Note that intermediate days are just 24 hours since Redshift cannot be stopped
+      # Update 2019-11-20
+      # FIXME need to look at how to use SampleCount for this to get a more accurate number,
+      # especially for days on which an instance is run for the first 10 hours then deleted
+      # To note that initially I had dismissed this SampleCount idea because a redshift cluster cannot be
+      # stopped and restarted like ec2, but a major difference is the ability to re-assign a past ID to the cluster
+      # unlike ec2 where the instance ID gets generated randomly for each terminated and re-created instance
+      # eg
+      # (Pdb) df_single.head()
+      #     Timestamp  SampleCount   Average   Minimum    Maximum     Unit  n_hours
+      # 2  2019-11-19        918.0  2.324190  0.833333  53.500000  Percent       24
+      # 0  2019-11-20          4.0  1.208333  1.000000   1.416667  Percent        4
       ymd_creation = rc_describe_entry['ClusterCreateTime'].strftime("%Y-%m-%d")
       ymd_today    = dt_now_d.strftime("%Y-%m-%d")
 
@@ -107,19 +126,25 @@ class CalculatorAnalyzeRedshift(CalculatorBaseRedshift):
 
       df_single['n_hours'] = df_single.Timestamp.apply(calc_nhours)
 
+      # merge df_single (metrics) with df_type_ts1 (cloudtrail history)
+      # (adds column NodeType, NumberOfNodes)
+      rc_df = mergeSeriesOnTimestampRange(df_single, df_type_ts1, ['NodeType', 'NumberOfNodes'])
+
+      # merge with the price catalog (adds column Cost)
+      rc_df = rc_df.merge(redshiftPricing_df, left_on='NodeType', right_on='NodeType', how='left')
+
       # summarize into 1 row
       self.analyze_list.append({
         'ClusterIdentifier': rc_describe_entry['ClusterIdentifier'],
+
+        # most recent node type and number of nodes
         'NodeType': rc_type,
         'NumberOfNodes': rc_describe_entry['NumberOfNodes'],
         'Region': rc_describe_entry['Region'],
 
-        # TODO if cloudtrail is used to get the history of size changes of a redshift cluster,
-        # the pricing field needs to change from a single number to a series of same dimension as df_single.Average
-        # The same applies to the number of nodes field, which becomes a series too.
-        # Finally, the "* df_single.shape[0]" becomes ".sum()"
-        'CostUsed':   (df_single.Average / 100 * redshiftPricing_dict[rc_type] * df_single.n_hours * rc_describe_entry['NumberOfNodes']).sum(),
-        'CostBilled': (1                       * redshiftPricing_dict[rc_type] * df_single.n_hours * rc_describe_entry['NumberOfNodes']).sum()
+        # cost used/billed, including cloudtrail history
+        'CostUsed':   (rc_df.Average / 100 * rc_df.Cost * rc_df.n_hours * rc_df.NumberOfNodes).sum(),
+        'CostBilled': (1                   * rc_df.Cost * rc_df.n_hours * rc_df.NumberOfNodes).sum()
       })
 
       # done

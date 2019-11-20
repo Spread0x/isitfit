@@ -42,16 +42,17 @@ logger = logging.getLogger('isitfit')
 # import jmespath
 
 #----------------------------------------
-class Ec2Typechanges:
+class Ec2TypechangesBase:
+    eventName = None
   
-    def __init__(self, eventName):
-      self.eventName = eventName
-
     # get paginator
-    def getIterator(self, client):
+    def iterate_page(self):
         """
         eventName - eg 'ModifyInstanceAttribute'
         """
+        if self.eventName is None:
+          raise Exception("Derived class should set class member eventName")
+
         # arguments to lookup-events command
         # From docs: "Currently the list can contain only one item"
         LookupAttributes=[
@@ -67,7 +68,9 @@ class Ec2Typechanges:
           'MaxResults': 3000
         }
 
-        # client = boto3.client('cloudtrail')
+        # edit 2019-11-20 instead of defining this client in Gra... and passing it through several layers,
+        # just define it here
+        client = boto3.client('cloudtrail')
         cp = client.get_paginator(operation_name="lookup_events")
         iterator = cp.paginate(
           LookupAttributes=LookupAttributes, 
@@ -77,33 +80,93 @@ class Ec2Typechanges:
         return iterator
 
 
-    def handleIterator(self, iterator):
-      i=1
-      r_all = []
-      for i, response in tqdm(enumerate(iterator), desc="Cloudtrail page %i"%i):
+    def iterate_event(self):
+      for response in tqdm(self.iterate_page(), desc="Cloudtrail events for %s"%self.eventName):
         #with open('t2.json','w') as fh:
         #  json.dump(response, fh, default=json_serial)
 
         # print(response.keys())
         for event in response['Events']:
-          result = self._handleEventAny(event)
+          result = self._handleEvent(event)
           if result is None: continue
-          r_all.append(result)
-
-      return r_all
+          yield result
 
 
-    def _handleEventAny(self, event):
-        if self.eventName == 'RunInstances':
-          return self._handleEventRun(event)
+    def _handleEvent(self, event):
+        # raise Exception("Implement by derived classes")
+        return event
+
+
+class RedshiftTypechangesCreate(Ec2TypechangesBase):
+    eventName = "CreateCluster"
+ 
+    def _handleEvent(self, event):
+          # logger.debug("Cloudtrail event: %s"%json.dumps(event, default=json_serial))
+
+          if 'Resources' not in event:
+            logger.debug("No 'Resources' key in event. Skipping")
+            return None # ignore this situation
+        
+          instanceId = [x for x in event['Resources'] if x['ResourceType']=='AWS::Redshift::Cluster']
+          if len(instanceId)==0:
+            logger.debug("No AWS redshift clusters in event. Skipping")
+            return None # ignore this situation
+
+          # proceed
+          instanceId = instanceId[0]
+
+          if 'ResourceName' not in instanceId:
+            logger.debug("No ResourceName key in event. Skipping")
+            return None # ignore this situation
           
-        if self.eventName == 'ModifyInstanceAttribute':
-          return self._handleEventModify(event)
-          
-        raise ValueError("Unsupported event name %s"%self.eventName)
+          # proceed
+          instanceId = instanceId['ResourceName']
+
+          if 'CloudTrailEvent' not in event:
+            logger.debug("No CloudTrailEvent key in event. Skipping")
+            return None # ignore this situation
+
+          ce_dict = json.loads(event['CloudTrailEvent'])
+
+          import jmespath
+          nodeType = jmespath.search('requestParameters.nodeType', ce_dict)
+          numberOfNodes = jmespath.search('requestParameters.numberOfNodes', ce_dict)
+          if numberOfNodes is None:
+            numberOfNodes = jmespath.search('responseElements.numberOfNodes', ce_dict)
+
+          if nodeType is None:
+            logger.debug("No nodeType key in event['CloudTrailEvent']['requestParameters']. Skipping")
+            return None # ignore this situation
+
+          if numberOfNodes is None:
+            logger.debug("No numberOfNodes key in event['CloudTrailEvent']['requestParameters']. Skipping")
+            return None # ignore this situation
+
+          if 'EventTime' not in event:
+            logger.debug("No EventTime key in event. Skipping")
+            return None # ignore this situation
+
+          ts_obj = event['EventTime']
+          # ts_obj = dt.datetime.utcfromtimestamp(ts_int)
+          # ts_str = ts_obj.strftime('%Y-%m-%d %H:%M:%S')
+
+          result = {
+            'ServiceName': 'EC2',
+            'EventName': self.eventName,
+            'EventTime': ts_obj,  # ts_str,
+            'ResourceName': instanceId,
+            'ResourceSize1': nodeType,
+            'ResourceSize2': numberOfNodes,
+          }
+
+          return result
+
       
       
-    def _handleEventRun(self, event):
+class Ec2TypechangesRun(Ec2TypechangesBase):
+    eventName = "RunInstances"
+ 
+    def _handleEvent(self, event):
           # logger.debug("Cloudtrail event: %s"%json.dumps(event, default=json_serial))
 
           if 'Resources' not in event:
@@ -150,15 +213,19 @@ class Ec2Typechanges:
           # ts_str = ts_obj.strftime('%Y-%m-%d %H:%M:%S')
 
           result = {
+            'ServiceName': 'EC2',
             'EventTime': ts_obj,  # ts_str,
-            'instanceId': instanceId,
-            'instanceType': newType,
+            'ResourceName': instanceId,
+            'ResourceSize1': newType,
           }
 
           return result
           
           
-    def _handleEventModify(self, event):
+class Ec2TypechangesModify(Ec2TypechangesBase):
+    eventName = "ModifyInstanceAttribute"
+ 
+    def _handleEvent(self, event):
           if 'CloudTrailEvent' not in event:
             logger.debug("No CloudTrailEvent key in event. Skipping")
             return None # ignore this situation
@@ -196,43 +263,81 @@ class Ec2Typechanges:
             return None # ignore this situation
 
           result = {
+            'ServiceName': 'EC2',
             'EventTime': ts_obj, # ts_str,
-            'instanceId': rp_dict['instanceId'],
-            'instanceType': newType,
+            'ResourceName': rp_dict['instanceId'],
+            'ResourceSize1': newType,
+          }
+
+          return result
+
+
+class RedshiftTypechangesResize(Ec2TypechangesBase):
+    eventName = "ResizeCluster"
+ 
+    def _handleEvent(self, event):
+          if 'CloudTrailEvent' not in event:
+            logger.debug("No CloudTrailEvent key in event. Skipping")
+            return None # ignore this situation
+
+          ce_dict = json.loads(event['CloudTrailEvent'])
+
+          if 'requestParameters' not in ce_dict:
+            logger.debug("No requestParameters key in event['CloudTrailEvent']. Skipping")
+            return None # ignore this situation
+
+          rp_dict = ce_dict['requestParameters']
+
+          import jmespath
+          nodeType = jmespath.search('instanceType', rp_dict)
+          numberOfNodes = jmespath.search('numberOfNodes', rp_dict)
+
+          ts_obj = event['EventTime']
+          # ts_obj = dt.datetime.utcfromtimestamp(ts_int)
+          # ts_str = ts_obj.strftime('%Y-%m-%d %H:%M:%S')
+
+          result = {
+            'ServiceName': 'Redshift',
+            'EventTime': ts_obj, # ts_str,
+            'ResourceName': rp_dict['clusterIdentifier'],
+            'ResourceSize1': nodeType,
+            'ResourceSize2': numberOfNodes,
+
           }
 
           return result
 
 
 class GeneralManager:
-    def __init__(self, client):
-        self.client = client
-        
     def ec2_typeChanges(self):
         import pandas as pd
         from termcolor import colored
         import botocore
         import sys
 
-        def run_iterator(man2_i, iterator_i):
+        def run_iterator(man2_i):
           try:
-            r_i = man2_i.handleIterator(iterator_i)
+            r_i = list(man2_i.iterate_event())
           except botocore.exceptions.ClientError as e:
             logger.error(colored("\n"+str(e), 'red'))
             sys.exit(1)
 
           return r_i
 
-        man2_run = Ec2Typechanges(eventName='RunInstances')
-        iterator_run = man2_run.getIterator(self.client)
-        r_run = run_iterator(man2_run, iterator_run)
+        man2_ec2run = Ec2TypechangesRun()
+        r_ec2run = run_iterator(man2_ec2run)
         
-        man2_mod = Ec2Typechanges(eventName='ModifyInstanceAttribute')
-        iterator_mod = man2_mod.getIterator(self.client)
-        r_mod = run_iterator(man2_mod, iterator_mod)
+        man2_ec2mod = Ec2TypechangesModify()
+        r_ec2mod = run_iterator(man2_ec2mod)
        
+        man2_rscre = RedshiftTypechangesCreate()
+        r_rscre = run_iterator(man2_rscre)
+
+        man2_rsmod = RedshiftTypechangesResize()
+        r_rsmod = run_iterator(man2_rsmod)
+
         # split on instance ID and gather
-        r_all = r_run + r_mod
+        r_all = r_ec2run + r_ec2mod + r_rscre + r_rsmod
         # logging.error(r_all)
         df = pd.DataFrame(r_all)
 
@@ -240,14 +345,13 @@ class GeneralManager:
           # early return
           return df
 
-        df = df.set_index(["instanceId", "EventTime"]).sort_index()
+        df = df.set_index(["ServiceName", "ResourceName", "EventTime"]).sort_index()
         
         return df
 
 
 if __name__=='__main__':
-    client = boto3.client('cloudtrail')
-    man1 = GeneralManager(client)
+    man1 = GeneralManager()
     df = man1.ec2_typeChanges()
     print("")
     print(df)

@@ -386,6 +386,7 @@ A few useful commands:
 
 - To clear the cache: `redis-cli -n 0 flushdb`
 - To list all keys: `redis-cli --scan --pattern '*'` ([ref](https://www.shellhacks.com/redis-get-all-keys-redis-cli/))
+- To delete a particular key: `redis-cli --scan --pattern "cloudtrail_ec2type._fetch" | xargs redis-cli del` ([ref](https://rdbtools.com/blog/redis-delete-keys-matching-pattern-using-scan/))
 
 Consider saving the environment variables in the `~/.bashrc` file.
 

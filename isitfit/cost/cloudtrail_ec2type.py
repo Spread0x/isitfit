@@ -8,6 +8,13 @@ import logging
 logger = logging.getLogger('isitfit')
 
 
+def dict2service(ec2_dict):
+        if 'InstanceId' in ec2_dict: return 'EC2'
+        if 'ClusterIdentifier' in ec2_dict: return 'Redshift'
+        import json
+        raise Exception("Unknown service found in %s"%json.dumps(ec2_dict))
+
+
 
 class Manager:
     def __init__(self, EndTime):
@@ -26,10 +33,10 @@ class Manager:
         # Edit 2019-11-12 use initial=0 otherwise if "=1" used then the tqdm output would be "101it" at conclusion, i.e.
         # First pass through EC2 instances: 101it [00:05,  5.19it/s]
         for ec2_dict, ec2_id, ec2_launchtime, ec2_obj in tqdm(ec2_instances, total=n_ec2, desc="Pass 1/2 through EC2 instances", initial=0):
-            self._appendNow(ec2_obj)
+            self._appendNow(ec2_dict, ec2_id)
 
         # set index again, and sort decreasing this time (not like git-remote-aws default)
-        self.df_cloudtrail = self.df_cloudtrail.set_index(["instanceId", "EventTime"]).sort_index(ascending=False)
+        self.df_cloudtrail = self.df_cloudtrail.set_index(["Region", "ServiceName", "ResourceName", "EventTime"]).sort_index(ascending=False)
 
         # done
         return context_pre
@@ -40,15 +47,11 @@ class Manager:
         logger.debug("Downloading cloudtrail data (from %i regions)"%len(self.region_include))
         df_2 = []
         import boto3
-        cloudtrail_client_all = {}
         for region_name in self.region_include:
-          if region_name not in cloudtrail_client_all.keys():
-            boto3.setup_default_session(region_name = region_name)
-            cloudtrail_client_all[region_name] = boto3.client('cloudtrail')
-
-          cloudtrail_client_single = cloudtrail_client_all[region_name]
-          cloudtrail_manager = GraCloudtrailManager(cloudtrail_client_single)
+          boto3.setup_default_session(region_name = region_name)
+          cloudtrail_manager = GraCloudtrailManager()
           df_1 = cloudtrail_manager.ec2_typeChanges()
+          df_1['region'] = region_name
           df_2.append(df_1)
 
         # concatenate
@@ -64,7 +67,7 @@ class Manager:
         # cache_fn = '/tmp/isitfit_cloudtrail.autofitcloud.csv'
         if os.path.exists(cache_fn):
             logger.debug("Loading cloudtrail data from cache")
-            df = pd.read_csv(cache_fn).set_index(["instanceId", "EventTime"])
+            df = pd.read_csv(cache_fn).set_index(["ResourceName", "EventTime"])
             return df
 
         logger.debug("Downloading cloudtrail data")
@@ -79,14 +82,24 @@ class Manager:
     """
 
 
-    def _appendNow(self, ec2_obj):
+    def _appendNow(self, ec2_dict, ec2_id):
         # artificially append an entry for "now" with the current type
         # This is useful for instance who have no entries in the cloudtrail
         # so that their type still shows up on merge
+
+        ec2_dict['ServiceName'] = dict2service(ec2_dict)
+
+        size1_key = 'NodeType' if ec2_dict['ServiceName']=='Redshift' else 'InstanceType'
+        size2_val = ec2_dict['NumberOfNodes'] if ec2_dict['ServiceName']=='Redshift' else None
+
         df_new = pd.DataFrame([
-              { 'instanceId': ec2_obj.instance_id,
+              {
+                'Region': ec2_dict['Region'],
+                'ServiceName': ec2_dict['ServiceName'],
+                'ResourceName': ec2_id,
                 'EventTime': self.EndTime,
-                'instanceType': ec2_obj.instance_type
+                'ResourceSize1': ec2_dict[size1_key],
+                'ResourceSize2': size2_val
               }
             ])
 
@@ -94,16 +107,35 @@ class Manager:
 
 
     def single(self, context_ec2):
-        ec2_obj = context_ec2['ec2_obj']
+        ec2_dict = context_ec2['ec2_dict']
+
+        # imply service name
+        ec2_dict['ServiceName'] = dict2service(ec2_dict)
+        ServiceName = ec2_dict['ServiceName']
+        region_name = ec2_dict['Region']
+
+        sub_ct = self.df_cloudtrail
+
+        sub_ct = sub_ct.loc[region_name]
+        if sub_ct.shape[0]==0:
+          raise NoCloudtrailException("No cloudtrail data #4 for %s"%ec2_id)
+
+        sub_ct = sub_ct.loc[ServiceName]
+        if sub_ct.shape[0]==0:
+          raise NoCloudtrailException("No cloudtrail data #3 for %s"%ec2_id)
+
+        # continue
+        # ec2_obj = context_ec2['ec2_obj']
+        ec2_id = context_ec2['ec2_id']
 
         # pandas series of number of cpu's available on the machine over time, past 90 days
         # series_type_ts1 = self.cloudtrail_client.get_ec2_type(ec2_obj.instance_id)
-        if not ec2_obj.instance_id in self.df_cloudtrail.index:
-          raise NoCloudtrailException("No cloudtrail data #1 for %s"%ec2_obj.instance_id)
+        if not ec2_id in sub_ct.index:
+          raise NoCloudtrailException("No cloudtrail data #1 for %s"%ec2_id)
 
-        df_type_ts1 = self.df_cloudtrail.loc[ec2_obj.instance_id]
+        df_type_ts1 = sub_ct.loc[ec2_id]
         if df_type_ts1 is None:
-          raise NoCloudtrailException("No cloudtrail data #2 for %s"%ec2_obj.instance_id)
+          raise NoCloudtrailException("No cloudtrail data #2 for %s"%ec2_id)
 
         # set in context
         context_ec2['df_type_ts1'] = df_type_ts1
