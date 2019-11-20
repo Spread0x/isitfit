@@ -1,9 +1,14 @@
 Semantic versioning
 
 
-Version latest (0.15.0rc?, 2019-09-24?)
+Version latest (0.15.1rc?, 2019-09-24?)
 
 - ...
+- bugfix: redshift cost optimize total number analyzed was always 0. Fixed to use context variable
+
+
+Version 0.15.0 (2019-11-19)
+
 - enh: split out iterator from fetching cloudwatch data (in redshift.iterator)
 - enh: use exception instead of propagating missing cloudwatch data
 - enh: move cost.mainManager parts about cloudwatch to use cost.redshift.cloudwatchman. Now redshift metrics are also cached to redis
