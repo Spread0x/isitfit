@@ -1,4 +1,4 @@
-from isitfit.cost.redshift.cli import cost_analyze, cost_optimize
+from isitfit.cost.redshift.pipeline_factory import redshift_cost_analyze, redshift_cost_optimize
 
 import pytest
 
@@ -18,11 +18,11 @@ def test_costCore(mocker):
     # mocker.patch('isitfit.cost.redshift.iterator.RedshiftPerformanceIterator.count', side_effect=lambda: 1)
 
     # run and test
-    cost_analyze(None)
+    redshift_cost_analyze(None)
     assert True # no exception
 
-    cost_analyze([1])
+    redshift_cost_analyze([1])
     assert True # no exception
 
-    cost_optimize()
+    redshift_cost_optimize()
     assert True # no exception
