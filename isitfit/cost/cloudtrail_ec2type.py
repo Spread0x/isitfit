@@ -99,11 +99,11 @@ class Manager:
         # pandas series of number of cpu's available on the machine over time, past 90 days
         # series_type_ts1 = self.cloudtrail_client.get_ec2_type(ec2_obj.instance_id)
         if not ec2_obj.instance_id in self.df_cloudtrail.index:
-            return None
+          raise NoCloudtrailException("No cloudtrail data #1 for %s"%ec2_obj.instance_id)
 
         df_type_ts1 = self.df_cloudtrail.loc[ec2_obj.instance_id]
         if df_type_ts1 is None:
-          raise NoCloudtrailException("No cloudtrail data for %s"%ec2_obj.instance_id)
+          raise NoCloudtrailException("No cloudtrail data #2 for %s"%ec2_obj.instance_id)
 
         # set in context
         context_ec2['df_type_ts1'] = df_type_ts1

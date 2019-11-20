@@ -12,11 +12,9 @@ from isitfit.cost.redshift.reporter import ReporterBase
 class ReporterAnalyzeEc2(ReporterBase):
 
   def postprocess(self, context_all):
-    self.analyzer = context_all['analyzer']
-
     # unpack
-    n_ec2_total, mm, n_ec2_analysed, region_include = context_all['n_ec2_total'], context_all['mainManager'], context_all['n_ec2_analysed'], context_all['region_include']
-    self.analyzer.mm = mm
+    self.analyzer = context_all['analyzer']
+    n_ec2_total, self.mm, n_ec2_analysed, region_include = context_all['n_ec2_total'], context_all['mainManager'], context_all['n_ec2_analysed'], context_all['region_include']
 
     # proceed
     cwau_val = 0
@@ -29,8 +27,8 @@ class ReporterAnalyzeEc2(ReporterBase):
     elif cwau_val <= 30:
       cwau_color = 'red'
 
-    dt_start = self.analyzer.mm.StartTime.strftime("%Y-%m-%d")
-    dt_end   = self.analyzer.mm.EndTime.strftime("%Y-%m-%d")
+    dt_start = self.mm.StartTime.strftime("%Y-%m-%d")
+    dt_end   = self.mm.EndTime.strftime("%Y-%m-%d")
 
     ri_max = 3
     ri_ell = "" if len(region_include)<=ri_max else "..."
@@ -117,16 +115,18 @@ class ReporterAnalyzeEc2(ReporterBase):
 class ReporterOptimizeEc2(ReporterBase):
 
   def __init__(self):
+    # for final csv file
     self.csv_fn_final = None
+
+    # members that will contain the results of the optimization
+    self.df_sort = None
+    self.sum_val = None
 
 
   def postprocess(self, context_all):
-    self.analyzer = context_all['analyzer']
-
     # unpack
-    mm, df_cat = context_all['mainManager'], context_all['df_cat']
-    mm.df_cat = df_cat
-    self.analyzer.mm = mm
+    self.analyzer = context_all['analyzer']
+    self.df_cat = context_all['df_cat']
 
     # process
     self._after_all()
@@ -143,15 +143,15 @@ class ReporterOptimizeEc2(ReporterBase):
       return
 
     # merge current type hourly cost
-    map_cost = self.analyzer.mm.df_cat[['API Name', 'cost_hourly']]
+    map_cost = self.df_cat[['API Name', 'cost_hourly']]
     df_all = df_all.merge(map_cost, left_on='instance_type', right_on='API Name', how='left').drop(['API Name'], axis=1)
 
     # merge the next-smaller instance type from the catalog for instances classified as Underused
-    map_smaller = self.analyzer.mm.df_cat[['API Name', 'type_smaller', 'Linux On Demand cost_smaller']].rename(columns={'Linux On Demand cost_smaller': 'cost_hourly_smaller'})
+    map_smaller = self.df_cat[['API Name', 'type_smaller', 'Linux On Demand cost_smaller']].rename(columns={'Linux On Demand cost_smaller': 'cost_hourly_smaller'})
     df_all = df_all.merge(map_smaller, left_on='instance_type', right_on='API Name', how='left').drop(['API Name'], axis=1)
 
     # merge next-larger instance type
-    map_larger = self.analyzer.mm.df_cat[['API Name', 'type_smaller', 'cost_hourly']].rename(columns={'type_smaller': 'API Name', 'API Name': 'type_larger', 'cost_hourly': 'cost_hourly_larger'})
+    map_larger = self.df_cat[['API Name', 'type_smaller', 'cost_hourly']].rename(columns={'type_smaller': 'API Name', 'API Name': 'type_larger', 'cost_hourly': 'cost_hourly_larger'})
     df_all = df_all.merge(map_larger, left_on='instance_type', right_on='API Name', how='left').drop(['API Name'], axis=1)
 
     # convert from hourly to 3-months
@@ -242,7 +242,7 @@ class ReporterOptimizeEc2(ReporterBase):
 #        logger.info(colored("Table originally with %i rows is truncated for top and bottom 5 only."%self.df_sort.shape[0], "cyan"))
 #        logger.info(colored("Consider filtering it with --n=x for the 1st x results or --filter-tags=foo using a value from your own EC2 tags.", "cyan"))
 
-    if self.analyzer.n!=0:
+    if self.analyzer.n!=-1:
       logger.info(colored("This table has been filtered for only the 1st %i underused results"%self.analyzer.n, "cyan"))
 
     return context_all

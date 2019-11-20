@@ -65,10 +65,6 @@ class OptimizerListener:
     self.thresholds = thresholds
     self.ec2_classes = []
 
-    # members that will contain the results of the optimization
-    self.df_sort = None
-    self.sum_val = None
-
     # for csv streaming
     self.csv_fn_intermediate = None
     self.csv_fh = None

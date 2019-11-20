@@ -121,8 +121,9 @@ class DatadogManager:
 
 
     def is_configured(self):
-      if os.getenv('DATADOG_API_KEY', None) is not None:
-        if os.getenv('DATADOG_APP_KEY', None) is not None:
+      # check not None and not empty string
+      if os.getenv('DATADOG_API_KEY', None):
+        if os.getenv('DATADOG_APP_KEY', None):
           return True
           
       return False
@@ -130,26 +131,31 @@ class DatadogManager:
 
     def per_ec2(self, context_ec2):
         if not self.is_configured():
-          return None
+          context_ec2['ddg_df'] = None
+          return context_ec2
 
         # parse out keys
         host_id = context_ec2['ec2_obj'].instance_id
 
         # get data
         ddg_df = self.get_metrics_all(host_id)
-        ec2_df = context_ec2['ec2_df']
 
-        if ddg_df is not None:
-          # convert from datetime to date to be able to merge with ec2_df
-          ddg_df['ts_dt'] = ddg_df.ts_dt.dt.date
-          # append the datadog suffix
-          ddg_df = ddg_df.add_suffix('.datadog')
-          # merge
-          ec2_df = ec2_df.merge(ddg_df, how='outer', left_on='Timestamp', right_on='ts_dt.datadog')
+        if ddg_df is None:
+          context_ec2['ddg_df'] = None
+          return context_ec2
+
+        # proceed if found datadog data
+        # convert from datetime to date to be able to merge with ec2_df
+        ddg_df['ts_dt'] = ddg_df.ts_dt.dt.date
+        # append the datadog suffix
+        ddg_df = ddg_df.add_suffix('.datadog')
+        # merge
+        ec2_df = context_ec2['ec2_df']
+        ec2_df = ec2_df.merge(ddg_df, how='outer', left_on='Timestamp', right_on='ts_dt.datadog')
+        context_ec2['ec2_df'] = ec2_df # update context
 
         # add to context
         context_ec2['ddg_df'] = ddg_df
-        context_ec2['ec2_df'] = ec2_df
 
         # return
         return context_ec2
