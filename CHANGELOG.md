@@ -6,6 +6,11 @@ Version latest (0.15.1rc?, 2019-09-24?)
 - ...
 
 
+Version 0.15.3 (2019-11-22)
+
+- enh: instead of 4 progress bars per cloudtrail region, just one for all regions
+
+
 Version 0.15.2 (2019-11-20)
 
 - enh: simplify cli.cost code by gathering all the mainManager setup code into `pipeline_factory` files

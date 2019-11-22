@@ -71,6 +71,7 @@ class Ec2TypechangesBase:
         # edit 2019-11-20 instead of defining this client in Gra... and passing it through several layers,
         # just define it here
         client = boto3.client('cloudtrail')
+        self.region_name = client.meta.region_name
         cp = client.get_paginator(operation_name="lookup_events")
         iterator = cp.paginate(
           LookupAttributes=LookupAttributes, 
@@ -81,7 +82,10 @@ class Ec2TypechangesBase:
 
 
     def iterate_event(self):
-      for response in tqdm(self.iterate_page(), desc="Cloudtrail events for %s"%self.eventName):
+      iter_wrap = self.iterate_page()
+      # Update 2019-11-22 moved this tqdm to the region level since it's already super fast per event
+      #iter_wrap = tqdm(iter_wrap, desc="Cloudtrail events for %s/%s"%(self.region_name, self.eventName))
+      for response in iter_wrap:
         #with open('t2.json','w') as fh:
         #  json.dump(response, fh, default=json_serial)
 

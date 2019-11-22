@@ -47,7 +47,9 @@ class Manager:
         logger.debug("Downloading cloudtrail data (from %i regions)"%len(self.region_include))
         df_2 = []
         import boto3
-        for region_name in self.region_include:
+        iter_wrap = self.region_include
+        iter_wrap = tqdm(iter_wrap, desc="Cloudtrail events in all regions", total=len(self.region_include))
+        for region_name in iter_wrap:
           boto3.setup_default_session(region_name = region_name)
           cloudtrail_manager = GraCloudtrailManager()
           df_1 = cloudtrail_manager.ec2_typeChanges()
