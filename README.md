@@ -354,6 +354,8 @@ aws_secret_access_key = 123abc456
 region=us-east-1
 ```
 
+Check the [boto3 configuration](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#environment-variables) docs (sections `Environment Variables` and `Shared Credentials File`) for more details.
+
 
 ### Caching results with redis
 
