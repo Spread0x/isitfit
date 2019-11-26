@@ -15,28 +15,38 @@ def df2tabulate(df):
   return tabulate(df.set_index('instance_id'), headers='keys', tablefmt='psql')
 
 
-def class2recommendedType(r):
-  if r.classification_1 == 'Underused':
+#---------------------------
+
+
+def class2recommendedCore(r):
+  o = { 'recommended_type': None,
+        'savings': None
+      }
+
+  if r.classification_1=='Underused':
     # FIXME classification 2 will contain if it's a burstable workload or lambda-convertible
     # that would mean that the instance is downsizable twice, so maybe need to return r.type_smaller2x
-    return r.type_smaller
-
-  if r.classification_1=='Overused':
-    return r.type_larger
-
-  return None
-
-
-def class2recommendedCost(r):
-  if r.classification_1 == 'Underused':
     # FIXME add savings from the twice downsizing in class2recommendedType if it's a burstable workload or lambda-convertible,
     # then calculate the cost from lambda functions and add it as overhead here
-    return r.cost_3m_smaller-r.cost_3m
+    o = { 'recommended_type': r.type_smaller,
+          'savings': r.cost_3m_smaller-r.cost_3m
+        }
+
+  if r.classification_1=='Idle':
+    # Maybe idle servers should be recommended to "stop"
+    o = { 'recommended_type': r.type_smaller,
+          'savings': r.cost_3m_smaller-r.cost_3m
+        }
 
   if r.classification_1=='Overused':
-    return r.cost_3m_larger-r.cost_3m
+    # This is costing more
+    o = {'recommended_type': r.type_larger,
+         'savings': r.cost_3m_larger-r.cost_3m
+        }
 
-  return None
+  return o
+
+#---------------------------------
 
 
 def ec2obj_to_name(ec2_obj):

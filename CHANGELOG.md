@@ -6,6 +6,11 @@ Version latest (0.15.1rc?, 2019-09-24?)
 - ...
 
 
+Version 0.15.4 (2019-11-26)
+
+- bugfix: `isitfit cost optimize` was not recommending anything for `idle`
+
+
 Version 0.15.3 (2019-11-22)
 
 - enh: instead of 4 progress bars per cloudtrail region, just one for all regions
