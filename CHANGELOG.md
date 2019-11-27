@@ -6,7 +6,7 @@ Version latest (0.15.1rc?, 2019-09-24?)
 - ...
 
 
-Version 0.16.0 (2019-11-27)
+Version 0.16.{0,1} (2019-11-27)
 
 - enh: add `--save-details` to `isitfit cost analyze` to save details behind numbers of EC2 to CSV files
 

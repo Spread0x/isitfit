@@ -89,7 +89,7 @@ class CalculatorAnalyzeEc2:
     if self.save_details:
       # display message for first file
       csvi_desc ='Per ec2 and day'
-      msg_info = "Detail file 1/2: %s: %s"%(csvi_desc, self.csv_fn_intermediate.name)
+      msg_info = "💾 Detail file 1/2: %s: %s"%(csvi_desc, self.csv_fn_intermediate.name)
       msg_info = colored(msg_info, "cyan")
       logger.info(msg_info)
 
@@ -102,8 +102,11 @@ class CalculatorAnalyzeEc2:
 
       # display message about 2nd file
       csvi_desc = 'Per ec2 only   ' # 3 spaces just to align with "per ec2 and day
-      msg_info = "Detail file 2/2: %s: %s"%(csvi_desc, csv_fh_final.name)
+      msg_info = "💾 Detail file 2/2: %s: %s"%(csvi_desc, csv_fh_final.name)
       msg_info = colored(msg_info, "cyan")
       logger.info(msg_info)
 
+      logger.info(colored("Consider viewing the CSVs in the terminal with visidata: `vd file.csv` (http://visidata.org/).", "cyan"))
+
+      logger.info("") # empty breather line
     return context_all

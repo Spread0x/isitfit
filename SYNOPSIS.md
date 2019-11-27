@@ -40,7 +40,9 @@ Usage: isitfit cost [OPTIONS] COMMAND [ARGS]...
   Evaluate AWS EC2 costs
 
 Options:
-  --help  Show this message and exit.
+  --filter-region TEXT  specify a single region against which to run cost
+                        analysis/optimization
+  --help                Show this message and exit.
 
 Commands:
   analyze   Analyze AWS EC2 cost
@@ -74,6 +76,7 @@ Usage: isitfit cost analyze [OPTIONS]
 Options:
   --filter-tags TEXT  filter instances for only those carrying this value in
                       the tag name or value
+  --save-details      Save details behind calculations to CSV files
   --help              Show this message and exit.
 ```
 
