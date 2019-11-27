@@ -20,8 +20,9 @@ def cost(ctx, filter_region):
 
 @cost.command(help='Analyze AWS EC2 cost', cls=IsitfitCommand)
 @click.option('--filter-tags', default=None, help='filter instances for only those carrying this value in the tag name or value')
+@click.option('--save-details', is_flag=True, help='Save details behind calculations to CSV files')
 @click.pass_context
-def analyze(ctx, filter_tags):
+def analyze(ctx, filter_tags, save_details):
     # gather anonymous usage statistics
     from ..utils import ping_matomo, IsitfitCliError
     ping_matomo("/cost/analyze")
@@ -33,7 +34,7 @@ def analyze(ctx, filter_tags):
 
     from isitfit.cost.ec2.pipeline_factory import ec2_cost_analyze
     from isitfit.cost.redshift.pipeline_factory import redshift_cost_analyze
-    mm_eca = ec2_cost_analyze(ctx, filter_tags)
+    mm_eca = ec2_cost_analyze(ctx, filter_tags, save_details)
     mm_rca = redshift_cost_analyze(share_email, filter_region=ctx.obj['filter_region'])
 
     # start download data and processing

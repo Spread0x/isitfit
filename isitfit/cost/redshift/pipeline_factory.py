@@ -59,7 +59,8 @@ def redshift_cost_core(ra, rr, share_email, filter_region):
 
 
 def redshift_cost_analyze(share_email, filter_region):
-  logger.info("Analyzing redshift clusters")
+  # This is a factory method, so it doesn't make sense to display "Analyzing bla" if actually "foo" is analyzed first
+  #logger.info("Analyzing redshift clusters")
 
   from .calculator import CalculatorAnalyzeRedshift
   from .reporter import ReporterAnalyze
@@ -70,7 +71,8 @@ def redshift_cost_analyze(share_email, filter_region):
 
 
 def redshift_cost_optimize(filter_region):
-  logger.info("Optimizing redshift clusters")
+  # This is a factory method, so it doesn't make sense to display "Analyzing bla" if actually "foo" is analyzed first
+  #logger.info("Optimizing redshift clusters")
 
   from .calculator import CalculatorOptimizeRedshift
   from .reporter import ReporterOptimize

@@ -159,8 +159,30 @@ CWAU                             34 %
 For reference:
 * CWAU >= 70% is well optimized
 * CWAU <= 30% is underused
+```
+
+Save intermediate results to CSV files with:
 
 ```
+> isitfit cost analyze --save-details
+
+(output truncated)
+
+Detail file 1/2: Per ec2 and day: /tmp/isitfit-cost-analyze-ec2-details-1-xd_gg2we.csv
+Detail file 2/2: Per ec2 only   : /tmp/isitfit-cost-analyze-ec2-details-2-138d1ip7.csv
+
+(output truncated)
+
+> head -n 1 /tmp/isitfit-cost-analyze-ec2-details-1-xd_gg2we.csv
+region     instance_id  Timestamp   SampleCount  Average  Minimum  Maximum  Unit    instanceType  API Name  cost_hourly  nhours
+us-west-2  i-02432bc7   2019-08-29  1440.0       0.4859   0.3278   21.9999  Percent t2.micro      t2.micro  0.0136705882  24.0
+
+
+> head -n 1 /tmp/isitfit-cost-analyze-ec2-details-2-138d1ip7.csv
+instance_id  capacity     used
+i-024...        29.54     0.14
+```
+
 
 ### Recommended optimizations
 

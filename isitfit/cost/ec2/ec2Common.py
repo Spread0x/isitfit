@@ -50,6 +50,15 @@ class Ec2Common:
         # A: ... For example, if you request for 1-minute data for a day from 10 days ago, you will receive the 1440 data points ...
         ec2_df['nhours'] = np.ceil(ec2_df.SampleCount/60)
 
+        # append instance ID and region for clarity
+        ec2_df['region'] = ec2_obj.region_name
+        ec2_df['instance_id'] = ec2_obj.instance_id
+
+        # and move these columns to the start
+        cols_first = ['region', 'instance_id']
+        cols_exRegId = [x for x in ec2_df.columns if x not in cols_first]
+        ec2_df = ec2_df[cols_first + cols_exRegId]
+
         # set in context
         context_ec2['ec2_df'] = ec2_df
 

@@ -1,4 +1,4 @@
-def ec2_cost_analyze(ctx, filter_tags):
+def ec2_cost_analyze(ctx, filter_tags, save_details):
     # moved these imports from outside the function to inside it so that `isitfit --version` wouldn't take 5 seconds due to the loading
     from isitfit.cost.mainManager import MainManager
     from isitfit.cost.cloudtrail_ec2type import CloudtrailCached
@@ -14,7 +14,7 @@ def ec2_cost_analyze(ctx, filter_tags):
 
 
     share_email = ctx.obj.get('share_email', None)
-    ul = CalculatorAnalyzeEc2(ctx)
+    ul = CalculatorAnalyzeEc2(ctx, save_details)
 
     # manager of redis-pandas caching
     cache_man = RedisPandasCacheManager()
@@ -41,6 +41,7 @@ def ec2_cost_analyze(ctx, filter_tags):
     mm.add_listener('pre', cache_man.handle_pre)
     mm.add_listener('pre', cloudtrail_manager.init_data)
     mm.add_listener('pre', ec2_cat.handle_pre)
+    mm.add_listener('pre', ul.handle_pre)
     mm.add_listener('ec2', etf.per_ec2)
     mm.add_listener('ec2', cloudwatchman.per_ec2)
     mm.add_listener('ec2', cloudtrail_manager.single)
