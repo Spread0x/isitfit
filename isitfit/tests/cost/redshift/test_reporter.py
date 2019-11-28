@@ -5,6 +5,36 @@ class TestReporterBase:
     rb = ReporterBase()
     assert True
 
+  def test_promptToEmailIfNotRequested(self):
+    import click
+    from click.testing import CliRunner
+
+    class MyWrap:
+      def dummyFac(self, emailIn, emailPrompt):
+        self.emailOut = None
+
+        @click.command()
+        def dummyCmd():
+          rb = ReporterBase()
+          self.emailOut = rb._promptToEmailIfNotRequested(emailIn)
+
+        # https://stackoverflow.com/q/38143366/4126114
+        runner = CliRunner()
+        result = runner.invoke(dummyCmd, input=emailPrompt)
+        return self.emailOut
+
+    mw = MyWrap()
+    actual = mw.dummyFac(None, '\n')
+    assert actual is None
+    actual = mw.dummyFac(None, 'n\n')
+    assert actual is None
+    actual = mw.dummyFac(None, 'y\nshadi@abc.com')
+    assert actual == ['shadi@abc.com']
+    actual = mw.dummyFac(None, 'y\nbla\nshadi@abc.com')
+    assert actual == ['shadi@abc.com']
+
+
+
 
 class TestReporterAnalyze:
   def test_postprocess(self):
