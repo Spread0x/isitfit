@@ -82,9 +82,17 @@ class TestReporterAnalyze:
     assert True # no exception
 
 
+  # pytest isitfit/tests/cost/redshift/test_reporter.py::TestReporterAnalyze::test_email
   def test_email(self, mocker):
     mockee = 'isitfit.emailMan.EmailMan'
     mocker.patch(mockee, autospec=True)
+
+    # assume user is not accepting to share by email, since will be prompted
+    mockee = 'click.confirm'
+    mocker.patch(mockee, side_effect=lambda x: False)
+    #mockee = 'click.prompt'
+    #mocker.patch(mockee, side_effect=lambda x: 'whatever')
+
     rb = ReporterAnalyze()
     rb.table = []
     rb.email({'emailTo': [], 'click_ctx': None})
@@ -118,7 +126,13 @@ class TestReporterOptimize:
     assert True # no exception
 
 
-  def test_email(self):
+  def test_email(self, mocker):
+    # assume user is not accepting to share by email, since will be prompted
+    mockee = 'click.confirm'
+    mocker.patch(mockee, side_effect=lambda x: False)
+    #mockee = 'click.prompt'
+    #mocker.patch(mockee, side_effect=lambda x: 'whatever')
+
     import pytest
     rb = ReporterOptimize()
     context_all = rb.email({'emailTo': []})
