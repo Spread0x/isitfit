@@ -35,7 +35,7 @@ def analyze(ctx, filter_tags, save_details):
     from isitfit.cost.ec2.pipeline_factory import ec2_cost_analyze
     from isitfit.cost.redshift.pipeline_factory import redshift_cost_analyze
     mm_eca = ec2_cost_analyze(ctx, filter_tags, save_details)
-    mm_rca = redshift_cost_analyze(share_email, filter_region=ctx.obj['filter_region'])
+    mm_rca = redshift_cost_analyze(share_email, filter_region=ctx.obj['filter_region'], ctx=ctx)
 
     # start download data and processing
     logger.info("Fetching history: EC2...")
@@ -66,7 +66,7 @@ def optimize(ctx, n, filter_tags):
     from isitfit.cost.ec2.pipeline_factory import ec2_cost_optimize
     from isitfit.cost.redshift.pipeline_factory import redshift_cost_optimize
     mm_eco = ec2_cost_optimize(ctx, n, filter_tags)
-    mm_rco = redshift_cost_optimize(filter_region=ctx.obj['filter_region'])
+    mm_rco = redshift_cost_optimize(filter_region=ctx.obj['filter_region'], ctx=ctx)
 
     # start download data and processing
     logger.info("Fetching history: EC2...")

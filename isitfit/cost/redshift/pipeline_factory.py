@@ -2,15 +2,18 @@ import logging
 logger = logging.getLogger('isitfit')
 
 
-def redshift_cost_core(ra, rr, share_email, filter_region):
+def redshift_cost_core(ra, rr, share_email, filter_region, ctx):
     """
     ra - Analyzer
     rr - Reporter
     """
 
     # data layer
+    from isitfit.utils import TqdmMan
+    tqdmman = TqdmMan(ctx)
+
     from .iterator import RedshiftPerformanceIterator
-    ri = RedshiftPerformanceIterator(filter_region=filter_region)
+    ri = RedshiftPerformanceIterator(filter_region, tqdmman)
 
     # pipeline
     from isitfit.cost.mainManager import MainManager
@@ -19,7 +22,7 @@ def redshift_cost_core(ra, rr, share_email, filter_region):
     from isitfit.cost.ec2.ec2Common import Ec2Common
     from isitfit.cost.cloudtrail_ec2type import CloudtrailCached
 
-    mm = MainManager(None) # use None for click context for now FIXME
+    mm = MainManager(ctx)
     cache_man = RedisPandasCacheManager()
 
     # manager of cloudwatch
@@ -32,12 +35,15 @@ def redshift_cost_core(ra, rr, share_email, filter_region):
     # FIXME note that if two pipelines are run, one for ec2 and one for redshift, then this Object fetches the same data twice
     # because the base class behind it does both ec2+redshift at once
     # in the init_data phase
-    cloudtrail_manager = CloudtrailCached(mm.EndTime, cache_man)
+    cloudtrail_manager = CloudtrailCached(mm.EndTime, cache_man, tqdmman)
 
     # update dict and return it
     # https://stackoverflow.com/a/1453013/4126114
     inject_email_in_context = lambda context_all: dict({'emailTo': share_email}, **context_all)
     inject_analyzer = lambda context_all: dict({'analyzer': ra}, **context_all)
+    def inject_tqdmClose(context_all):
+      mm.gtqdm.close()
+      return context_all
 
     # setup pipeline
     mm.set_iterator(ri)
@@ -51,6 +57,7 @@ def redshift_cost_core(ra, rr, share_email, filter_region):
     mm.add_listener('all', ra.calculate)
     mm.add_listener('all', inject_analyzer)
     mm.add_listener('all', rr.postprocess)
+    mm.add_listener('all', inject_tqdmClose)
     mm.add_listener('all', rr.display)
     mm.add_listener('all', inject_email_in_context)
     mm.add_listener('all', rr.email)
@@ -58,7 +65,7 @@ def redshift_cost_core(ra, rr, share_email, filter_region):
     return mm
 
 
-def redshift_cost_analyze(share_email, filter_region):
+def redshift_cost_analyze(share_email, filter_region, ctx):
   # This is a factory method, so it doesn't make sense to display "Analyzing bla" if actually "foo" is analyzed first
   #logger.info("Analyzing redshift clusters")
 
@@ -66,11 +73,11 @@ def redshift_cost_analyze(share_email, filter_region):
   from .reporter import ReporterAnalyze
   ra = CalculatorAnalyzeRedshift()
   rr = ReporterAnalyze()
-  mm = redshift_cost_core(ra, rr, share_email, filter_region)
+  mm = redshift_cost_core(ra, rr, share_email, filter_region, ctx)
   return mm
 
 
-def redshift_cost_optimize(filter_region):
+def redshift_cost_optimize(filter_region, ctx):
   # This is a factory method, so it doesn't make sense to display "Analyzing bla" if actually "foo" is analyzed first
   #logger.info("Optimizing redshift clusters")
 
@@ -78,5 +85,5 @@ def redshift_cost_optimize(filter_region):
   from .reporter import ReporterOptimize
   ra = CalculatorOptimizeRedshift()
   rr = ReporterOptimize()
-  mm = redshift_cost_core(ra, rr, None, filter_region)
+  mm = redshift_cost_core(ra, rr, None, filter_region, ctx)
   return mm

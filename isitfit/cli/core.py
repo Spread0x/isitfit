@@ -20,13 +20,16 @@ from .. import isitfit_version
 
 @click.group(invoke_without_command=True)
 @click.option('--debug', is_flag=True, help='Display more details to help with debugging')
+@click.option('--verbose', is_flag=True, help='Display more details to help with understanding program flow')
 @click.option('--optimize', is_flag=True, help='DEPRECATED: use "isitfit cost optimize" instead')
 @click.option('--version', is_flag=True, help='DEPRECATED: use "isitfit version" instead')
 @click.option('--share-email', multiple=True, help='Share result to email address')
 @click.option('--skip-check-upgrade', is_flag=True, help='Skip step for checking for upgrade of isitfit')
 @click.pass_context
-def cli_core(ctx, debug, optimize, version, share_email, skip_check_upgrade):
-    logLevel = logging.DEBUG if debug else logging.INFO
+def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upgrade):
+    # choose log level based on debug and verbose flags
+    logLevel = logging.DEBUG if debug else (logging.INFO if verbose else logging.WARNING)
+
     ch = logging.StreamHandler()
     ch.setLevel(logLevel)
     logger.addHandler(ch)
@@ -72,6 +75,10 @@ def cli_core(ctx, debug, optimize, version, share_email, skip_check_upgrade):
       from ..utils import prompt_upgrade
       is_outdated = prompt_upgrade('isitfit', isitfit_version)
       ctx.obj['is_outdated'] = is_outdated
+
+    # save `verbose` and `debug` for later tqdm
+    ctx.obj['debug'] = debug
+    ctx.obj['verbose'] = verbose
 
 
 

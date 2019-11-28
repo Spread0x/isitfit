@@ -85,13 +85,14 @@ class ReporterAnalyzeEc2(ReporterBase):
     dis_tab = [get_row(row) for row in self.table]
 
     # logger.info("Summary:")
-    logger.info("Cost-Weighted Average Utilization (CWAU) of the AWS EC2 account:")
-    logger.info("")
-    logger.info(tabulate(dis_tab, headers=['Field', 'Value']))
-    logger.info("")
-    logger.info("For reference:")
-    logger.info(colored("* CWAU >= 70% is well optimized", 'green'))
-    logger.info(colored("* CWAU <= 30% is underused", 'red'))
+    import click
+    click.echo("Cost-Weighted Average Utilization (CWAU) of the AWS EC2 account:")
+    click.echo("")
+    click.echo(tabulate(dis_tab, headers=['Field', 'Value']))
+    click.echo("")
+    click.echo("For reference:")
+    click.echo(colored("* CWAU >= 70% is well optimized", 'green'))
+    click.echo(colored("* CWAU <= 30% is underused", 'red'))
 
     return context_all
 

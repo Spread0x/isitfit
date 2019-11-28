@@ -6,9 +6,12 @@ Version latest (0.15.1rc?, 2019-09-24?)
 - ...
 
 
-Version 0.16.2rc (2019-11-28)
+Version 0.17.0rc (2019-11-28)
 
 - enh: prompt for email if user forgot to include it to share results by email
+- enh: add `--verbose` flag
+- enh: add a global progress bar, hide other progress bars unless `--verbose` or `--debug` requested
+- enh: clean up usages of `logger.{info,warning,...}` and `click.echo`
 
 
 Version 0.16.{0,1} (2019-11-27)

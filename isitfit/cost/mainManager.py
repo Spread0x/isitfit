@@ -1,6 +1,5 @@
 import boto3
 import pandas as pd
-from tqdm import tqdm
 import datetime as dt
 import pytz
 
@@ -13,6 +12,35 @@ from ..utils import SECONDS_IN_ONE_DAY, NoCloudwatchException, myreturn, NoCloud
 MINUTES_IN_ONE_DAY = 60*24 # 1440
 N_DAYS=90
 
+
+
+class GlobalTqdm:
+    def __init__(self, ctx, t_total):
+      self.t_iter = None
+
+      # if either --debug or --verbose specified, do nothing
+      if ctx.obj['debug'] or ctx.obj['verbose']:
+        return
+      
+      # otherwise then show a global tqdm instead of the local ones
+      #print("total", t_total)
+      from tqdm import tqdm
+      self.t_iter = tqdm(total=t_total, desc="isitfit progress")
+      self.t_track = 0
+
+
+    def incrStep(self):
+      #print("incr step?")
+      if self.t_iter is None: return
+      self.t_track += 1
+      self.t_iter.update() # increments by 1
+      #print("incr step", self.t_track)
+
+    def close(self):
+      #print("close?", self.t_iter is None)
+      if self.t_iter is None: return
+      self.t_iter.close()
+      self.t_iter = None
 
 
 
@@ -47,11 +75,17 @@ class MainManager:
 
 
     def get_ifi(self):
+        # set up global tqdm
+        self.gtqdm = GlobalTqdm(self.ctx, 4)
+
         # 0th pass to count
         n_ec2_total = self.ec2_it.count()
 
         if n_ec2_total==0:
+          self.gtqdm.close()
           return
+
+        self.gtqdm.incrStep()
 
         # context for pre listeners
         context_pre = {}
@@ -60,13 +94,14 @@ class MainManager:
         context_pre['n_ec2_total'] = n_ec2_total
         context_pre['click_ctx'] = self.ctx
 
-
         # call listeners
         for l in self.listeners['pre']:
           context_pre = l(context_pre)
           if context_pre is None:
             raise Exception("Breaking the chain is not allowed in listener/pre")
 
+        # done with pre
+        self.gtqdm.incrStep()
 
         # iterate over all ec2 instances
         sum_capacity = 0
@@ -76,7 +111,10 @@ class MainManager:
         ec2_noCloudtrail = []
 
         # Edit 2019-11-12 use "initial=0" instead of "=1". Check more details in a similar note in "cloudtrail_ec2type.py"
-        iter_wrap = tqdm(self.ec2_it, total=n_ec2_total, desc="Pass 2/2 through %s"%self.ec2_it.service_description, initial=0)
+        # from tqdm import tqdm
+        from isitfit.utils import TqdmMan
+        tqdmman = TqdmMan(self.ctx)
+        iter_wrap = tqdmman(self.ec2_it, total=n_ec2_total, desc="Pass 2/2 through %s"%self.ec2_it.service_description, initial=0)
         for ec2_dict, ec2_id, ec2_launchtime, ec2_obj in iter_wrap:
 
           # context dict to be passed between listeners
@@ -94,6 +132,8 @@ class MainManager:
             # i.e. to stop processing with other listeners
             for l in self.listeners['ec2']:
               context_ec2 = l(context_ec2)
+
+              # skip rest of listeners if one of them returned None
               if context_ec2 is None: break
 
           except NoCloudwatchException:
@@ -113,6 +153,9 @@ class MainManager:
         logger.info("")
         logger.info("")
 
+        # update global tqdm
+        self.gtqdm.incrStep()
+
         # set up context
         context_all = {}
         context_all['n_ec2_total'] = n_ec2_total
@@ -131,7 +174,9 @@ class MainManager:
           if context_all is None:
             raise Exception("Breaking the chain is not allowed in listener/all: %s"%str(l))
 
-        logger.info("")
+        # update global tqdm
+        self.gtqdm.incrStep()
+
         logger.info("")
         return
 

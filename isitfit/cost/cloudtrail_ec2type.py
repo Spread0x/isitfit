@@ -1,5 +1,4 @@
 import pandas as pd
-from tqdm import tqdm
 from .pull_cloudtrail_lookupEvents import GeneralManager as GraCloudtrailManager
 import os
 from ..utils import NoCloudtrailException
@@ -17,8 +16,9 @@ def dict2service(ec2_dict):
 
 
 class Manager:
-    def __init__(self, EndTime):
+    def __init__(self, EndTime, tqdmman):
         self.EndTime = EndTime
+        self.tqdmman = tqdmman
 
     def init_data(self, context_pre):
         # parse out of context
@@ -32,7 +32,9 @@ class Manager:
         self.df_cloudtrail = self.df_cloudtrail.reset_index()
         # Edit 2019-11-12 use initial=0 otherwise if "=1" used then the tqdm output would be "101it" at conclusion, i.e.
         # First pass through EC2 instances: 101it [00:05,  5.19it/s]
-        for ec2_dict, ec2_id, ec2_launchtime, ec2_obj in tqdm(ec2_instances, total=n_ec2, desc="Pass 1/2 through EC2 instances", initial=0):
+        t_iter = ec2_instances
+        t_iter = self.tqdmman(t_iter, total=n_ec2, desc="Pass 1/2 through EC2 instances", initial=0)
+        for ec2_dict, ec2_id, ec2_launchtime, ec2_obj in t_iter:
             self._appendNow(ec2_dict, ec2_id)
 
         # set index again, and sort decreasing this time (not like git-remote-aws default)
@@ -48,7 +50,7 @@ class Manager:
         df_2 = []
         import boto3
         iter_wrap = self.region_include
-        iter_wrap = tqdm(iter_wrap, desc="Cloudtrail events in all regions", total=len(self.region_include))
+        iter_wrap = self.tqdmman(iter_wrap, desc="Cloudtrail events in all regions", total=len(self.region_include))
         for region_name in iter_wrap:
           boto3.setup_default_session(region_name = region_name)
           cloudtrail_manager = GraCloudtrailManager()
@@ -147,8 +149,8 @@ class Manager:
 
 
 class CloudtrailCached(Manager):
-    def __init__(self, EndTime, cache_man):
-        super().__init__(EndTime)
+    def __init__(self, EndTime, cache_man, tqdmman):
+        super().__init__(EndTime, tqdmman)
         self.cache_man = cache_man
 
 

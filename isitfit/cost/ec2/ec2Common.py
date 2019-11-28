@@ -83,16 +83,16 @@ class Ec2Common:
           n_no_cw = len(ec2_noCloudwatch)
           has_more_cw = "..." if n_no_cw>5 else ""
           l_no_cw = ", ".join(ec2_noCloudwatch[:5])
-          logger.warning("No cloudwatch data for %i resources: %s%s"%(n_no_cw, l_no_cw, has_more_cw))
-          logger.warning("Try again in %i minutes (at %s) to check for new data"%(TRY_IN, now_plus_10))
+          logger.info("No cloudwatch data for %i resources: %s%s"%(n_no_cw, l_no_cw, has_more_cw))
+          logger.info("Try again in %i minutes (at %s) to check for new data"%(TRY_IN, now_plus_10))
           logger.info("")
 
         if len(ec2_noCloudtrail)>0:
           n_no_ct = len(ec2_noCloudtrail)
           has_more_ct = "..." if n_no_ct>5 else ""
           l_no_ct = ", ".join(ec2_noCloudtrail[:5])
-          logger.warning("No cloudtrail data for %i resources: %s%s"%(n_no_ct, l_no_ct, has_more_ct))
-          logger.warning("Try again in %i minutes (at %s) to check for new data"%(TRY_IN, now_plus_10))
+          logger.info("No cloudtrail data for %i resources: %s%s"%(n_no_ct, l_no_ct, has_more_ct))
+          logger.info("Try again in %i minutes (at %s) to check for new data"%(TRY_IN, now_plus_10))
           logger.info("")
 
         return context_all

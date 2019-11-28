@@ -25,7 +25,7 @@ class BaseIterator:
   entry_keyCreated = None
 
 
-  def __init__(self, filter_region=None):
+  def __init__(self, filter_region, tqdmman):
     # filter for certain region
     self.filter_region = filter_region
 
@@ -44,6 +44,9 @@ class BaseIterator:
 
     # count of entries
     self.n_entry = None
+
+    # handler of local tqdm
+    self.tqdmman = tqdmman
 
 
   def get_regionInclude(self):
@@ -111,8 +114,8 @@ class BaseIterator:
     # iterate
     region_iterator = redshift_regions
     if display_tqdm:
-      from tqdm import tqdm
-      region_iterator = tqdm(region_iterator, total = len(redshift_regions), desc="%s, counting in all regions"%self.service_description)
+      #from tqdm import tqdm
+      region_iterator = self.tqdmman(region_iterator, total = len(redshift_regions), desc="%s, counting in all regions"%self.service_description)
 
     for region_name in region_iterator:
       if self.regionInclude_ready and self.filter_region is None:
@@ -182,7 +185,7 @@ class BaseIterator:
       logger.warning(msg_count%(self.service_description))
     else:
       msg_count = "Found a total of %i %s in %i region(s) (other regions do not hold any %s)"
-      logger.warning(msg_count%(self.n_entry, self.service_description, len(self.region_include), self.service_name))
+      logger.info(msg_count%(self.n_entry, self.service_description, len(self.region_include), self.service_name))
 
     return self.n_entry
 

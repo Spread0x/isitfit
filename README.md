@@ -453,6 +453,15 @@ To send to multiple emails, repeat the `--share-email=foo` option.
 The maximum allowed number of emails is 3.
 
 
+### Verbosity
+
+The output from isitfit can be controlled with 2 levels of verbosity:
+
+```
+isitfit --verbose cost analyze  # show more output
+isitfit --debug   cost optimize # show even more output
+```
+
 
 ## What does Underused mean?
 
