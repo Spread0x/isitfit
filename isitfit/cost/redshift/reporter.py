@@ -15,6 +15,47 @@ class ReporterBase:
   def display(self, context_all):
     raise Exception("To be implemented by derived class")
 
+  def _promptToEmailIfNotRequested(self, emailTo):
+    if emailTo is not None:
+      if len(emailTo) > 0:
+        # user already requested email
+        return emailTo
+
+    # prompt user if to email
+    import click
+    click.echo("")
+    res_conf = click.confirm("Would you like to share the results to your email?")
+    if not res_conf:
+      return None
+
+    #from isitfit.utils import IsitfitCliError
+
+    # more quick validation
+    # works with a@b.c but not a@b@c.d
+    # https://stackoverflow.com/questions/8022530/how-to-check-for-valid-email-address#8022584
+    import re
+    EMAIL_REGEX = re.compile(r"[^@]+@[^@]+\.[^@]+")
+
+    # prompt for email
+    while True:
+      res_prompt = click.prompt('Please enter a valid email address (leave blank to skip)', type=str)
+
+      # check if blank
+      if res_prompt=='':
+        return None
+
+      # quick validate
+      # shortest email is: a@b.c
+      # Longest email is: shadishadishadishadi@shadishadishadishadi.shadi
+      if len(res_prompt) >= 5:
+        if len(res_prompt) <= 50:
+          if bool(EMAIL_REGEX.match(res_prompt)):
+            return [res_prompt]
+
+      # otherwise, invalid email
+      logger.error("Invalid email address: %s"%res_prompt)
+
+
   def email(self, context_all):
       """
       ctx - click context
@@ -25,6 +66,9 @@ class ReporterBase:
 
       # unpack
       emailTo, ctx = context_all['emailTo'], context_all['click_ctx']
+
+      # prompt user for email if not requested
+      emailTo = self._promptToEmailIfNotRequested(emailTo)
 
       # check if email requested
       if emailTo is None:

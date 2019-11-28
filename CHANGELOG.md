@@ -6,6 +6,11 @@ Version latest (0.15.1rc?, 2019-09-24?)
 - ...
 
 
+Version 0.16.2rc (2019-11-28)
+
+- enh: prompt for email if user forgot to include it to share results by email
+
+
 Version 0.16.{0,1} (2019-11-27)
 
 - enh: add `--save-details` to `isitfit cost analyze` to save details behind numbers of EC2 to CSV files
