@@ -41,8 +41,8 @@ def analyze(ctx, filter_tags, save_details):
     mm_all = service_cost_analyze(mm_eca, mm_rca, ctx, share_email)
 
     # configure tqdm
-    from isitfit.tqdmman import TqdmL2Account
-    tqdml2 = TqdmL2Account(ctx)
+    from isitfit.tqdmman import TqdmL2Quiet
+    tqdml2 = TqdmL2Quiet(ctx)
 
     # Run pipeline
     mm_all.get_ifi(tqdml2)
@@ -61,20 +61,10 @@ def optimize(ctx, n, filter_tags):
     #logger.info("Is it fit?")
     logger.info("Initializing...")
 
-    from isitfit.cost.ec2.pipeline_factory import ec2_cost_optimize
-    from isitfit.cost.redshift.pipeline_factory import redshift_cost_optimize
+    from isitfit.cost import ec2_cost_optimize, redshift_cost_optimize, service_cost_optimize
     mm_eco = ec2_cost_optimize(ctx, n, filter_tags)
     mm_rco = redshift_cost_optimize(filter_region=ctx.obj['filter_region'], ctx=ctx)
 
-    # start download data and processing
-    logger.info("Fetching history: EC2...")
-    mm_eco.get_ifi()
-    logger.info("Fetching history: Redshift...")
-    mm_rco.get_ifi()
-
-    # -----------------------------
-    # Display results
-    #logger.info("")
-    #logger.info("-"*20)
-    #logger.info("-"*20)
+    # merge and run pipelines
+    service_cost_optimize(mm_eco, mm_rco, ctx)
 

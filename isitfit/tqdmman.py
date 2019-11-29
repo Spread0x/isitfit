@@ -16,12 +16,12 @@ class TqdmL2Base:
     return tqdm(iterator, *args, **kwargs)
 
 
-class TqdmL2Account(TqdmL2Base):
+class TqdmL2Quiet(TqdmL2Base):
   def __init__(self, ctx):
     self.show = not(ctx.obj['debug'] or ctx.obj['verbose'])
 
 
-class TqdmL2Service(TqdmL2Base):
+class TqdmL2Verbose(TqdmL2Base):
   def __init__(self, ctx):
     self.show = ctx.obj['debug'] or ctx.obj['verbose']
 

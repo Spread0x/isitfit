@@ -12,8 +12,8 @@ def ec2_cost_analyze(ctx, filter_tags, save_details):
     from isitfit.cost.ec2.ec2Common import Ec2Common
     from isitfit.cost.redshift.iterator import Ec2Iterator
 
-    from isitfit.tqdmman import TqdmL2Service
-    tqdml2_obj = TqdmL2Service(ctx)
+    from isitfit.tqdmman import TqdmL2Verbose
+    tqdml2_obj = TqdmL2Verbose(ctx)
 
     share_email = ctx.obj.get('share_email', None)
     ul = CalculatorAnalyzeEc2(ctx, save_details)
@@ -75,8 +75,8 @@ def ec2_cost_optimize(ctx, n, filter_tags):
     from isitfit.cost.ec2.ec2Common import Ec2Common
     from isitfit.cost.redshift.iterator import Ec2Iterator
 
-    from isitfit.tqdmman import TqdmL2Service
-    tqdml2_obj = TqdmL2Service(ctx)
+    from isitfit.tqdmman import TqdmL2Verbose
+    tqdml2_obj = TqdmL2Verbose(ctx)
 
     ol = CalculatorOptimizeEc2(n)
 

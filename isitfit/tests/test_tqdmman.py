@@ -4,15 +4,15 @@ def tqdml2_obj():
     class CtxWrap:
       obj = {'verbose': False, 'debug': False}
 
-    from isitfit.tqdmman import TqdmL2Account
-    gt = TqdmL2Account(
+    from isitfit.tqdmman import TqdmL2Quiet
+    gt = TqdmL2Quiet(
       CtxWrap(),
       4
     )
     return gt
 
 
-class TestTqdmL2Account:
+class TestTqdmL2Quiet:
   
   def test_init(self, tqdml2_obj):
     assert tqdml2_obj.t_track==0

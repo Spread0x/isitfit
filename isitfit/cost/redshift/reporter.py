@@ -3,6 +3,7 @@
 # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/redshift.html#Redshift.Paginator.DescribeClusters
 
 from termcolor import colored
+import click
 
 import logging
 logger = logging.getLogger('isitfit')
@@ -22,7 +23,6 @@ class ReporterBase:
         return emailTo
 
     # prompt user if to email
-    import click
     click.echo("")
     res_conf = click.confirm("Would you like to share the results to your email?")
     if not res_conf:
@@ -203,9 +203,9 @@ class ReporterOptimize(ReporterBase):
     import tempfile
     with tempfile.NamedTemporaryFile(prefix='isitfit-full-redshift-', suffix='.csv', delete=False) as  csv_fh_final:
       self.csv_fn_final = csv_fh_final.name
-      logger.debug(colored("Saving final results to %s"%csv_fh_final.name, "cyan"))
+      click.echo(colored("Saving final results to %s"%csv_fh_final.name, "cyan"))
       analyze_df.to_csv(csv_fh_final.name, index=False)
-      logger.debug(colored("Save complete", "cyan"))
+      click.echo(colored("Save complete", "cyan"))
 
     return context_all
 

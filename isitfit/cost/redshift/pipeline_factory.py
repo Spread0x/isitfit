@@ -9,8 +9,8 @@ def redshift_cost_core(ra, rr, share_email, filter_region, ctx):
     """
 
     # data layer
-    from isitfit.tqdmman import TqdmL2Service
-    tqdmman = TqdmL2Service(ctx)
+    from isitfit.tqdmman import TqdmL2Verbose
+    tqdmman = TqdmL2Verbose(ctx)
 
     from .iterator import RedshiftPerformanceIterator
     ri = RedshiftPerformanceIterator(filter_region, tqdmman)
@@ -39,7 +39,6 @@ def redshift_cost_core(ra, rr, share_email, filter_region, ctx):
 
     # update dict and return it
     # https://stackoverflow.com/a/1453013/4126114
-    inject_email_in_context = lambda context_all: dict({'emailTo': share_email}, **context_all)
     inject_analyzer = lambda context_all: dict({'analyzer': ra}, **context_all)
 
     # setup pipeline
@@ -54,6 +53,8 @@ def redshift_cost_core(ra, rr, share_email, filter_region, ctx):
     mm.add_listener('all', ra.calculate)
     mm.add_listener('all', inject_analyzer)
     mm.add_listener('all', rr.postprocess)
+
+    #inject_email_in_context = lambda context_all: dict({'emailTo': share_email}, **context_all)
     #mm.add_listener('all', rr.display)
     #mm.add_listener('all', inject_email_in_context)
     #mm.add_listener('all', rr.email)
@@ -82,4 +83,8 @@ def redshift_cost_optimize(filter_region, ctx):
   ra = CalculatorOptimizeRedshift()
   rr = ReporterOptimize()
   mm = redshift_cost_core(ra, rr, None, filter_region, ctx)
+
+  # listener that was outed in the analyze step by the service aggregator
+  mm.add_listener('all', rr.display)
+
   return mm
