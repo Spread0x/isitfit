@@ -191,7 +191,7 @@ class ServiceReporter(ReporterBase):
       return context_all
 
 
-def service_cost_analyze(mm_eca, mm_rca, ctx, share_email):
+def pipeline_factory(mm_eca, mm_rca, ctx, share_email):
     """
     Combines the 2 pipelines from EC2 and Redshift
     """
