@@ -61,10 +61,10 @@ def optimize(ctx, n, filter_tags):
     #logger.info("Is it fit?")
     logger.info("Initializing...")
 
-    from isitfit.cost import ec2_cost_optimize, redshift_cost_optimize, service_cost_optimize
+    from isitfit.cost import ec2_cost_optimize, redshift_cost_optimize, account_cost_optimize
     mm_eco = ec2_cost_optimize(ctx, n, filter_tags)
     mm_rco = redshift_cost_optimize(filter_region=ctx.obj['filter_region'], ctx=ctx)
 
     # merge and run pipelines
-    service_cost_optimize(mm_eco, mm_rco, ctx)
+    account_cost_optimize(mm_eco, mm_rco, ctx)
 
