@@ -37,7 +37,7 @@ def analyze(ctx, filter_tags, save_details):
     mm_eca = ec2_cost_analyze(ctx, filter_tags, save_details)
     mm_rca = redshift_cost_analyze(share_email, filter_region=ctx.obj['filter_region'], ctx=ctx)
 
-    # combine the 2 pipelines
+    # combine the 2 pipelines into a new pipeline
     mm_all = account_cost_analyze(mm_eca, mm_rca, ctx, share_email)
 
     # configure tqdm

@@ -194,6 +194,10 @@ class ServiceReporter(ReporterBase):
 def pipeline_factory(mm_eca, mm_rca, ctx, share_email):
     """
     Combines the 2 pipelines from EC2 and Redshift
+    mm_eca - pipeline of EC2 cost analyze
+    mm_rca - pipeline of Redshift cost analyze
+    ctx - click context
+    share_email - list of emails or None
     """
     from isitfit.cost.mainManager import RunnerAccount
     mm_all = RunnerAccount("AWS cost analyze (EC2, Redshift) in all regions", ctx)
