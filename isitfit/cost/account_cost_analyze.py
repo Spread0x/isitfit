@@ -27,13 +27,9 @@ class ServiceIterator:
 
 
 
-class ServiceCalculator:
-  def __init__(self):
-    self.table_d = {}
-
+class ServiceCalculatorGet:
   def per_service(self, context_service):
     service_i = context_service['ec2_obj']
-    service_name = context_service['ec2_id']
 
     # configure tqdm
     from isitfit.tqdmman import TqdmL2Verbose
@@ -41,13 +37,25 @@ class ServiceCalculator:
 
     # run pipeline
     context_all = service_i.get_ifi(tqdml2_obj)
+    context_service['context_all'] = context_all
+    return context_service
+    
 
+class ServiceCalculatorSave:
+  def __init__(self):
+    self.table_d = {}
+
+  def per_service(self, context_service):
+    service_name = context_service['ec2_id']
+
+    context_all = context_service['context_all']
     if context_all is None: return context_service
+
     table_single = context_all['table']
     table_single = {v['label']: v for v in table_single}
     self.table_d[service_name] = table_single
     return context_service
-    
+
 
 from isitfit.cost.redshift.reporter import ReporterBase
 class ServiceReporter(ReporterBase):
@@ -202,17 +210,18 @@ def pipeline_factory(mm_eca, mm_rca, ctx, share_email):
     from isitfit.cost.mainManager import RunnerAccount
     mm_all = RunnerAccount("AWS cost analyze (EC2, Redshift) in all regions", ctx)
 
-    # from isitfit.cost.service import ServiceIterator, ServiceCalculator, ServiceReporter
-
     service_iterator = ServiceIterator(mm_eca, mm_rca)
     mm_all.set_iterator(service_iterator)
 
-    service_calculator = ServiceCalculator()
-    mm_all.add_listener('ec2', service_calculator.per_service)
+    service_calculator_get = ServiceCalculatorGet()
+    mm_all.add_listener('ec2', service_calculator_get.per_service)
+
+    service_calculator_save = ServiceCalculatorSave()
+    mm_all.add_listener('ec2', service_calculator_save.per_service)
 
     # update dict and return it
     # https://stackoverflow.com/a/1453013/4126114
-    inject_analyzer = lambda context_all: dict({'analyzer': service_calculator}, **context_all)
+    inject_analyzer = lambda context_all: dict({'analyzer': service_calculator_save}, **context_all)
     mm_all.add_listener('all', inject_analyzer)
 
     service_reporter = ServiceReporter()

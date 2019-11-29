@@ -144,7 +144,8 @@ class CalculatorOptimizeEc2:
   def handle_pre(self, context_pre):
       # a csv file handle to which to stream results
       self.csv_fn_intermediate = tempfile.NamedTemporaryFile(prefix='isitfit-intermediate-', suffix='.csv', delete=False)
-      logger.info(colored("Intermediate results will be streamed to %s"%self.csv_fn_intermediate.name, "cyan"))
+      import click
+      click.echo(colored("Intermediate results will be streamed to %s"%self.csv_fn_intermediate.name, "cyan"))
       self.csv_fh = open(self.csv_fn_intermediate.name, 'w')
       self.csv_writer = csv.writer(self.csv_fh)
 

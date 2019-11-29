@@ -114,6 +114,6 @@ def ec2_cost_optimize(ctx, n, filter_tags):
     mm.add_listener('all', ec2_common.after_all)
     mm.add_listener('all', inject_analyzer)
     mm.add_listener('all', ra.postprocess)
-    mm.add_listener('all', ra.display)
+    #mm.add_listener('all', ra.display)
 
     return mm

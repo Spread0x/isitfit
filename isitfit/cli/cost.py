@@ -66,5 +66,11 @@ def optimize(ctx, n, filter_tags):
     mm_rco = redshift_cost_optimize(filter_region=ctx.obj['filter_region'], ctx=ctx)
 
     # merge and run pipelines
-    account_cost_optimize(mm_eco, mm_rco, ctx)
+    mm_all = account_cost_optimize(mm_eco, mm_rco, ctx)
 
+    # configure tqdm
+    from isitfit.tqdmman import TqdmL2Quiet
+    tqdml2 = TqdmL2Quiet(ctx)
+
+    # Run pipeline
+    mm_all.get_ifi(tqdml2)

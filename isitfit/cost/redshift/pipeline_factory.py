@@ -85,6 +85,6 @@ def redshift_cost_optimize(filter_region, ctx):
   mm = redshift_cost_core(ra, rr, None, filter_region, ctx)
 
   # listener that was outed in the analyze step by the service aggregator
-  mm.add_listener('all', rr.display)
+  # mm.add_listener('all', rr.display)
 
   return mm

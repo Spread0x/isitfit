@@ -207,6 +207,9 @@ class ReporterOptimize(ReporterBase):
       analyze_df.to_csv(csv_fh_final.name, index=False)
       click.echo(colored("Save complete", "cyan"))
 
+    # save in context for aggregator
+    context_all['csv_fn_final'] = self.csv_fn_final
+
     return context_all
 
 

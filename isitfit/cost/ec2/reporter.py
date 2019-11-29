@@ -135,7 +135,15 @@ class ReporterOptimizeEc2(ReporterBase):
     # process
     self._after_all()
     self._storecsv_all()
+
+    # save to context for aggregator
+    context_all['df_sort'] = self.df_sort
+    context_all['sum_val'] = self.sum_val
+    context_all['csv_fn_final'] = self.csv_fn_final
+
+    # done
     return context_all
+
 
   def _after_all(self):
     df_all = pd.DataFrame(self.analyzer.ec2_classes)
