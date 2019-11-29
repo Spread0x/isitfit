@@ -72,29 +72,30 @@ MAX_STRING = 20
 def display_df(title, df, csv_fn, shape, logger):
     # https://pypi.org/project/termcolor/
     from termcolor import colored
+    import click
 
-    logger.info("")
+    click.echo("")
 
     if shape[0]==0:
-      logger.info(title)
-      logger.info(colored("None", "red"))
+      click.echo(title)
+      click.echo(colored("None", "red"))
       return
 
     if csv_fn is not None:
-      logger.info(colored("The table '%s' was saved to the CSV file '%s'."%(title, csv_fn), "cyan"))
-      logger.info(colored("It could be opened in the terminal with visidata (http://visidata.org/)","cyan"))
-      logger.info(colored("and you can close visidata by pressing 'q'","cyan"))
+      click.echo(colored("The table '%s' was saved to the CSV file '%s'."%(title, csv_fn), "cyan"))
+      click.echo(colored("It could be opened in the terminal with visidata (http://visidata.org/)","cyan"))
+      click.echo(colored("and you can close visidata by pressing 'q'","cyan"))
       open_vd = input(colored('Would you like to do so? yes/[no] ', 'cyan'))
       if open_vd.lower() == 'yes' or open_vd.lower() == 'y':
-        logger.info("Opening CSV file `%s` with visidata."%csv_fn)
+        click.echo("Opening CSV file `%s` with visidata."%csv_fn)
         from subprocess import call
         call(["vd", csv_fn])
-        logger.info("Exited visidata.")
-        logger.info(colored("The table '%s' was saved to the CSV file '%s'."%(title, csv_fn), "cyan"))
+        click.echo("Exited visidata.")
+        click.echo(colored("The table '%s' was saved to the CSV file '%s'."%(title, csv_fn), "cyan"))
         return
       else:
-        logger.info("Not opening visidata.")
-        logger.info("To open the results with visidata, use `vd %s`."%csv_fn)
+        click.echo("Not opening visidata.")
+        click.echo("To open the results with visidata, use `vd %s`."%csv_fn)
 
 
     # if not requested to open with visidata
@@ -102,11 +103,11 @@ def display_df(title, df, csv_fn, shape, logger):
     df_show = df.head(n=MAX_ROWS)
     df_show = df_show.applymap(lambda c: (c[:MAX_STRING]+'...' if len(c)>=MAX_STRING else c) if type(c)==str else c)
 
-    logger.info(tabulate(df_show, headers='keys', tablefmt='psql', showindex=False))
+    click.echo(tabulate(df_show, headers='keys', tablefmt='psql', showindex=False))
 
     if (shape[0] > MAX_ROWS) or (shape[1] > MAX_COLS):
-      logger.info("...")
-      logger.info("(results truncated)")
+      click.echo("...")
+      click.echo("(results truncated)")
       # done
       return
 
@@ -285,14 +286,5 @@ def myreturn(df_xxx):
 
 
 
-class TqdmMan:
-  def __init__(self, ctx):
-    self.show = ctx.obj['debug'] or ctx.obj['verbose']
 
-  def __call__(self, iterator, *args, **kwargs):
-    if not self.show:
-      return iterator
-
-    from tqdm import tqdm
-    return tqdm(iterator, *args, **kwargs)
 

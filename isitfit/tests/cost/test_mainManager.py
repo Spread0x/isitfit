@@ -15,29 +15,4 @@ class TestMainManager:
     # TODO
 
 
-import pytest
-@pytest.fixture
-def globalTqdm():
-    class CtxWrap:
-      obj = {'verbose': False, 'debug': False}
 
-    gt = GlobalTqdm(
-      CtxWrap(),
-      4
-    )
-    return gt
-
-
-from isitfit.cost.mainManager import GlobalTqdm
-class TestGlobalTqdm:
-  
-  def test_init(self, globalTqdm):
-    assert globalTqdm.t_track==0
-
-  def test_incrStep(self, globalTqdm):
-    globalTqdm.incrStep()
-    assert globalTqdm.t_track==1
-
-  def test_close(self, globalTqdm):
-    globalTqdm.close()
-    assert True # no exception

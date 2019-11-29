@@ -14,6 +14,8 @@ class EmailMan:
     self.api_man = ApiMan(tryAgainIn=1, ctx=ctx)
 
   def send(self, share_email):
+    logger.info("Sending email")
+
     # get resources available
     self.api_man.register()
 
@@ -54,6 +56,7 @@ class EmailMan:
 
     # otherwise proceed
     emailFrom = response_json['isitfitapi_body']['from']
-    logger.info("Email sent from %s to: %s"%(emailFrom, ", ".join(share_email)))
+    import click
+    click.echo("Email sent from %s to: %s"%(emailFrom, ", ".join(share_email)))
     return
 

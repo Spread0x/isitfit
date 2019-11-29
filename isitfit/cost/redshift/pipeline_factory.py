@@ -9,8 +9,8 @@ def redshift_cost_core(ra, rr, share_email, filter_region, ctx):
     """
 
     # data layer
-    from isitfit.utils import TqdmMan
-    tqdmman = TqdmMan(ctx)
+    from isitfit.tqdmman import TqdmL2Service
+    tqdmman = TqdmL2Service(ctx)
 
     from .iterator import RedshiftPerformanceIterator
     ri = RedshiftPerformanceIterator(filter_region, tqdmman)
@@ -22,7 +22,7 @@ def redshift_cost_core(ra, rr, share_email, filter_region, ctx):
     from isitfit.cost.ec2.ec2Common import Ec2Common
     from isitfit.cost.cloudtrail_ec2type import CloudtrailCached
 
-    mm = MainManager(ctx)
+    mm = MainManager("Redshift cost analyze or optimize", ctx)
     cache_man = RedisPandasCacheManager()
 
     # manager of cloudwatch
@@ -41,9 +41,6 @@ def redshift_cost_core(ra, rr, share_email, filter_region, ctx):
     # https://stackoverflow.com/a/1453013/4126114
     inject_email_in_context = lambda context_all: dict({'emailTo': share_email}, **context_all)
     inject_analyzer = lambda context_all: dict({'analyzer': ra}, **context_all)
-    def inject_tqdmClose(context_all):
-      mm.gtqdm.close()
-      return context_all
 
     # setup pipeline
     mm.set_iterator(ri)
@@ -57,10 +54,9 @@ def redshift_cost_core(ra, rr, share_email, filter_region, ctx):
     mm.add_listener('all', ra.calculate)
     mm.add_listener('all', inject_analyzer)
     mm.add_listener('all', rr.postprocess)
-    mm.add_listener('all', inject_tqdmClose)
-    mm.add_listener('all', rr.display)
-    mm.add_listener('all', inject_email_in_context)
-    mm.add_listener('all', rr.email)
+    #mm.add_listener('all', rr.display)
+    #mm.add_listener('all', inject_email_in_context)
+    #mm.add_listener('all', rr.email)
 
     return mm
 

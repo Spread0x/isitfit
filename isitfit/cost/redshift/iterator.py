@@ -114,7 +114,6 @@ class BaseIterator:
     # iterate
     region_iterator = redshift_regions
     if display_tqdm:
-      #from tqdm import tqdm
       region_iterator = self.tqdmman(region_iterator, total = len(redshift_regions), desc="%s, counting in all regions"%self.service_description)
 
     for region_name in region_iterator:
@@ -182,7 +181,7 @@ class BaseIterator:
 
     if self.n_entry==0 and len(self.region_include)==0:
       msg_count = "Found no %s"
-      logger.warning(msg_count%(self.service_description))
+      logger.info(msg_count%(self.service_description))
     else:
       msg_count = "Found a total of %i %s in %i region(s) (other regions do not hold any %s)"
       logger.info(msg_count%(self.n_entry, self.service_description, len(self.region_include), self.service_name))

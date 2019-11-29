@@ -12,6 +12,7 @@ Version 0.17.0rc (2019-11-28)
 - enh: add `--verbose` flag
 - enh: add a global progress bar, hide other progress bars unless `--verbose` or `--debug` requested
 - enh: clean up usages of `logger.{info,warning,...}` and `click.echo`
+- feat: merge displayed reports of ec2 and redshift `isitfit cost analyze` commands
 
 
 Version 0.16.{0,1} (2019-11-27)

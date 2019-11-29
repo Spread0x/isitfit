@@ -52,7 +52,7 @@ class ReporterAnalyzeEc2(ReporterBase):
              'value': "%i"%n_ec2_total
             },
             {'color': '',
-             'label': "EC2 machines (analysed)",
+             'label': "EC2 machines (analyzed)",
              'value': "%i"%n_ec2_analysed
             },
             {'color': 'cyan',
@@ -68,6 +68,9 @@ class ReporterAnalyzeEc2(ReporterBase):
              'value': "%0.0f %%"%cwau_val
             },
     ]
+
+    # save in context for aggregator
+    context_all['table'] = self.table
 
     # done
     return context_all

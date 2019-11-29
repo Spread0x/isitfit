@@ -29,6 +29,7 @@ A simple command-line tool to check if an AWS EC2/Redshift account is fit or und
   - [Caching results with redis](#caching-results-with-redis)
   - [Datadog integration](#datadog-integration)
   - [Share results by email](#share-results-by-email)
+  - [Verbosity](#verbosity)
 - [What does Underused mean?](#what-does-underused-mean)
 - [Statistics and Usage Tracking](#statistics-and-usage-tracking)
 - [Changelog](#changelog)
@@ -133,28 +134,18 @@ Field                            Value
 -------------------------------  -----------
 Analysis start date              2019-06-07
 Analysis end date                2019-09-05
-Regions                          2 (us-east-1, us-west-2)
+EC2 Regions                      2 (us-east-1, us-west-2)
 EC2 machines (total)             8
 EC2 machines (analysed)          3
-Billed cost                      165 $
-Used cost                        9 $
-CWAU = Used / Billed * 100       6 %
-
-For reference:
-* CWAU >= 70% is well optimized
-* CWAU <= 30% is underused
-
-
-Field                            Value
--------------------------------  -----------
-Analysis start date              2019-06-07
-Analysis end date                2019-09-05
-Regions                          1
+EC2 Billed cost                  165 $
+EC2 Used cost                    9 $
+EC2 CWAU = Used / Billed         6 %
+Redshift Regions                 1
 Redshift clusters (total)        2
 Redshift clusters (analysed)     2
-Billed cost                      100 $
-Used cost                        34 $
-CWAU                             34 %
+Redshift Billed cost             100 $
+Redshift Used cost               34 $
+Redshift CWAU                    34 %
 
 For reference:
 * CWAU >= 70% is well optimized
@@ -350,7 +341,8 @@ For example
 AWS_PROFILE=autofitcloud isitfit cost analyze
 ```
 
-Starting version 0.14, there is no need to set `AWS_DEFAULT_REGION` when using `isitfit cost` because it will already scan all regions for EC2/Redshift.
+As of version 0.14, there is no need to set `AWS_DEFAULT_REGION`
+when using `isitfit cost` because it will already scan all regions for EC2/Redshift.
 
 You'd still need to use it for `isitfit tags` though.
 
@@ -437,16 +429,13 @@ Consider saving the environment variables in the `~/.bashrc` file.
 
 ### Share results by email
 
-Use the `--share-email` option to share results by email for commands that support it.
+Use the `--share-email` option to share results by email.
+Currently only supported by `isitfit cost analyze`
 
 Example usage
 
 ```
 isitfit --share-email=me@example.com cost analyze
-isitfit --share-email=me@example.com cost optimize
-isitfit --share-email=me@example.com tags dump
-isitfit --share-email=me@example.com tags suggest
-isitfit --share-email=me@example.com tags push
 ```
 
 To send to multiple emails, repeat the `--share-email=foo` option.
@@ -551,13 +540,11 @@ while improving `isitfit` through your use cases.
 
 - The pilot program sign up form is at the bottom of the homepage https://www.autofitcloud.com.
 - To get in touch, you can use the contact form at https://www.autofitcloud.com/contact
-- To follow our news and version announcements, check https://reddit.com/r/autofitcloud
-
-<!-- twitter not so active    or https://twitter.com/autofitcloud -->
+- To follow news and version announcements, check https://reddit.com/r/autofitcloud  or  https://twitter.com/autofitcloud
 
 --
 
-[Shadi Akiki](https://www.reddit.com/user/shadiakiki1986)
+[Shadi Akiki](http://www.teamshadi.net/)
 
 Founder and CEO
 

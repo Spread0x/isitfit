@@ -13,7 +13,6 @@
 import datetime as dt
 from dateutil.relativedelta import relativedelta
 import boto3
-#from tqdm import tqdm
 import json
 
 import logging

@@ -124,7 +124,7 @@ class ReporterAnalyze(ReporterBase):
         'value': "%i"%n_rc_total
       },
       { 'color': '',
-        'label': "Redshift clusters (analysed)",
+        'label': "Redshift clusters (analyzed)",
         'value': "%i"%n_rc_analysed
       },
       { 'color': '',
@@ -136,10 +136,15 @@ class ReporterAnalyze(ReporterBase):
         'value': "%0.0f $"%self.analyzer.cost_used
       },
       { 'color': cwau_color,
-        'label': "CWAU",
+        'label': "CWAU (Used/Billed)",
         'value': "%0.0f %%"%cwau_val
       },
     ]
+
+    # save in context for aggregator
+    context_all['table'] = self.table
+
+    # done
     return context_all
 
 

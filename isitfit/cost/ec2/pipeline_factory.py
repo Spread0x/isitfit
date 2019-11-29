@@ -12,8 +12,8 @@ def ec2_cost_analyze(ctx, filter_tags, save_details):
     from isitfit.cost.ec2.ec2Common import Ec2Common
     from isitfit.cost.redshift.iterator import Ec2Iterator
 
-    from isitfit.utils import TqdmMan
-    tqdmman = TqdmMan(ctx)
+    from isitfit.tqdmman import TqdmL2Service
+    tqdml2_obj = TqdmL2Service(ctx)
 
     share_email = ctx.obj.get('share_email', None)
     ul = CalculatorAnalyzeEc2(ctx, save_details)
@@ -25,21 +25,18 @@ def ec2_cost_analyze(ctx, filter_tags, save_details):
     etf = Ec2TagFilter(filter_tags)
     cloudwatchman = CloudwatchEc2(cache_man)
     ra = ReporterAnalyzeEc2()
-    mm = MainManager(ctx)
+    mm = MainManager("EC2 cost analyze", ctx)
     ec2_cat = Ec2Catalog()
     ec2_common = Ec2Common()
-    ec2_it = Ec2Iterator(ctx.obj['filter_region'], tqdmman)
+    ec2_it = Ec2Iterator(ctx.obj['filter_region'], tqdml2_obj)
 
     # boto3 cloudtrail data
-    cloudtrail_manager = CloudtrailCached(mm.EndTime, cache_man, tqdmman)
+    cloudtrail_manager = CloudtrailCached(mm.EndTime, cache_man, tqdml2_obj)
 
     # update dict and return it
     # https://stackoverflow.com/a/1453013/4126114
     inject_email_in_context = lambda context_all: dict({'emailTo': share_email}, **context_all)
     inject_analyzer = lambda context_all: dict({'analyzer': ul}, **context_all)
-    def inject_tqdmClose(context_all):
-      mm.gtqdm.close()
-      return context_all
 
     # utilization listeners
     mm.set_iterator(ec2_it)
@@ -57,10 +54,9 @@ def ec2_cost_analyze(ctx, filter_tags, save_details):
     mm.add_listener('all', ul.after_all)
     mm.add_listener('all', inject_analyzer)
     mm.add_listener('all', ra.postprocess)
-    mm.add_listener('all', inject_tqdmClose)
-    mm.add_listener('all', ra.display)
-    mm.add_listener('all', inject_email_in_context)
-    mm.add_listener('all', ra.email)
+    #mm.add_listener('all', ra.display)
+    #mm.add_listener('all', inject_email_in_context)
+    #mm.add_listener('all', ra.email)
 
     return mm
 
@@ -78,8 +74,9 @@ def ec2_cost_optimize(ctx, n, filter_tags):
     from isitfit.ec2_catalog import Ec2Catalog
     from isitfit.cost.ec2.ec2Common import Ec2Common
     from isitfit.cost.redshift.iterator import Ec2Iterator
-    from isitfit.utils import TqdmMan
-    tqdmman = TqdmMan(ctx)
+
+    from isitfit.tqdmman import TqdmL2Service
+    tqdml2_obj = TqdmL2Service(ctx)
 
     ol = CalculatorOptimizeEc2(n)
 
@@ -90,20 +87,17 @@ def ec2_cost_optimize(ctx, n, filter_tags):
     etf = Ec2TagFilter(filter_tags)
     cloudwatchman = CloudwatchEc2(cache_man)
     ra = ReporterOptimizeEc2()
-    mm = MainManager(ctx)
+    mm = MainManager("EC2 cost optimize", ctx)
     ec2_cat = Ec2Catalog()
     ec2_common = Ec2Common()
-    ec2_it = Ec2Iterator(ctx.obj['filter_region'], tqdmman)
+    ec2_it = Ec2Iterator(ctx.obj['filter_region'], tqdml2_obj)
 
     # boto3 cloudtrail data
-    cloudtrail_manager = CloudtrailCached(mm.EndTime, cache_man, tqdmman)
+    cloudtrail_manager = CloudtrailCached(mm.EndTime, cache_man, tqdml2_obj)
 
     # update dict and return it
     # https://stackoverflow.com/a/1453013/4126114
     inject_analyzer = lambda context_all: dict({'analyzer': ol}, **context_all)
-    def inject_tqdmClose(context_all):
-      mm.gtqdm.close()
-      return context_all
 
     # utilization listeners
     mm.set_iterator(ec2_it)
@@ -120,7 +114,6 @@ def ec2_cost_optimize(ctx, n, filter_tags):
     mm.add_listener('all', ec2_common.after_all)
     mm.add_listener('all', inject_analyzer)
     mm.add_listener('all', ra.postprocess)
-    mm.add_listener('all', inject_tqdmClose)
     mm.add_listener('all', ra.display)
 
     return mm

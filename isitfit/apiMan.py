@@ -56,9 +56,9 @@ class ApiMan:
 
       # display head
       if self.call_n == 1:
-          logger.info("Logging into server")
+          logger.debug("Logging into server")
       else:
-          logger.info("Registration attempt # %i."%(self.call_n))
+          logger.debug("Registration attempt # %i."%(self.call_n))
 
 
       import boto3
@@ -83,14 +83,14 @@ class ApiMan:
           # deal with "registration in progress"
           if self.call_n==1:
               # just continue and will check again later
-              logger.info("Registration in progress")
+              logger.debug("Registration in progress")
           elif self.call_n >= self.n_maxCalls:
               raise IsitfitCliError("Registration is still not ready. Please try again in a few minutes, or file an issue at https://github.com/autofitcloud/isitfit/issues", self.ctx)
           else:
-              logger.info("Registration not ready yet.")
+              logger.debug("Registration not ready yet.")
 
           if self.call_n >= self.tryAgainIn:
-              logger.info("Will check again in %i seconds"%(self.nsecs_wait))
+              logger.debug("Will check again in %i seconds"%(self.nsecs_wait))
               import time
               from tqdm import tqdm
               for i in tqdm(range(self.nsecs_wait)):
@@ -105,9 +105,9 @@ class ApiMan:
 
       # at this stage, registration was ok, so proceed
       if self.call_n==1:
-          logger.info("Registration already done earlier")
+          logger.debug("Registration already done earlier")
       else:
-          logger.info("Registration complete")
+          logger.debug("Registration complete")
 
 
       # check schema
@@ -284,7 +284,7 @@ class ApiMan:
     # now listen on sqs
 
     # https://github.com/jegesh/python-sqs-listener/blob/master/sqs_listener/__init__.py#L123
-    logger.info("Waiting for results")
+    logger.debug("Waiting for results")
     MAX_RETRIES = 5
     i_retry = 0
     import time
@@ -297,7 +297,7 @@ class ApiMan:
       if i_retry == 1:
         time.sleep(1)
       else:
-        #logger.info("Sleep %i seconds"%n_secs)
+        #logger.debug("Sleep %i seconds"%n_secs)
         time.sleep(n_secs)
 
       logger.debug("Check sqs messages (Retry %i/%i)"%(i_retry, MAX_RETRIES))

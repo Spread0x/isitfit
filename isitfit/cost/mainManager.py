@@ -14,39 +14,12 @@ N_DAYS=90
 
 
 
-class GlobalTqdm:
-    def __init__(self, ctx, t_total):
-      self.t_iter = None
-
-      # if either --debug or --verbose specified, do nothing
-      if ctx.obj['debug'] or ctx.obj['verbose']:
-        return
-      
-      # otherwise then show a global tqdm instead of the local ones
-      #print("total", t_total)
-      from tqdm import tqdm
-      self.t_iter = tqdm(total=t_total, desc="isitfit progress")
-      self.t_track = 0
-
-
-    def incrStep(self):
-      #print("incr step?")
-      if self.t_iter is None: return
-      self.t_track += 1
-      self.t_iter.update() # increments by 1
-      #print("incr step", self.t_track)
-
-    def close(self):
-      #print("close?", self.t_iter is None)
-      if self.t_iter is None: return
-      self.t_iter.close()
-      self.t_iter = None
-
-
-
 from isitfit.cost.cacheManager import RedisPandas as RedisPandasCacheManager
 class MainManager:
-    def __init__(self, ctx):
+    def __init__(self, description, ctx):
+        # description to keep track of each pipeline runner
+        self.description = description
+
         # set start/end dates
         dt_now_d=dt.datetime.now().replace(tzinfo=pytz.utc)
         self.StartTime=dt_now_d - dt.timedelta(days=N_DAYS)
@@ -74,18 +47,15 @@ class MainManager:
       self.listeners[event].append(listener)
 
 
-    def get_ifi(self):
-        # set up global tqdm
-        self.gtqdm = GlobalTqdm(self.ctx, 4)
+    def get_ifi(self, tqdml2_obj):
+        # display name of runner
+        logger.info(self.description)
 
         # 0th pass to count
         n_ec2_total = self.ec2_it.count()
 
         if n_ec2_total==0:
-          self.gtqdm.close()
           return
-
-        self.gtqdm.incrStep()
 
         # context for pre listeners
         context_pre = {}
@@ -100,9 +70,6 @@ class MainManager:
           if context_pre is None:
             raise Exception("Breaking the chain is not allowed in listener/pre")
 
-        # done with pre
-        self.gtqdm.incrStep()
-
         # iterate over all ec2 instances
         sum_capacity = 0
         sum_used = 0
@@ -111,10 +78,7 @@ class MainManager:
         ec2_noCloudtrail = []
 
         # Edit 2019-11-12 use "initial=0" instead of "=1". Check more details in a similar note in "cloudtrail_ec2type.py"
-        # from tqdm import tqdm
-        from isitfit.utils import TqdmMan
-        tqdmman = TqdmMan(self.ctx)
-        iter_wrap = tqdmman(self.ec2_it, total=n_ec2_total, desc="Pass 2/2 through %s"%self.ec2_it.service_description, initial=0)
+        iter_wrap = tqdml2_obj(self.ec2_it, total=n_ec2_total, desc="Pass 2/2 through %s"%self.ec2_it.service_description, initial=0)
         for ec2_dict, ec2_id, ec2_launchtime, ec2_obj in iter_wrap:
 
           # context dict to be passed between listeners
@@ -149,12 +113,9 @@ class MainManager:
                 break
 
         # call listeners
-        logger.info("... done")
-        logger.info("")
-        logger.info("")
-
-        # update global tqdm
-        self.gtqdm.incrStep()
+        #logger.info("... done")
+        #logger.info("")
+        #logger.info("")
 
         # set up context
         context_all = {}
@@ -174,10 +135,40 @@ class MainManager:
           if context_all is None:
             raise Exception("Breaking the chain is not allowed in listener/all: %s"%str(l))
 
-        # update global tqdm
-        self.gtqdm.incrStep()
+        # done
+        #logger.info("")
+        return context_all
 
-        logger.info("")
-        return
 
+
+class RunnerAccount(MainManager):
+  def get_ifi(self, tqdml2_obj):
+        # iterate over services
+        n_service_total = self.ec2_it.count()
+        iter_wrap = tqdml2_obj(self.ec2_it, total=n_service_total, desc=self.ec2_it.service_description, initial=0)
+        for ec2_dict, ec2_id, ec2_launchtime, ec2_obj in iter_wrap:
+
+          # context dict to be passed between listeners
+          context_ec2 = {}
+          context_ec2['ec2_id'] = ec2_id
+          context_ec2['ec2_obj'] = ec2_obj
+
+          # call listeners
+          # Listener can return None to break out of loop,
+          # i.e. to stop processing with other listeners
+          for l in self.listeners['ec2']:
+              context_ec2 = l(context_ec2)
+
+              # skip rest of listeners if one of them returned None
+              if context_ec2 is None: break
+
+        # set up context
+        context_all = {}
+        context_all['click_ctx'] = self.ctx
+
+        # call listeners
+        for l in self.listeners['all']:
+          context_all = l(context_all)
+          if context_all is None:
+            raise Exception("Breaking the chain is not allowed in listener/all: %s"%str(l))
 
