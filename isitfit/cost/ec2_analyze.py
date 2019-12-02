@@ -4,7 +4,7 @@ logger = logging.getLogger('isitfit')
 
 
 
-from isitfit.cost.redshift.iterator import BaseIterator
+from isitfit.cost.base_iterator import BaseIterator
 class Ec2Iterator(BaseIterator):
   service_name = 'ec2'
   service_description = 'EC2 instances'
@@ -169,7 +169,7 @@ class CalculatorAnalyzeEc2:
 
 
 
-from isitfit.cost.redshift.reporter import ReporterBase
+from isitfit.cost.base_reporter import ReporterBase
 
 class ReporterAnalyzeEc2(ReporterBase):
 

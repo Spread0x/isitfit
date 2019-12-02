@@ -222,7 +222,7 @@ class CalculatorOptimizeEc2:
 
 
 
-from isitfit.cost.redshift.reporter import ReporterBase
+from isitfit.cost.base_reporter import ReporterBase
 
 class ReporterOptimizeEc2(ReporterBase):
 

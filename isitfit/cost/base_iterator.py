@@ -1,6 +1,6 @@
 # imports
 import datetime as dt
-from ...utils import SECONDS_IN_ONE_DAY
+from isitfit.utils import SECONDS_IN_ONE_DAY
 import pandas as pd
 
 import logging
@@ -77,7 +77,7 @@ class BaseIterator:
     profile_name = boto3.session.Session().profile_name
 
     # cache filename and key to use
-    from ...dotMan import DotMan
+    from isitfit.dotMan import DotMan
     import os
     self.cache_filename = 'iterator_cache-%s-%s.pkl'%(profile_name, self.service_name)
     self.cache_filename = os.path.join(DotMan().get_dotisitfit(), self.cache_filename)

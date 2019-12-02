@@ -1,5 +1,5 @@
 from isitfit.cost.redshift_analyze import ReporterAnalyze
-from isitfit.cost.redshift_common import ReporterBase
+from isitfit.cost.base_reporter import ReporterBase
 from isitfit.cost.redshift_optimize import ReporterOptimize
 
 

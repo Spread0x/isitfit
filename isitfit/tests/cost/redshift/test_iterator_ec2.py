@@ -78,18 +78,18 @@ def test_iteratorBuiltin(mocker):
     for x in ex_iterateCore:
       yield x
 
-  mockee = 'isitfit.cost.redshift.iterator.BaseIterator.iterate_core'
+  mockee = 'isitfit.cost.base_iterator.BaseIterator.iterate_core'
   mocker.patch(mockee, side_effect=mockreturn)
 
   # patch 2
   #mockreturn = lambda *args, **kwargs: 1
-  #mockee = 'isitfit.cost.redshift.iterator.BaseIterator.handle_cluster'
+  #mockee = 'isitfit.cost.base_iterator.BaseIterator.handle_cluster'
   #mocker.patch(mockee, side_effect=mockreturn)
 
   # patch 3
   ## import pandas as pd
   #mockreturn = lambda *args, **kwargs: 'a dataframe' #pd.DataFrame()
-  #mockee = 'isitfit.cost.redshift.iterator.BaseIterator.handle_metric'
+  #mockee = 'isitfit.cost.base_iterator.BaseIterator.handle_metric'
   #mocker.patch(mockee, side_effect=mockreturn)
 
   # test

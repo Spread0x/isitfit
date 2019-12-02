@@ -51,7 +51,7 @@ class CalculatorOptimizeRedshift(CalculatorBaseRedshift):
 
 
 
-from isitfit.cost.redshift_common import ReporterBase
+from isitfit.cost.base_reporter import ReporterBase
 class ReporterOptimize(ReporterBase):
   def postprocess(self, context_all):
     # unpack

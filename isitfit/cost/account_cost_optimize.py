@@ -1,4 +1,4 @@
-from isitfit.cost.redshift.reporter import ReporterBase
+from isitfit.cost.base_reporter import ReporterBase
 class ServiceReporter(ReporterBase):
   def __init__(self):
     self.table_d = {'ec2': {}, 'redshift': {}}
