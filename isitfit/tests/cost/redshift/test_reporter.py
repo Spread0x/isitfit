@@ -1,4 +1,6 @@
-from isitfit.cost.redshift.reporter import ReporterBase, ReporterAnalyze, ReporterOptimize
+from isitfit.cost.redshift_analyze import ReporterAnalyze
+from isitfit.cost.redshift.reporter import ReporterBase, ReporterOptimize
+
 
 class TestReporterBase:
   def test_init(self):

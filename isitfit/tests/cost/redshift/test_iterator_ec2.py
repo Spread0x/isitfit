@@ -3,7 +3,7 @@
 # and inherit here to avoid code redundancy
 
 
-from ....cost.redshift.iterator import Ec2Iterator
+from ....cost.ec2_analyze import Ec2Iterator
 
 def test_init():
   rpi = Ec2Iterator()
@@ -112,7 +112,6 @@ def test_live_iterateCore():
   # set to profile
   os.environ["AWS_PROFILE"] = "shadi_shadi"
 
-  from isitfit.cost.redshift.iterator import Ec2Iterator
   iterator = Ec2Iterator()
   expect_n = 4 # as of 2019-11-15
 

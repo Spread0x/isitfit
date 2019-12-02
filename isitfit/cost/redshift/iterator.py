@@ -25,7 +25,12 @@ class BaseIterator:
   entry_keyCreated = None
 
 
-  def __init__(self, filter_region, tqdmman):
+  def __init__(self, filter_region=None, tqdmman=None):
+    # some defaults
+    if tqdmman is None:
+      from tqdm import tqdm
+      tqdmman = tqdm
+
     # filter for certain region
     self.filter_region = filter_region
 
@@ -215,16 +220,6 @@ class BaseIterator:
         # None below is a placeholder for ec2_obj in case of ec2
         yield rc_describe_entry, rc_id, rc_created, None
 
-
-
-class RedshiftPerformanceIterator(BaseIterator):
-  service_name = 'redshift'
-  service_description = 'Redshift clusters'
-  paginator_name = 'describe_clusters'
-  paginator_entryJmespath = 'Clusters[]'
-  paginator_exception = 'InvalidClientTokenId'
-  entry_keyId = 'ClusterIdentifier'
-  entry_keyCreated = 'ClusterCreateTime'
 
 
 

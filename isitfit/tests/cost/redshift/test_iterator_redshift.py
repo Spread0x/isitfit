@@ -1,4 +1,4 @@
-from ....cost.redshift.iterator import RedshiftPerformanceIterator
+from ....cost.redshift_common import RedshiftPerformanceIterator
 
 def test_init():
   rpi = RedshiftPerformanceIterator()
@@ -60,18 +60,18 @@ def test_iteratorBuiltin(mocker):
     {'ClusterIdentifier': 'abc', 'ClusterCreateTime': dt_now}, # with creation time
   ]
   mockreturn = lambda *args, **kwargs: ex_iterateCore
-  mockee = 'isitfit.cost.redshift.iterator.RedshiftPerformanceIterator.iterate_core'
+  mockee = 'isitfit.cost.redshift_common.RedshiftPerformanceIterator.iterate_core'
   mocker.patch(mockee, side_effect=mockreturn)
 
   # patch 2
   #mockreturn = lambda *args, **kwargs: 1
-  #mockee = 'isitfit.cost.redshift.iterator.RedshiftPerformanceIterator.handle_cluster'
+  #mockee = 'isitfit.cost.redshift_common.RedshiftPerformanceIterator.handle_cluster'
   #mocker.patch(mockee, side_effect=mockreturn)
 
   # patch 3
   ##import pandas as pd
   #mockreturn = lambda *args, **kwargs: 'a dataframe' #pd.DataFrame()
-  #mockee = 'isitfit.cost.redshift.iterator.RedshiftPerformanceIterator.handle_metric'
+  #mockee = 'isitfit.cost.redshift_common.RedshiftPerformanceIterator.handle_metric'
   #mocker.patch(mockee, side_effect=mockreturn)
 
   # test

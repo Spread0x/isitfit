@@ -6,8 +6,7 @@ def tqdml2_obj():
 
     from isitfit.tqdmman import TqdmL2Quiet
     gt = TqdmL2Quiet(
-      CtxWrap(),
-      4
+      CtxWrap()
     )
     return gt
 
@@ -15,12 +14,7 @@ def tqdml2_obj():
 class TestTqdmL2Quiet:
   
   def test_init(self, tqdml2_obj):
-    assert tqdml2_obj.t_track==0
-
-  def test_incrStep(self, tqdml2_obj):
-    tqdml2_obj.incrStep()
-    assert tqdml2_obj.t_track==1
-
-  def test_close(self, tqdml2_obj):
-    tqdml2_obj.close()
+    x_iterator = tqdml2_obj([])
+    x_list = list(x_iterator)
     assert True # no exception
+    assert len(x_list)==0
