@@ -17,6 +17,7 @@ Version 0.17.0rc (2019-11-28)
 - feat: move the display step of `cost optimize` from 2 separate pipelines (ec2, redshift), to one aggregator pipeline
 - enh: gather all `isitfit cost analyze` code related to `ec2` in a single file `ec2_analyze.py`
 - enh: same for `optimize` and `ec2` in `ec2_optimize.py`
+- bugfix: when no redshift clusters yield optimizations, had a bug in the display step
 
 
 Version 0.16.{0,1} (2019-11-27)

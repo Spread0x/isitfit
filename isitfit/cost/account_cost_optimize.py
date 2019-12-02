@@ -27,7 +27,7 @@ class ServiceReporter(ReporterBase):
 
   def display(self, context_all):
     # ATM just using the individual service reports
-    from isitfit.cost.ec2.reporter import ReporterOptimizeEc2
+    from isitfit.cost.ec2_optimize import ReporterOptimizeEc2
     roe = ReporterOptimizeEc2()
     roe.df_sort = self.table_d['ec2']['df_sort']
     roe.sum_val = self.table_d['ec2']['sum_val']
@@ -37,9 +37,13 @@ class ServiceReporter(ReporterBase):
 
     from isitfit.cost.redshift.reporter import ReporterOptimize as ReporterOptimizeRedshift
     ror = ReporterOptimizeRedshift()
-    ror.analyzer = self.table_d['redshift']['analyzer']
-    ror.csv_fn_final = self.table_d['redshift']['csv_fn_final']
-    ror.display(context_all)
+    if 'analyzer' not in self.table_d['redshift'].keys():
+      import click
+      click.echo("No optimizations from redshift")
+    else:
+      ror.analyzer = self.table_d['redshift']['analyzer']
+      ror.csv_fn_final = self.table_d['redshift']['csv_fn_final']
+      ror.display(context_all)
 
     return context_all
 
