@@ -3,7 +3,7 @@
 # and inherit here to avoid code redundancy
 
 
-from ....cost.redshift.cloudwatchman import CloudwatchEc2
+from isitfit.cost.cloudwatchman import CloudwatchEc2
 
 import pytest
 from isitfit.utils import NoCloudwatchException
@@ -19,7 +19,7 @@ def test_init():
 #@mock_cloudwatch
 def test_handleCluster_notFound(mocker):
   mockreturn = lambda *args, **kwargs: []
-  mockee = 'isitfit.cost.redshift.cloudwatchman.CloudwatchEc2._metrics_filter'
+  mockee = 'isitfit.cost.cloudwatchman.CloudwatchEc2._metrics_filter'
   mocker.patch(mockee, side_effect=mockreturn)
 
   rpi = CloudwatchEc2()
@@ -33,7 +33,7 @@ def test_handleCluster_foundCluster(mocker):
     dimensions = [1]
 
   mockreturn = lambda *args, **kwargs: [MockMetricCluster]
-  mockee = 'isitfit.cost.redshift.cloudwatchman.CloudwatchEc2._metrics_filter'
+  mockee = 'isitfit.cost.cloudwatchman.CloudwatchEc2._metrics_filter'
   mocker.patch(mockee, side_effect=mockreturn)
 
   rpi = CloudwatchEc2()
@@ -50,7 +50,7 @@ def test_handleCluster_foundMany(mocker):
     dimensions = [1, 2]
 
   mockreturn = lambda *args, **kwargs: [MockMetricNode, MockMetricCluster]
-  mockee = 'isitfit.cost.redshift.cloudwatchman.CloudwatchEc2._metrics_filter'
+  mockee = 'isitfit.cost.cloudwatchman.CloudwatchEc2._metrics_filter'
   mocker.patch(mockee, side_effect=mockreturn)
 
   rpi = CloudwatchEc2()
@@ -61,7 +61,7 @@ def test_handleCluster_foundMany(mocker):
 
 def test_handleMetric_empty(mocker):
   mockreturn = lambda *args, **kwargs: {'Datapoints': []}
-  mockee = 'isitfit.cost.redshift.cloudwatchman.CloudwatchEc2._metric_get_statistics'
+  mockee = 'isitfit.cost.cloudwatchman.CloudwatchEc2._metric_get_statistics'
   mocker.patch(mockee, side_effect=mockreturn)
 
   rpi = CloudwatchEc2()
@@ -79,7 +79,7 @@ def test_handleMetric_notEmpty(mocker):
     {'Timestamp': dt_now - dt.timedelta(seconds=3)}
   ]
   mockreturn = lambda *args, **kwargs: {'Datapoints': ex_dp}
-  mockee = 'isitfit.cost.redshift.cloudwatchman.CloudwatchEc2._metric_get_statistics'
+  mockee = 'isitfit.cost.cloudwatchman.CloudwatchEc2._metric_get_statistics'
   mocker.patch(mockee, side_effect=mockreturn)
 
   rpi = CloudwatchEc2()
@@ -118,7 +118,7 @@ from moto import mock_ec2, mock_cloudwatch # TODO not in moto:, mock_cloudtrail
 
 class TestCloudwatchEc2:
 # Edit 2019-11-18
-# After starting to use isitfit.cost.redshift.cloudwatchman in mainManager,
+# After starting to use isitfit.cost.cloudwatchman in mainManager,
 # the checks for multiple metrics was dropped as it was useless really.
 # Now it just returns the first non-empty entry.
 #  @mock_ec2
@@ -132,7 +132,7 @@ class TestCloudwatchEc2:
 #    mcw = MockCwResource()
 #    mcw.metrics.n = 2 # set to 2 to trigger exception
 #    mockreturn = lambda *args, **kwargs: mcw
-#    mockee = 'isitfit.cost.redshift.cloudwatchman.CloudwatchBase._cloudwatch_metrics_boto3'
+#    mockee = 'isitfit.cost.cloudwatchman.CloudwatchBase._cloudwatch_metrics_boto3'
 #    mocker.patch(mockee, side_effect=mockreturn)
 #
 #    # class for ec2_obj
@@ -155,14 +155,14 @@ class TestCloudwatchEc2:
   @mock_cloudwatch
   # @mock_cloudtrail
   def test_perEc2_ok(self, MockCwResource, mocker):
-    from isitfit.cost.redshift.cloudwatchman import CloudwatchEc2
+    from isitfit.cost.cloudwatchman import CloudwatchEc2
     cw = CloudwatchEc2(None)
 
     # mock resource
     mcw = MockCwResource()
     mcw.metrics.n = 1 # set to 1 to NOT trigger exception
     mockreturn = lambda *args, **kwargs: mcw
-    mockee = 'isitfit.cost.redshift.cloudwatchman.CloudwatchBase._cloudwatch_metrics_boto3'
+    mockee = 'isitfit.cost.cloudwatchman.CloudwatchBase._cloudwatch_metrics_boto3'
     mocker.patch(mockee, side_effect=mockreturn)
 
     # class for ec2_obj

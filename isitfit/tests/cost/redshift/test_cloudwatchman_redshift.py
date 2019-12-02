@@ -1,4 +1,4 @@
-from ....cost.redshift.cloudwatchman import CloudwatchRedshift
+from isitfit.cost.cloudwatchman import CloudwatchRedshift
 import pytest
 from isitfit.utils import NoCloudwatchException
 
@@ -14,7 +14,7 @@ def test_init():
 #@mock_cloudwatch
 def test_handleCluster_notFound(mocker):
   mockreturn = lambda *args, **kwargs: []
-  mockee = 'isitfit.cost.redshift.cloudwatchman.CloudwatchRedshift._metrics_filter'
+  mockee = 'isitfit.cost.cloudwatchman.CloudwatchRedshift._metrics_filter'
   mocker.patch(mockee, side_effect=mockreturn)
 
   rpi = CloudwatchRedshift()
@@ -29,7 +29,7 @@ def test_handleCluster_foundCluster(mocker):
     dimensions = [1]
 
   mockreturn = lambda *args, **kwargs: [MockMetricCluster]
-  mockee = 'isitfit.cost.redshift.cloudwatchman.CloudwatchRedshift._metrics_filter'
+  mockee = 'isitfit.cost.cloudwatchman.CloudwatchRedshift._metrics_filter'
   mocker.patch(mockee, side_effect=mockreturn)
 
   rpi = CloudwatchRedshift()
@@ -46,7 +46,7 @@ def test_handleCluster_foundMany(mocker):
     dimensions = [1, 2]
 
   mockreturn = lambda *args, **kwargs: [MockMetricNode, MockMetricCluster]
-  mockee = 'isitfit.cost.redshift.cloudwatchman.CloudwatchRedshift._metrics_filter'
+  mockee = 'isitfit.cost.cloudwatchman.CloudwatchRedshift._metrics_filter'
   mocker.patch(mockee, side_effect=mockreturn)
 
   rpi = CloudwatchRedshift()
@@ -57,7 +57,7 @@ def test_handleCluster_foundMany(mocker):
 
 def test_handleMetric_empty(mocker):
   mockreturn = lambda *args, **kwargs: {'Datapoints': []}
-  mockee = 'isitfit.cost.redshift.cloudwatchman.CloudwatchRedshift._metric_get_statistics'
+  mockee = 'isitfit.cost.cloudwatchman.CloudwatchRedshift._metric_get_statistics'
   mocker.patch(mockee, side_effect=mockreturn)
 
   rpi = CloudwatchRedshift()
@@ -76,7 +76,7 @@ def test_handleMetric_notEmpty(mocker):
     {'Timestamp': dt_now - dt.timedelta(seconds=3)}
   ]
   mockreturn = lambda *args, **kwargs: {'Datapoints': ex_dp}
-  mockee = 'isitfit.cost.redshift.cloudwatchman.CloudwatchRedshift._metric_get_statistics'
+  mockee = 'isitfit.cost.cloudwatchman.CloudwatchRedshift._metric_get_statistics'
   mocker.patch(mockee, side_effect=mockreturn)
 
   rpi = CloudwatchRedshift()

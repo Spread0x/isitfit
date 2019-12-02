@@ -200,7 +200,7 @@ def redshift_cost_core(ra, rr, share_email, filter_region, ctx):
     # pipeline
     from isitfit.cost.mainManager import MainManager
     from isitfit.cost.cacheManager import RedisPandas as RedisPandasCacheManager
-    from isitfit.cost.redshift.cloudwatchman import CloudwatchRedshift
+    from isitfit.cost.cloudwatchman import CloudwatchRedshift
     from isitfit.cost.ec2_common import Ec2Common
     from isitfit.cost.cloudtrail_ec2type import CloudtrailCached
 

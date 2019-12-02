@@ -1,6 +1,6 @@
 # imports
 import datetime as dt
-from ...utils import SECONDS_IN_ONE_DAY
+from isitfit.utils import SECONDS_IN_ONE_DAY
 import pandas as pd
 import boto3
 

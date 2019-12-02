@@ -30,7 +30,7 @@ redshiftPricing_df = pd.DataFrame(redshiftPricing_df)
 
 
 
-from isitfit.cost.redshift.calculator import CalculatorBaseRedshift
+from isitfit.cost.redshift_common import CalculatorBaseRedshift
 class CalculatorAnalyzeRedshift(CalculatorBaseRedshift):
 
   def per_ec2(self, context_ec2):

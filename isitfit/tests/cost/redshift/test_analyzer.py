@@ -10,7 +10,7 @@ dt_now_d = dt.datetime.utcnow().replace(tzinfo=pytz.utc)
 
 
 def test_redshiftPricingDict():
-  from isitfit.cost.redshift.calculator import redshiftPricing_dict
+  from isitfit.cost.redshift_common import redshiftPricing_dict
   assert len(redshiftPricing_dict.keys()) > 0
 
 
@@ -25,7 +25,7 @@ class TestCalculatorAnalyzeRedshift:
 
   def test_fetch(self, mocker):
     mockreturn = lambda *args, **kwargs: pd.DataFrame({'Timestamp': [], 'Average': []})
-    mockee = 'isitfit.cost.redshift.cloudwatchman.CloudwatchRedshift.handle_main'
+    mockee = 'isitfit.cost.cloudwatchman.CloudwatchRedshift.handle_main'
     mocker.patch(mockee, side_effect=mockreturn)
 
     import datetime as dt
@@ -61,7 +61,7 @@ class TestCalculatorOptimizeRedshift:
 
   def test_fetch(self, mocker):
     mockreturn = lambda *args, **kwargs: pd.DataFrame({'Timestamp': [], 'Average': [], 'Maximum': [], 'Minimum': []})
-    mockee = 'isitfit.cost.redshift.cloudwatchman.CloudwatchRedshift.handle_main'
+    mockee = 'isitfit.cost.cloudwatchman.CloudwatchRedshift.handle_main'
     mocker.patch(mockee, side_effect=mockreturn)
 
     ex_iter = [
