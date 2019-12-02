@@ -1,6 +1,5 @@
-from isitfit.cost.redshift_analyze import pipeline_factory as redshift_cost_analyze
-from isitfit.cost.redshift_analyze import pipeline_factory as redshift_cost_analyze
-from isitfit.cost.redshift.pipeline_factory import redshift_cost_optimize
+from isitfit.cost.redshift_analyze import  pipeline_factory as redshift_cost_analyze
+from isitfit.cost.redshift_optimize import pipeline_factory as redshift_cost_optimize
 
 
 import pytest
@@ -10,9 +9,9 @@ def test_costCore(mocker):
     mockee_list = [
       'isitfit.cost.redshift_analyze.RedshiftPerformanceIterator',
       'isitfit.cost.redshift_analyze.CalculatorAnalyzeRedshift',
-      'isitfit.cost.redshift.analyzer.CalculatorOptimizeRedshift',
+      'isitfit.cost.redshift_optimize.CalculatorOptimizeRedshift',
       'isitfit.cost.redshift_analyze.ReporterAnalyze',
-      'isitfit.cost.redshift.reporter.ReporterOptimize',
+      'isitfit.cost.redshift_optimize.ReporterOptimize',
     ]
     for mockee_single in mockee_list:
       mocker.patch(mockee_single, autospec=True)

@@ -1,5 +1,7 @@
-from isitfit.cost.redshift_analyze import CalculatorAnalyzeRedshift
-from isitfit.cost.redshift.calculator import CalculatorBaseRedshift, CalculatorOptimizeRedshift
+from isitfit.cost.redshift_analyze  import CalculatorAnalyzeRedshift
+from isitfit.cost.redshift_common   import CalculatorBaseRedshift
+from isitfit.cost.redshift_optimize import CalculatorOptimizeRedshift
+
 
 import datetime as dt
 import pandas as pd
