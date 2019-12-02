@@ -24,8 +24,165 @@ class RedshiftPerformanceIterator(BaseIterator):
 
 
 
+# AWS_DEFAULT_REGION=us-east-2 python3 -m isitfit.cost.test_redshift
+# Related
+# https://docs.datadoghq.com/integrations/amazon_redshift/
+# https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/redshift.html#Redshift.Paginator.DescribeClusters
+
+import pandas as pd
+from isitfit.cost.mainManager import NoCloudwatchException
+
+
+# redshift pricing as of 2019-11-12 in USD per hour, on-demand, ohio
+# https://aws.amazon.com/redshift/pricing/
+from isitfit.cost.redshift_common import redshiftPricing_dict
+
+
+
+class CalculatorBaseRedshift:
+
+
+  def __init__(self):
+    # define the list in the constructor because if I define it as a class member above,
+    # then it gets reused between instantiations of derived classes
+    self.analyze_list = []
+    self.analyze_df = None
+
+
+  def per_ec2(self, context_ec2):
+      rc_describe_entry = context_ec2['ec2_dict']
+
+      # for types not yet in pricing dictionary above
+      rc_type = rc_describe_entry['NodeType']
+      if rc_type not in redshiftPricing_dict.keys():
+        raise NoCloudwatchException
+
+      return context_ec2
+
+
+  def after_all(self, context_all):
+    # To be used by derived class *after* its own implementation
+
+    # gather into a single dataframe
+    self.analyze_df = pd.DataFrame(self.analyze_list)
+
+    # update number of analyzed clusters
+    context_all['n_rc_analysed'] = self.analyze_df.shape[0]
+
+    # Edit 2019-11-20 no need to through exception here
+    # This way, the code can proceed to show a report, and possibly proceed to other services than redshift
+    #if context_all['n_rc_analysed']==0:
+    #  from isitfit.utils import IsitfitCliError
+    #  raise IsitfitCliError("No redshift clusters analyzed", context_all['click_ctx'])
+
+    return context_all
+
+
+  def calculate(self, context_all):
+    raise Exception("To be implemented by derived class")
+
+
+
+
+
+
+
+# Related
+# https://docs.datadoghq.com/integrations/amazon_redshift/
+# https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/redshift.html#Redshift.Paginator.DescribeClusters
+
+import click
+
 import logging
 logger = logging.getLogger('isitfit')
+
+
+class ReporterBase:
+  def postprocess(self, context_all):
+    raise Exception("To be implemented by derived class")
+
+  def display(self, context_all):
+    raise Exception("To be implemented by derived class")
+
+  def _promptToEmailIfNotRequested(self, emailTo):
+    if emailTo is not None:
+      if len(emailTo) > 0:
+        # user already requested email
+        return emailTo
+
+    # prompt user if to email
+    click.echo("")
+    res_conf = click.confirm("Would you like to share the results to your email?")
+    if not res_conf:
+      return None
+
+    #from isitfit.utils import IsitfitCliError
+
+    # more quick validation
+    # works with a@b.c but not a@b@c.d
+    # https://stackoverflow.com/questions/8022530/how-to-check-for-valid-email-address#8022584
+    import re
+    EMAIL_REGEX = re.compile(r"[^@]+@[^@]+\.[^@]+")
+
+    # prompt for email
+    while True:
+      res_prompt = click.prompt('Please enter a valid email address (leave blank to skip)', type=str)
+
+      # check if blank
+      if res_prompt=='':
+        return None
+
+      # quick validate
+      # shortest email is: a@b.c
+      # Longest email is: shadishadishadishadi@shadishadishadishadi.shadi
+      if len(res_prompt) >= 5:
+        if len(res_prompt) <= 50:
+          if bool(EMAIL_REGEX.match(res_prompt)):
+            return [res_prompt]
+
+      # otherwise, invalid email
+      logger.error("Invalid email address: %s"%res_prompt)
+
+
+  def email(self, context_all):
+      """
+      ctx - click context
+      """
+      for fx in ['dataType', 'dataVal']:
+        if not fx in context_all:
+          raise Exception("Missing field from context: %s. This function should be implemented by the derived class"%fx)
+
+      # unpack
+      emailTo, ctx = context_all['emailTo'], context_all['click_ctx']
+
+      # prompt user for email if not requested
+      emailTo = self._promptToEmailIfNotRequested(emailTo)
+
+      # check if email requested
+      if emailTo is None:
+          return context_all
+
+      if len(emailTo)==0:
+          return context_all
+
+      from isitfit.emailMan import EmailMan
+      em = EmailMan(
+        dataType=context_all['dataType'], # ec2, not redshift
+        dataVal=context_all['dataVal'],
+        ctx=ctx
+      )
+      em.send(emailTo)
+
+      return context_all
+
+
+
+
+
+
+
+
+
 
 
 def redshift_cost_core(ra, rr, share_email, filter_region, ctx):

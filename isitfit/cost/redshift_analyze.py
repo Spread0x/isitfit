@@ -124,7 +124,7 @@ class CalculatorAnalyzeRedshift(CalculatorBaseRedshift):
 
 
 
-from isitfit.cost.redshift.reporter import ReporterBase
+from isitfit.cost.redshift_common import ReporterBase
 class ReporterAnalyze(ReporterBase):
   def postprocess(self, context_all):
     # unpack

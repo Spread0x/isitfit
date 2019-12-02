@@ -35,7 +35,7 @@ class ServiceReporter(ReporterBase):
     roe.analyzer = self.table_d['ec2']['analyzer']
     roe.display(context_all)
 
-    from isitfit.cost.redshift.reporter import ReporterOptimize as ReporterOptimizeRedshift
+    from isitfit.cost.redshift_optimize import ReporterOptimize as ReporterOptimizeRedshift
     ror = ReporterOptimizeRedshift()
     if 'analyzer' not in self.table_d['redshift'].keys():
       import click

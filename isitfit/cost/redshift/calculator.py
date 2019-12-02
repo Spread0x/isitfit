@@ -58,47 +58,4 @@ class CalculatorBaseRedshift:
 
 
 
-class CalculatorOptimizeRedshift(CalculatorBaseRedshift):
 
-  def per_ec2(self, context_ec2):
-      """
-      # get all performance dataframes, on the cluster-aggregated level
-      """
-
-      # parent
-      context_ec2 = super().per_ec2(context_ec2)
-
-      # unpack
-      rc_describe_entry = context_ec2['ec2_dict']
-      df_single = context_ec2['df_single']
-
-      # summarize into maxmax, maxmin, minmax, minmin
-      self.analyze_list.append({
-        'Region': rc_describe_entry['Region'],
-        'ClusterIdentifier': rc_describe_entry['ClusterIdentifier'],
-        'NodeType': rc_describe_entry['NodeType'],
-        'NumberOfNodes': rc_describe_entry['NumberOfNodes'],
-
-        'CpuMaxMax': df_single.Maximum.max(),
-        #'CpuMaxMin': df_single.Maximum.min(),
-        #'CpuMinMax': df_single.Minimum.max(),
-        'CpuMinMin': df_single.Minimum.min(),
-      })
-
-      # done
-      return context_ec2
-
-
-
-  def calculate(self, context_all):
-    def classify_cluster_single(row):
-        # classify
-        if row.CpuMinMin > 70: return "Overused"
-        if row.CpuMaxMax <  5: return "Idle"
-        if row.CpuMaxMax < 30: return "Underused"
-        return "Normal"
-
-    # convert percentages to int since fractions are not very useful
-    analyze_df = self.analyze_df
-    analyze_df['classification'] = analyze_df.apply(classify_cluster_single, axis=1)
-    return context_all
