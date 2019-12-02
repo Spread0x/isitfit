@@ -227,48 +227,4 @@ class RedshiftPerformanceIterator(BaseIterator):
   entry_keyCreated = 'ClusterCreateTime'
 
 
-class Ec2Iterator(BaseIterator):
-  service_name = 'ec2'
-  service_description = 'EC2 instances'
-  paginator_name = 'describe_instances'
-  # Notice that [] notation flattens the list of lists
-  # http://jmespath.org/tutorial.html
-  paginator_entryJmespath = 'Reservations[].Instances[]'
-  paginator_exception = 'AuthFailure'
-  entry_keyId = 'InstanceId'
-  entry_keyCreated = 'LaunchTime'
-
-  def __iter__(self):
-    # over-ride the __iter__ to get the ec2 resource object for the current code (backwards compatibility)
-
-    # method 1 for ec2
-    # ec2_it = self.ec2_resource.instances.all()
-    # return ec2_it
-
-    # boto3 ec2 and cloudwatch data
-    ec2_resource_all = {}
-    import boto3
-
-    # TODO cannot use directly use the iterator exposed in "ec2_it"
-    # because it would return the dataframes from Cloudwatch,
-    # whereas in the cloudwatch data fetch here, the data gets cached to redis.
-    # Once the redshift.iterator can cache to redis, then the cloudwatch part here
-    # can also be dropped, as well as using the "ec2_it" iterator directly
-    # for ec2_dict in self.ec2_it:
-    for ec2_dict, ec2_id, ec2_launchtime, _ in super().__iter__():
-      if ec2_dict['Region'] not in ec2_resource_all.keys():
-        boto3.setup_default_session(region_name = ec2_dict['Region'])
-        ec2_resource_all[ec2_dict['Region']] = boto3.resource('ec2')
-
-      ec2_resource_single = ec2_resource_all[ec2_dict['Region']]
-      ec2_l = ec2_resource_single.instances.filter(InstanceIds=[ec2_dict['InstanceId']])
-      ec2_l = list(ec2_l)
-      if len(ec2_l)==0:
-        continue # not found
-
-      # yield first entry
-      ec2_obj = ec2_l[0]
-      ec2_obj.region_name = ec2_dict['Region']
-
-      yield ec2_dict, ec2_id, ec2_launchtime, ec2_obj
 

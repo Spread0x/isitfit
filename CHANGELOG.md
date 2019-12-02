@@ -15,6 +15,7 @@ Version 0.17.0rc (2019-11-28)
 - feat: merge displayed reports of ec2 and redshift `isitfit cost analyze` commands
 - enh: move pipeline of `cost optimize` (ec2, redshift) from cli.cost to cost.service similar to pipeline of `cost analyze`
 - feat: move the display step of `cost optimize` from 2 separate pipelines (ec2, redshift), to one aggregator pipeline
+- enh: gather all `isitfit cost analyze` code related to `ec2` in a single file `ec2_analyze.py`
 
 
 Version 0.16.{0,1} (2019-11-27)
