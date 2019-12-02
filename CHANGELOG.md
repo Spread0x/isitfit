@@ -18,6 +18,7 @@ Version 0.17.0rc (2019-11-28)
 - enh: gather all `isitfit cost analyze` code related to `ec2` in a single file `ec2_analyze.py`
 - enh: same for `optimize` and `ec2` in `ec2_optimize.py`
 - bugfix: when no redshift clusters yield optimizations, had a bug in the display step
+- enh: gather `ec2TagFilter` and `Ec2Common` into `ec2_common.py`
 
 
 Version 0.16.{0,1} (2019-11-27)

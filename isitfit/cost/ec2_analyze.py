@@ -285,10 +285,10 @@ def pipeline_factory(ctx, filter_tags, save_details):
     from isitfit.cost.cloudtrail_ec2type import CloudtrailCached
     from isitfit.cost.cacheManager import RedisPandas as RedisPandasCacheManager
     from isitfit.cost.datadogManager import DatadogCached
-    from isitfit.cost.ec2TagFilter import Ec2TagFilter
+    from isitfit.cost.ec2_common import Ec2TagFilter
     from isitfit.cost.redshift.cloudwatchman import CloudwatchEc2
     from isitfit.ec2_catalog import Ec2Catalog
-    from isitfit.cost.ec2.ec2Common import Ec2Common
+    from isitfit.cost.ec2_common import Ec2Common
 
     from isitfit.tqdmman import TqdmL2Verbose
     tqdml2_obj = TqdmL2Verbose(ctx)

@@ -19,7 +19,7 @@ def redshift_cost_core(ra, rr, share_email, filter_region, ctx):
     from isitfit.cost.mainManager import MainManager
     from isitfit.cost.cacheManager import RedisPandas as RedisPandasCacheManager
     from .cloudwatchman import CloudwatchRedshift
-    from isitfit.cost.ec2.ec2Common import Ec2Common
+    from isitfit.cost.ec2_common import Ec2Common
     from isitfit.cost.cloudtrail_ec2type import CloudtrailCached
 
     mm = MainManager("Redshift cost analyze or optimize", ctx)
