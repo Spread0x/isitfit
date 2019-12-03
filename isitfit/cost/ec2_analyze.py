@@ -142,11 +142,13 @@ class CalculatorAnalyzeEc2:
 
     # dump to csv for details
     if self.save_details:
+      import click
+
       # display message for first file
       csvi_desc ='Per ec2 and day'
       msg_info = "💾 Detail file 1/2: %s: %s"%(csvi_desc, self.csv_fn_intermediate.name)
       msg_info = colored(msg_info, "cyan")
-      logger.info(msg_info)
+      click.echo(msg_info)
 
       # save 2nd file and display message
       import tempfile
@@ -159,11 +161,11 @@ class CalculatorAnalyzeEc2:
       csvi_desc = 'Per ec2 only   ' # 3 spaces just to align with "per ec2 and day
       msg_info = "💾 Detail file 2/2: %s: %s"%(csvi_desc, csv_fh_final.name)
       msg_info = colored(msg_info, "cyan")
-      logger.info(msg_info)
+      click.echo(msg_info)
 
-      logger.info(colored("Consider viewing the CSVs in the terminal with visidata: `vd file.csv` (http://visidata.org/).", "cyan"))
+      click.echo(colored("Consider viewing the CSVs in the terminal with visidata: `vd file.csv` (http://visidata.org/).", "cyan"))
 
-      logger.info("") # empty breather line
+      click.echo("") # empty breather line
     return context_all
 
 

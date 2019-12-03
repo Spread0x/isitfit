@@ -24,6 +24,9 @@ Version 0.17.0rc (2019-11-28)
 - enh: rename the cloudtrail iterator classes + add functional tests
 - bugfix: cloudtrail data was missing the event name + had the wrong region field name
 - feat: add option `isitfit cost --ndays {analyze,optimize}` for users who want to run the numbers on the most recent n days
+- enh: when pinging matomo, send values of options like `ndays`
+- bugfix: `save-details` option was using `logger.info` whereas it should use `click.echo`
+- enh: cloudtrail empty dataframe from `all region` to not set index
 
 
 Version 0.16.{0,1} (2019-11-27)

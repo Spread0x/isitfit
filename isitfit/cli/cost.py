@@ -27,7 +27,7 @@ def cost(ctx, filter_region, ndays):
 def analyze(ctx, filter_tags, save_details):
     # gather anonymous usage statistics
     from ..utils import ping_matomo, IsitfitCliError
-    ping_matomo("/cost/analyze")
+    ping_matomo("/cost/analyze?ndays=%i&filter_region=%s&filter_tags=%s"%(ctx.obj['ndays'], ctx.obj['filter_region'], filter_tags))
 
     #logger.info("Is it fit?")
     logger.info("Initializing...")

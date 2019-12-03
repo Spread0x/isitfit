@@ -381,6 +381,11 @@ class EventAggregatorAllRegions(EventAggregatorOneRegion):
 
         # concatenate
         df_3 = pd.concat(df_2, axis=0, sort=False)
+
+        # check if empty
+        if df_3.shape[0]==0:
+          return df_3
+
         # sort again
         df_3 = df_3.set_index(["Region", "ServiceName", "ResourceName", "EventTime"]).sort_index()
 
