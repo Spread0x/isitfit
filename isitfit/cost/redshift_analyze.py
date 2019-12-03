@@ -19,14 +19,7 @@ from isitfit.utils import mergeSeriesOnTimestampRange
 
 
 # convert above dict to pandas dataframe
-from isitfit.cost.redshift_common import redshiftPricing_dict
-import pandas as pd
-redshiftPricing_df = [{'NodeType': k, 'Cost': v} for k, v in redshiftPricing_dict.items()]
-redshiftPricing_df = pd.DataFrame(redshiftPricing_df)
-#print("redshift pricing")
-#print(redshiftPricing_df)
-
-
+from isitfit.cost.catalog_redshift import redshiftPricing_df
 
 
 

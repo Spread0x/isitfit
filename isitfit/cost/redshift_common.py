@@ -1,13 +1,6 @@
 # redshift pricing as of 2019-11-12 in USD per hour, on-demand, ohio
 # https://aws.amazon.com/redshift/pricing/
-redshiftPricing_dict = {
-  'dc2.large': 0.25,
-  'dc2.8xlarge': 4.80,
-  'ds2.xlarge': 0.85,
-  'ds2.8xlarge': 6.80,
-  'dc1.large': 0.25,
-  'dc1.8xlarge': 4.80,
-}
+from isitfit.cost.catalog_redshift import redshiftPricing_dict
 
 
 
@@ -31,11 +24,6 @@ class RedshiftPerformanceIterator(BaseIterator):
 
 import pandas as pd
 from isitfit.cost.mainManager import NoCloudwatchException
-
-
-# redshift pricing as of 2019-11-12 in USD per hour, on-demand, ohio
-# https://aws.amazon.com/redshift/pricing/
-from isitfit.cost.redshift_common import redshiftPricing_dict
 
 
 
