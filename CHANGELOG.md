@@ -23,6 +23,7 @@ Version 0.17.0rc (2019-11-28)
 - enh: gather code for `redshift_optimize.py`
 - enh: rename the cloudtrail iterator classes + add functional tests
 - bugfix: cloudtrail data was missing the event name + had the wrong region field name
+- feat: add option `isitfit cost --ndays {analyze,optimize}` for users who want to run the numbers on the most recent n days
 
 
 Version 0.16.{0,1} (2019-11-27)

@@ -388,10 +388,18 @@ def pipeline_factory(ctx, n, filter_tags):
     cache_man = RedisPandasCacheManager()
 
     ddg = DatadogCached(cache_man)
+    ddg.ndays = ctx.obj['ndays']
+
     etf = Ec2TagFilter(filter_tags)
+
     cloudwatchman = CloudwatchEc2(cache_man)
+    cloudwatchman.ndays = ctx.obj['ndays']
+
     ra = ReporterOptimizeEc2()
+
     mm = MainManager("EC2 cost optimize", ctx)
+    mm.ndays = ctx.obj['ndays']
+
     ec2_cat = Ec2Catalog()
     ec2_common = Ec2Common()
     ec2_it = Ec2Iterator(ctx.obj['filter_region'], tqdml2_obj)

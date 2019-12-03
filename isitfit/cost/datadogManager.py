@@ -106,6 +106,7 @@ class DatadogAssistant:
 
 
 class DatadogManager:
+    ndays = 90
     
     def __init__(self):
         initialize()
@@ -116,7 +117,7 @@ class DatadogManager:
         # number of seconds in 1 hour, if no ".rollup" specified in query, this yields 20-second frequency from datadog
         # n_secs = 60*60
         # number of seconds in 90 days, if no ".rollup" specified in query, yields bi-daily from datadog
-        n_secs = SECONDS_IN_ONE_DAY*90
+        n_secs = SECONDS_IN_ONE_DAY*self.ndays
         self.start = self.end - n_secs
 
 

@@ -10,9 +10,11 @@ from ..utils import IsitfitCommand
 
 @click.group(help="Evaluate AWS EC2 costs", invoke_without_command=False)
 @click.option('--filter-region', default=None, help='specify a single region against which to run cost analysis/optimization')
+@click.option('--ndays', default=90, prompt='Number of days to lookback (use `isitfit cost --ndays=90 ...` to skip this prompt)', help='number of days to look back in the data history', type=int)
 @click.pass_context
-def cost(ctx, filter_region):
+def cost(ctx, filter_region, ndays):
   ctx.obj['filter_region'] = filter_region
+  ctx.obj['ndays'] = ndays
   pass
 
 

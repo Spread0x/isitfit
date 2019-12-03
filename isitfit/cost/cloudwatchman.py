@@ -10,6 +10,8 @@ import logging
 logger = logging.getLogger('isitfit')
 
 
+
+
 class CloudwatchBase:
   """
   Manager for cloudwatch
@@ -17,6 +19,7 @@ class CloudwatchBase:
 
   cloudwatch_namespace = None
   entry_keyId = None
+  ndays = 90
 
 
   def __init__(self):
@@ -25,12 +28,11 @@ class CloudwatchBase:
 
   def _initDates(self):
     # set start/end dates
-    N_DAYS=90
 
     # FIXME? in mainManager, used pytz
     # dt_now_d=dt.datetime.now().replace(tzinfo=pytz.utc)
     dt_now_d = dt.datetime.utcnow()
-    self.StartTime = dt_now_d - dt.timedelta(days=N_DAYS)
+    self.StartTime = dt_now_d - dt.timedelta(days=self.ndays)
     self.EndTime = dt_now_d
 
 

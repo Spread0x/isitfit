@@ -10,19 +10,19 @@ logger = logging.getLogger('isitfit')
 from ..utils import SECONDS_IN_ONE_DAY, NoCloudwatchException, myreturn, NoCloudtrailException
 
 MINUTES_IN_ONE_DAY = 60*24 # 1440
-N_DAYS=90
-
 
 
 from isitfit.cost.cacheManager import RedisPandas as RedisPandasCacheManager
 class MainManager:
+    ndays = 90
+
     def __init__(self, description, ctx):
         # description to keep track of each pipeline runner
         self.description = description
 
         # set start/end dates
         dt_now_d=dt.datetime.now().replace(tzinfo=pytz.utc)
-        self.StartTime=dt_now_d - dt.timedelta(days=N_DAYS)
+        self.StartTime=dt_now_d - dt.timedelta(days=self.ndays)
         self.EndTime=dt_now_d
         logger.debug("Metrics start..end: %s .. %s"%(self.StartTime, self.EndTime))
 

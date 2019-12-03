@@ -174,6 +174,9 @@ instance_id  capacity     used
 i-024...        29.54     0.14
 ```
 
+Note that `isitfit cost analyze` will prompt the user for the number of days on which to perform the analysis.
+By default, it's 90 days. To skip the prompt, just use the `--ndays` option, eg `isitfit cost --ndays=90 analyze`.
+
 
 ### Recommended optimizations
 
@@ -213,7 +216,7 @@ Also, intermediate results of the optimization are streamed to a csv file during
 The filename is indicated in the command output, before the table, as `Results will be streamed to /tmp/isitfit-9t0x0jj7.csv`.
 This is useful to start processing results while the optimization is running.
 
-Find only the first 1 underused instances
+Find only the first `1` underused instances
 
 ```
 > isitfit cost optimize --n=1
@@ -227,6 +230,10 @@ Details
 +---------------------+-----------------+--------------------+------------------------------------+-----------+--------------------+-----------+--------------------------------------------------+
 ...
 ```
+
+Note that `isitfit cost optimize` will prompt the user for the number of days on which to perform the analysis.
+By default, it's 90 days. To skip the prompt, just use the `--ndays` option, eg `isitfit cost --ndays=90 optimize`.
+
 
 ### Filtering on region
 
