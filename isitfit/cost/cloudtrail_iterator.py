@@ -41,7 +41,7 @@ logger = logging.getLogger('isitfit')
 # import jmespath
 
 #----------------------------------------
-class Ec2TypechangesBase:
+class EventIterator:
     eventName = None
   
     # get paginator
@@ -100,7 +100,7 @@ class Ec2TypechangesBase:
         return event
 
 
-class RedshiftTypechangesCreate(Ec2TypechangesBase):
+class RedshiftCreate(EventIterator):
     eventName = "CreateCluster"
  
     def _handleEvent(self, event):
@@ -154,7 +154,7 @@ class RedshiftTypechangesCreate(Ec2TypechangesBase):
           # ts_str = ts_obj.strftime('%Y-%m-%d %H:%M:%S')
 
           result = {
-            'ServiceName': 'EC2',
+            'ServiceName': 'Redshift', # bugfix: was using Ec2 instead of Redshift
             'EventName': self.eventName,
             'EventTime': ts_obj,  # ts_str,
             'ResourceName': instanceId,
@@ -166,7 +166,7 @@ class RedshiftTypechangesCreate(Ec2TypechangesBase):
 
       
       
-class Ec2TypechangesRun(Ec2TypechangesBase):
+class Ec2Run(EventIterator):
     eventName = "RunInstances"
  
     def _handleEvent(self, event):
@@ -217,15 +217,17 @@ class Ec2TypechangesRun(Ec2TypechangesBase):
 
           result = {
             'ServiceName': 'EC2',
+            'EventName': self.eventName,
             'EventTime': ts_obj,  # ts_str,
             'ResourceName': instanceId,
             'ResourceSize1': newType,
+            'ResourceSize2': None
           }
 
           return result
           
           
-class Ec2TypechangesModify(Ec2TypechangesBase):
+class Ec2Modify(EventIterator):
     eventName = "ModifyInstanceAttribute"
  
     def _handleEvent(self, event):
@@ -267,15 +269,17 @@ class Ec2TypechangesModify(Ec2TypechangesBase):
 
           result = {
             'ServiceName': 'EC2',
+            'EventName': self.eventName,
             'EventTime': ts_obj, # ts_str,
             'ResourceName': rp_dict['instanceId'],
             'ResourceSize1': newType,
+            'ResourceSize2': None
           }
 
           return result
 
 
-class RedshiftTypechangesResize(Ec2TypechangesBase):
+class RedshiftResize(EventIterator):
     eventName = "ResizeCluster"
  
     def _handleEvent(self, event):
@@ -301,8 +305,10 @@ class RedshiftTypechangesResize(Ec2TypechangesBase):
 
           result = {
             'ServiceName': 'Redshift',
-            'EventTime': ts_obj, # ts_str,
             'ResourceName': rp_dict['clusterIdentifier'],
+            'EventTime': ts_obj, # ts_str,
+
+            'EventName': self.eventName,
             'ResourceSize1': nodeType,
             'ResourceSize2': numberOfNodes,
 
@@ -311,9 +317,10 @@ class RedshiftTypechangesResize(Ec2TypechangesBase):
           return result
 
 
-class GeneralManager:
-    def ec2_typeChanges(self):
-        import pandas as pd
+import pandas as pd
+
+class EventAggregatorOneRegion:
+    def get(self):
         from termcolor import colored
         import botocore
         import sys
@@ -327,16 +334,16 @@ class GeneralManager:
 
           return r_i
 
-        man2_ec2run = Ec2TypechangesRun()
+        man2_ec2run = Ec2Run()
         r_ec2run = run_iterator(man2_ec2run)
         
-        man2_ec2mod = Ec2TypechangesModify()
+        man2_ec2mod = Ec2Modify()
         r_ec2mod = run_iterator(man2_ec2mod)
        
-        man2_rscre = RedshiftTypechangesCreate()
+        man2_rscre = RedshiftCreate()
         r_rscre = run_iterator(man2_rscre)
 
-        man2_rsmod = RedshiftTypechangesResize()
+        man2_rsmod = RedshiftResize()
         r_rsmod = run_iterator(man2_rsmod)
 
         # split on instance ID and gather
@@ -353,8 +360,128 @@ class GeneralManager:
         return df
 
 
-if __name__=='__main__':
-    man1 = GeneralManager()
-    df = man1.ec2_typeChanges()
-    print("")
-    print(df)
+
+class EventAggregatorAllRegions(EventAggregatorOneRegion):
+    def __init__(self, region_include, tqdmman):
+      self.region_include = region_include
+      self.tqdmman = tqdmman
+
+    def get(self):
+        # get cloudtrail ec2 type changes for all instances
+        logger.debug("Downloading cloudtrail data (from %i regions)"%len(self.region_include))
+        df_2 = []
+        import boto3
+        iter_wrap = self.region_include
+        iter_wrap = self.tqdmman(iter_wrap, desc="Cloudtrail events in all regions", total=len(self.region_include))
+        for region_name in iter_wrap:
+          boto3.setup_default_session(region_name = region_name)
+          df_1 = super().get()
+          df_1['Region'] = region_name # bugfix, field name was "region" (lower-case)
+          df_2.append(df_1.reset_index())
+
+        # concatenate
+        df_3 = pd.concat(df_2, axis=0, sort=False)
+        # sort again
+        df_3 = df_3.set_index(["Region", "ServiceName", "ResourceName", "EventTime"]).sort_index()
+
+        return df_3
+
+
+
+
+class EventAggregatorCached(EventAggregatorAllRegions):
+    cache_key = "cloudtrail_ec2type._fetch"
+
+    def __init__(self, region_include, tqdmman, cache_man):
+        super().__init__(region_include, tqdmman)
+        self.cache_man = cache_man
+
+
+    def get(self):
+        # get cloudtrail ec2 type changes for all instances
+
+        # if not configured, just return
+        if self.cache_man is None:
+          df_fresh = super().get()
+          return df_fresh
+
+        # check cache first
+        if self.cache_man.isReady():
+          df_cache = self.cache_man.get(self.cache_key)
+          if df_cache is not None:
+            logger.debug("Found cloudtrail data in redis cache")
+            return df_cache
+
+        # if no cache, then download
+        df_fresh = super().get()
+
+        # if caching enabled, store it for later fetching
+        # https://stackoverflow.com/a/57986261/4126114
+        if self.cache_man.isReady():
+          self.cache_man.set(self.cache_key, df_fresh)
+
+        # done
+        return df_fresh
+
+
+
+
+
+def dict2service(ec2_dict):
+        if 'InstanceId' in ec2_dict: return 'EC2'
+        if 'ClusterIdentifier' in ec2_dict: return 'Redshift'
+        import json
+        raise Exception("Unknown service found in %s"%json.dumps(ec2_dict))
+
+
+
+class EventAggregatorPostprocessed(EventAggregatorCached):
+    def __init__(self, region_include, tqdmman, cache_man, EndTime):
+        super().__init__(region_include, tqdmman, cache_man)
+        self.EndTime = EndTime
+
+
+    def get(self, ec2_instances, n_ec2):
+        self.df_cloudtrail = super().get()
+
+        # first pass to append ec2 types to cloudtrail based on "now"
+        self.df_cloudtrail = self.df_cloudtrail.reset_index()
+
+        # Edit 2019-11-12 use initial=0 otherwise if "=1" used then the tqdm output would be "101it" at conclusion, i.e.
+        # First pass through EC2 instances: 101it [00:05,  5.19it/s]
+        t_iter = ec2_instances
+        t_iter = self.tqdmman(t_iter, total=n_ec2, desc="Pass 1/2 through EC2 instances", initial=0)
+        for ec2_dict, ec2_id, ec2_launchtime, ec2_obj in t_iter:
+            self._appendNow(ec2_dict, ec2_id)
+
+        # set index again, and sort decreasing this time (not like git-remote-aws default)
+        # The descending sort is very important for the mergeTimeseries... function
+        self.df_cloudtrail = self.df_cloudtrail.set_index(["Region", "ServiceName", "ResourceName", "EventTime"]).sort_index(ascending=False)
+
+        # done
+        return self.df_cloudtrail
+
+
+    def _appendNow(self, ec2_dict, ec2_id):
+        # artificially append an entry for "now" with the current type
+        # This is useful for instance who have no entries in the cloudtrail
+        # so that their type still shows up on merge
+
+        ec2_dict['ServiceName'] = dict2service(ec2_dict)
+
+        size1_key = 'NodeType' if ec2_dict['ServiceName']=='Redshift' else 'InstanceType'
+        size2_val = ec2_dict['NumberOfNodes'] if ec2_dict['ServiceName']=='Redshift' else None
+
+        df_new = pd.DataFrame([
+              {
+                'Region': ec2_dict['Region'],
+                'ServiceName': ec2_dict['ServiceName'],
+                'ResourceName': ec2_id,
+                'EventTime': self.EndTime,
+                'ResourceSize1': ec2_dict[size1_key],
+                'ResourceSize2': size2_val
+              }
+            ])
+
+        self.df_cloudtrail = pd.concat([self.df_cloudtrail, df_new], sort=True)
+

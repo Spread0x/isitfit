@@ -21,6 +21,8 @@ Version 0.17.0rc (2019-11-28)
 - enh: gather `ec2TagFilter` and `Ec2Common` into `ec2_common.py`
 - enh: gather code for `redshift_analyze.py` and `redshift_common.py`
 - enh: gather code for `redshift_optimize.py`
+- enh: rename the cloudtrail iterator classes + add functional tests
+- bugfix: cloudtrail data was missing the event name + had the wrong region field name
 
 
 Version 0.16.{0,1} (2019-11-27)
