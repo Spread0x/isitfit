@@ -21,8 +21,8 @@ from .. import isitfit_version
 @click.group(invoke_without_command=True)
 @click.option('--debug', is_flag=True, help='Display more details to help with debugging')
 @click.option('--verbose', is_flag=True, help='Display more details to help with understanding program flow')
-@click.option('--optimize', is_flag=True, help='DEPRECATED: use "isitfit cost optimize" instead')
-@click.option('--version', is_flag=True, help='DEPRECATED: use "isitfit version" instead')
+@click.option('--optimize', is_flag=True, help='DEPRECATED: use "isitfit cost optimize" instead', hidden=True)
+@click.option('--version', is_flag=True, help='DEPRECATED: use "isitfit version" instead', hidden=True)
 @click.option('--share-email', multiple=True, help='Share result to email address')
 @click.option('--skip-check-upgrade', is_flag=True, help='Skip step for checking for upgrade of isitfit')
 @click.pass_context

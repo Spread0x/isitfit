@@ -9,17 +9,14 @@ Options:
   --debug               Display more details to help with debugging
   --verbose             Display more details to help with understanding
                         program flow
-  --optimize            DEPRECATED: use "isitfit cost optimize" instead
-  --version             DEPRECATED: use "isitfit version" instead
   --share-email TEXT    Share result to email address
   --skip-check-upgrade  Skip step for checking for upgrade of isitfit
   --help                Show this message and exit.
 
 Commands:
-  cost        Evaluate AWS EC2 costs
-  migrations  Manage migrations for local files (useful for debugging)
-  tags        Explore EC2 tags
-  version     Show isitfit version
+  cost     Evaluate AWS EC2 costs
+  tags     Explore EC2 tags
+  version  Show isitfit version
 ```
 
 
