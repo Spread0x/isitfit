@@ -8,23 +8,28 @@ import click
 from ..utils import IsitfitCommand
 
 
+# Note about below --ndays: Cannot put it in the `cost` function
+# because of a bug in click whereby `isitfit cost analyze --help`
+# would prompt for the "ndays" value, eventhough a --help was passed
+# Hence, duplicating this in `analyze` and `optimize`
 @click.group(help="Evaluate AWS EC2 costs", invoke_without_command=False)
 @click.option('--filter-region', default=None, help='specify a single region against which to run cost analysis/optimization')
-@click.option('--ndays', default=90, prompt='Number of days to lookback (use `isitfit cost --ndays=90 ...` to skip this prompt)', help='number of days to look back in the data history', type=int)
+# @click.option('--ndays', default=90, prompt='Number of days to lookback (use `isitfit cost --ndays=90 ...` to skip this prompt)', help='number of days to look back in the data history', type=int)
 @click.pass_context
-def cost(ctx, filter_region, ndays):
+def cost(ctx, filter_region):
   ctx.obj['filter_region'] = filter_region
-  ctx.obj['ndays'] = ndays
   pass
 
 
 
-
+# Check note above about ndays
 @cost.command(help='Analyze AWS EC2 cost', cls=IsitfitCommand)
+@click.option('--ndays', default=90, prompt='Number of days to lookback (use `isitfit cost --ndays=90 ...` to skip this prompt)', help='number of days to look back in the data history', type=int)
 @click.option('--filter-tags', default=None, help='filter instances for only those carrying this value in the tag name or value')
 @click.option('--save-details', is_flag=True, help='Save details behind calculations to CSV files')
 @click.pass_context
-def analyze(ctx, filter_tags, save_details):
+def analyze(ctx, ndays, filter_tags, save_details):
+    ctx.obj['ndays'] = ndays
     share_email = ctx.obj.get('share_email', [])
 
     # gather anonymous usage statistics
@@ -51,12 +56,15 @@ def analyze(ctx, filter_tags, save_details):
     mm_all.get_ifi(tqdml2)
 
 
-
+# check note above about ndays
 @cost.command(help='Generate recommendations of optimal EC2 sizes', cls=IsitfitCommand)
+@click.option('--ndays', default=90, prompt='Number of days to lookback (use `isitfit cost --ndays=90 ...` to skip this prompt)', help='number of days to look back in the data history', type=int)
 @click.option('--n', default=-1, help='number of underused ec2 optimizations to find before stopping. Skip to get all optimizations')
 @click.option('--filter-tags', default=None, help='filter instances for only those carrying this value in the tag name or value')
 @click.pass_context
-def optimize(ctx, n, filter_tags):
+def optimize(ctx, ndays, n, filter_tags):
+    ctx.obj['ndays'] = ndays
+
     # gather anonymous usage statistics
     from ..utils import ping_matomo, IsitfitCliError
     ping_matomo("/cost/optimize?ndays=%i&filter_region=%s&filter_tags=%s&share_email=%s&n=%i"%(ctx.obj['ndays'], ctx.obj['filter_region'], filter_tags, len(share_email)>0, n ))

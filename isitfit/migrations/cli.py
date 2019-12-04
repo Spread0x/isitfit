@@ -1,6 +1,6 @@
 import click
 
-@click.group(help="Manage migrations for local files", invoke_without_command=False)
+@click.group(help="Manage migrations for local files (useful for debugging)", invoke_without_command=False)
 @click.pass_context
 def migrations(ctx):
   from isitfit.migrations.migman import MigMan

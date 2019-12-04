@@ -7,6 +7,8 @@ Usage: isitfit [OPTIONS] COMMAND [ARGS]...
 
 Options:
   --debug               Display more details to help with debugging
+  --verbose             Display more details to help with understanding
+                        program flow
   --optimize            DEPRECATED: use "isitfit cost optimize" instead
   --version             DEPRECATED: use "isitfit version" instead
   --share-email TEXT    Share result to email address
@@ -14,9 +16,10 @@ Options:
   --help                Show this message and exit.
 
 Commands:
-  cost     Evaluate AWS EC2 costs
-  tags     Explore EC2 tags
-  version  Show isitfit version
+  cost        Evaluate AWS EC2 costs
+  migrations  Manage migrations for local files (useful for debugging)
+  tags        Explore EC2 tags
+  version     Show isitfit version
 ```
 
 
@@ -58,6 +61,7 @@ Usage: isitfit cost optimize [OPTIONS]
   Generate recommendations of optimal EC2 sizes
 
 Options:
+  --ndays INTEGER     number of days to look back in the data history
   --n INTEGER         number of underused ec2 optimizations to find before
                       stopping. Skip to get all optimizations
   --filter-tags TEXT  filter instances for only those carrying this value in
@@ -74,6 +78,7 @@ Usage: isitfit cost analyze [OPTIONS]
   Analyze AWS EC2 cost
 
 Options:
+  --ndays INTEGER     number of days to look back in the data history
   --filter-tags TEXT  filter instances for only those carrying this value in
                       the tag name or value
   --save-details      Save details behind calculations to CSV files

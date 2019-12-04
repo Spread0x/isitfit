@@ -25,3 +25,9 @@ showHelp tags
 showHelp "tags dump"
 showHelp "tags suggest"
 showHelp "tags push"
+
+# No need for this ATM since migrations are internally handled by isitfit and not by the end user
+# These commands were added to help me manually debug/develop the migrations feature
+# showHelp migrations
+# showHelp "migrations show"
+# showHelp "migrations migrate"
