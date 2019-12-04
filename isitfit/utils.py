@@ -232,7 +232,7 @@ or use `isitfit --skip-check-upgrade ...` to skip checking for version upgrades 
 # This import needs to stay here for the sake of the mock in test_utils
 import requests
 SKIP_PING=False
-def ping_matomo(action_name, uuid_val=None, isitfit_version=None):
+def ping_matomo(action_name):
   """
   Gather anonymous usage statistics
   """

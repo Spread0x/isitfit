@@ -20,6 +20,7 @@ class ReporterBase:
     if emailTo is not None:
       if len(emailTo) > 0:
         # user already requested email
+        ping_matomo("/cost/share_email?provided=True")
         return emailTo
 
     #from isitfit.utils import IsitfitCliError
@@ -31,6 +32,7 @@ class ReporterBase:
     EMAIL_REGEX = re.compile(r"[^@]+@[^@]+\.[^@]+")
 
     # prompt for email
+    from isitfit.utils import ping_matomo
     while True:
       # use "default=''" so that the "leave blank to skip" works (instead of click re-prompting until it gets a value)
       res_prompt = click.prompt('Email to which to share the results (leave blank to skip)', type=str, default='')
@@ -38,6 +40,7 @@ class ReporterBase:
       # check if blank
       res_prompt = res_prompt.strip()
       if res_prompt=='':
+        ping_matomo("/cost/share_email?provided=False")
         return None
 
       # quick validate
@@ -46,6 +49,7 @@ class ReporterBase:
       if len(res_prompt) >= 5:
         if len(res_prompt) <= 50:
           if bool(EMAIL_REGEX.match(res_prompt)):
+            ping_matomo("/cost/share_email?provided=True")
             return [res_prompt]
 
       # otherwise, invalid email

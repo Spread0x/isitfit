@@ -50,7 +50,7 @@ setup(
         'visidata==1.5.2',
         'outdated==0.2.0',
         'aws-requests-auth==0.4.2',
-        'matomo_sdk_py==0.1.0',
+        'matomo_sdk_py==0.2.1',
         'simple-cache==0.35'
     ],
     entry_points='''

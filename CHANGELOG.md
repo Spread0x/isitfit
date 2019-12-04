@@ -37,6 +37,8 @@ Version 0.17.0rc (2019-11-28)
 - bugfix: if pypi.python.org is unreachable, just skip it silently instead of throwing an exception
 - bugfix: `isitfit cost analyze --help` was prompting for `ndays`. fixed
 - enh: instead of prompting twice about sharing by email, just prompt once with blank to skip
+- bugfix: upgrade `matomo_sdk_py` to set the visitor ID = user ID when tracking usage stats
+- enh: ping matomo specifically on users sharing results by email
 
 
 Version 0.16.{0,1} (2019-11-27)
