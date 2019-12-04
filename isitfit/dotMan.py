@@ -54,3 +54,10 @@ class DotMan:
     # return
     return uuid_val
 
+
+  def tempdir(self):
+    import os
+    import tempfile
+    isitfit_tmpdir = os.path.join(tempfile.gettempdir(), 'isitfit')
+    os.makedirs(isitfit_tmpdir, exist_ok=True)
+    return isitfit_tmpdir

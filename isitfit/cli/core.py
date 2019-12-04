@@ -71,10 +71,17 @@ def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upg
       ctx.obj['share_email'] = share_email
 
     # check if current version is out-of-date
-    if not skip_check_upgrade:
-      from ..utils import prompt_upgrade
-      is_outdated = prompt_upgrade('isitfit', isitfit_version)
-      ctx.obj['is_outdated'] = is_outdated
+    if ctx.invoked_subcommand != 'version':
+      if not skip_check_upgrade:
+        from ..utils import prompt_upgrade
+        is_outdated = prompt_upgrade('isitfit', isitfit_version)
+        ctx.obj['is_outdated'] = is_outdated
+
+
+    if ctx.invoked_subcommand not in ['version', 'migrations']:
+      from isitfit.migrations.migman import silent_migrate
+      silent_migrate()
+
 
     # save `verbose` and `debug` for later tqdm
     ctx.obj['debug'] = debug
@@ -85,10 +92,12 @@ def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upg
 from .tags import tags as cli_tags
 from .cost import cost as cli_cost
 from .version import version as cli_version
+from isitfit.migrations.cli import migrations as cli_migrations
 
 cli_core.add_command(cli_version)
 cli_core.add_command(cli_cost)
 cli_core.add_command(cli_tags)
+cli_core.add_command(cli_migrations)
 
 #-----------------------
 

@@ -25,14 +25,15 @@ def cost(ctx, filter_region, ndays):
 @click.option('--save-details', is_flag=True, help='Save details behind calculations to CSV files')
 @click.pass_context
 def analyze(ctx, filter_tags, save_details):
+    share_email = ctx.obj.get('share_email', [])
+
     # gather anonymous usage statistics
     from ..utils import ping_matomo, IsitfitCliError
-    ping_matomo("/cost/analyze?ndays=%i&filter_region=%s&filter_tags=%s"%(ctx.obj['ndays'], ctx.obj['filter_region'], filter_tags))
+    ping_matomo("/cost/analyze?ndays=%i&filter_region=%s&filter_tags=%s&share_email=%s"%(ctx.obj['ndays'], ctx.obj['filter_region'], filter_tags, len(share_email)>0 ))
 
     #logger.info("Is it fit?")
     logger.info("Initializing...")
 
-    share_email = ctx.obj.get('share_email', None)
 
     # set up pipelines for ec2, redshift, and aggregator
     from isitfit.cost import ec2_cost_analyze, redshift_cost_analyze, account_cost_analyze
@@ -58,7 +59,7 @@ def analyze(ctx, filter_tags, save_details):
 def optimize(ctx, n, filter_tags):
     # gather anonymous usage statistics
     from ..utils import ping_matomo, IsitfitCliError
-    ping_matomo("/cost/optimize")
+    ping_matomo("/cost/optimize?ndays=%i&filter_region=%s&filter_tags=%s&share_email=%s&n=%i"%(ctx.obj['ndays'], ctx.obj['filter_region'], filter_tags, len(share_email)>0, n ))
 
     #logger.info("Is it fit?")
     logger.info("Initializing...")

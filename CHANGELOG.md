@@ -27,6 +27,14 @@ Version 0.17.0rc (2019-11-28)
 - enh: when pinging matomo, send values of options like `ndays`
 - bugfix: `save-details` option was using `logger.info` whereas it should use `click.echo`
 - enh: cloudtrail empty dataframe from `all region` to not set index
+- enh: usage stats, gather options passed to `isitfit cost`
+- feat: add migrations module, which will take care of running maintenance tasks required between upgrades
+- enh: do not check version upgrade if command is `isitfit version`
+- bugfix: merged ec2-redshift pipeline to display "no optimizations from ec2" if not available
+- enh: use `/tmp/isitfit/` for the iterator region cache instead of `~/.isitfit`, since it's an expirable piece of data anyway
+- enh: use `/tmp/isitfit/` folder as temp dir instead of throwing everything in `/tmp` and cluttering it
+- enh: use `/tmp/isitfit/` for the ec2instances.info cache
+- bugfix: if pypi.python.org is unreachable, just skip it silently instead of throwing an exception
 
 
 Version 0.16.{0,1} (2019-11-27)

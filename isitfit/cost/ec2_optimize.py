@@ -149,7 +149,8 @@ class CalculatorOptimizeEc2:
 
   def handle_pre(self, context_pre):
       # a csv file handle to which to stream results
-      self.csv_fn_intermediate = tempfile.NamedTemporaryFile(prefix='isitfit-intermediate-', suffix='.csv', delete=False)
+      from isitfit.dotMan import DotMan
+      self.csv_fn_intermediate = tempfile.NamedTemporaryFile(prefix='isitfit-intermediate-', suffix='.csv', delete=False, dir=DotMan().tempdir())
       import click
       click.echo(colored("Intermediate results will be streamed to %s"%self.csv_fn_intermediate.name, "cyan"))
       self.csv_fh = open(self.csv_fn_intermediate.name, 'w')
@@ -308,7 +309,8 @@ class ReporterOptimizeEc2(ReporterBase):
         return
 
       import tempfile
-      with tempfile.NamedTemporaryFile(prefix='isitfit-full-ec2-', suffix='.csv', delete=False) as  csv_fh_final:
+      from isitfit.dotMan import DotMan
+      with tempfile.NamedTemporaryFile(prefix='isitfit-full-ec2-', suffix='.csv', delete=False, dir=DotMan().tempdir()) as  csv_fh_final:
         self.csv_fn_final = csv_fh_final.name
         logger.debug(colored("Saving final results to %s"%csv_fh_final.name, "cyan"))
         self.df_sort.to_csv(csv_fh_final.name, index=False)

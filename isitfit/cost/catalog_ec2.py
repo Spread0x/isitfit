@@ -18,9 +18,15 @@ class Ec2Catalog:
     # URL = 'https://gitlab.com/autofitcloud/www.ec2instances.info-ec2op/raw/master/www.ec2instances.info/t3b_smaller_familyL2.json'
     URL = 'https://cdn.jsdelivr.net/gh/autofitcloud/www.ec2instances.info-ec2op/www.ec2instances.info/t3b_smaller_familyL2.json'
 
+    # Update 2019-12-03: move into /tmp/isitfit/
+    # fc_dir = '/tmp/isitfit_ec2info.cache'
+    from isitfit.dotMan import DotMan
+    import os
+    fc_dir = os.path.join(DotMan().tempdir(), 'ec2info.cache')
+
     # cached https://cachecontrol.readthedocs.io/en/latest/
     sess = requests.session()
-    cached_sess = CacheControl(sess, cache=FileCache('/tmp/isitfit_ec2info.cache'))
+    cached_sess = CacheControl(sess, cache=FileCache(fc_dir))
     r = cached_sess.request('get', URL)
 
     # read catalog, copy from ec2op-cli/ec2op/optimizer/cwDailyMaxMaxCpu

@@ -77,11 +77,13 @@ class BaseIterator:
     profile_name = boto3.session.Session().profile_name
 
     # cache filename and key to use
+    # Update 2019-12-03: move from ~/.isitfit to /tmp/isitfit/
     from isitfit.dotMan import DotMan
     import os
     self.cache_filename = 'iterator_cache-%s-%s.pkl'%(profile_name, self.service_name)
-    self.cache_filename = os.path.join(DotMan().get_dotisitfit(), self.cache_filename)
+    self.cache_filename = os.path.join(DotMan().tempdir(), self.cache_filename)
 
+    # proceed with key
     self.cache_key = 'iterator-region_include'
 
     # https://github.com/barisumog/simple_cache

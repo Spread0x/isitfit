@@ -29,11 +29,15 @@ class ServiceReporter(ReporterBase):
     # ATM just using the individual service reports
     from isitfit.cost.ec2_optimize import ReporterOptimizeEc2
     roe = ReporterOptimizeEc2()
-    roe.df_sort = self.table_d['ec2']['df_sort']
-    roe.sum_val = self.table_d['ec2']['sum_val']
-    roe.csv_fn_final = self.table_d['ec2']['csv_fn_final']
-    roe.analyzer = self.table_d['ec2']['analyzer']
-    roe.display(context_all)
+    if 'df_sort' not in self.table_d['ec2']:
+      import click
+      click.echo("No optimizations from EC2")
+    else:
+      roe.df_sort = self.table_d['ec2']['df_sort']
+      roe.sum_val = self.table_d['ec2']['sum_val']
+      roe.csv_fn_final = self.table_d['ec2']['csv_fn_final']
+      roe.analyzer = self.table_d['ec2']['analyzer']
+      roe.display(context_all)
 
     from isitfit.cost.redshift_optimize import ReporterOptimize as ReporterOptimizeRedshift
     ror = ReporterOptimizeRedshift()
