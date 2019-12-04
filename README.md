@@ -175,7 +175,7 @@ i-024...        29.54     0.14
 ```
 
 Note that `isitfit cost analyze` will prompt the user for the number of days on which to perform the analysis.
-By default, it's 90 days. To skip the prompt, just use the `--ndays` option, eg `isitfit cost --ndays=90 analyze`.
+By default, it's 90 days. To skip the prompt, just use the `--ndays` option, eg `isitfit cost analyze --ndays=90`.
 
 
 ### Recommended optimizations
@@ -232,7 +232,7 @@ Details
 ```
 
 Note that `isitfit cost optimize` will prompt the user for the number of days on which to perform the analysis.
-By default, it's 90 days. To skip the prompt, just use the `--ndays` option, eg `isitfit cost --ndays=90 optimize`.
+By default, it's 90 days. To skip the prompt, just use the `--ndays` option, eg `isitfit cost optimize --ndays=90`.
 
 
 ### Filtering on region

@@ -24,7 +24,7 @@ def cost(ctx, filter_region):
 
 # Check note above about ndays
 @cost.command(help='Analyze AWS EC2 cost', cls=IsitfitCommand)
-@click.option('--ndays', default=90, prompt='Number of days to lookback (use `isitfit cost --ndays=90 ...` to skip this prompt)', help='number of days to look back in the data history', type=int)
+@click.option('--ndays', default=90, prompt='Number of days to lookback (use `isitfit cost analyze --ndays=90` to skip this prompt)', help='number of days to look back in the data history', type=int)
 @click.option('--filter-tags', default=None, help='filter instances for only those carrying this value in the tag name or value')
 @click.option('--save-details', is_flag=True, help='Save details behind calculations to CSV files')
 @click.pass_context
@@ -58,7 +58,7 @@ def analyze(ctx, ndays, filter_tags, save_details):
 
 # check note above about ndays
 @cost.command(help='Generate recommendations of optimal EC2 sizes', cls=IsitfitCommand)
-@click.option('--ndays', default=90, prompt='Number of days to lookback (use `isitfit cost --ndays=90 ...` to skip this prompt)', help='number of days to look back in the data history', type=int)
+@click.option('--ndays', default=90, prompt='Number of days to lookback (use `isitfit cost optimize --ndays=90` to skip this prompt)', help='number of days to look back in the data history', type=int)
 @click.option('--n', default=-1, help='number of underused ec2 optimizations to find before stopping. Skip to get all optimizations')
 @click.option('--filter-tags', default=None, help='filter instances for only those carrying this value in the tag name or value')
 @click.pass_context
