@@ -60,7 +60,7 @@ isitfit cost optimize --ndays=90
 
 echo "Test 5: optimize in region with 0 ec2 instances"
 # Note, unlike isitfit tags dump which returns a non-0 code if 0 ec2 found, this one just returns 0
-isitfit cost --filter-region=eu-central-1 optimize
+isitfit cost --filter-region=eu-central-1 optimize --ndays=90
 
 
 echo "Test 6a: optimize with n=1 on shadi@autofitcloud.com@amazonaws.com"
