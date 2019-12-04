@@ -64,6 +64,7 @@ def analyze(ctx, ndays, filter_tags, save_details):
 @click.pass_context
 def optimize(ctx, ndays, n, filter_tags):
     ctx.obj['ndays'] = ndays
+    share_email = ctx.obj.get('share_email', [])
 
     # gather anonymous usage statistics
     from ..utils import ping_matomo, IsitfitCliError

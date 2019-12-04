@@ -22,12 +22,6 @@ class ReporterBase:
         # user already requested email
         return emailTo
 
-    # prompt user if to email
-    click.echo("")
-    res_conf = click.confirm("Would you like to share the results to your email?")
-    if not res_conf:
-      return None
-
     #from isitfit.utils import IsitfitCliError
 
     # more quick validation
@@ -38,9 +32,11 @@ class ReporterBase:
 
     # prompt for email
     while True:
-      res_prompt = click.prompt('Please enter a valid email address (leave blank to skip)', type=str)
+      # use "default=''" so that the "leave blank to skip" works (instead of click re-prompting until it gets a value)
+      res_prompt = click.prompt('Email to which to share the results (leave blank to skip)', type=str, default='')
 
       # check if blank
+      res_prompt = res_prompt.strip()
       if res_prompt=='':
         return None
 

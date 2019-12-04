@@ -36,6 +36,7 @@ Version 0.17.0rc (2019-11-28)
 - enh: use `/tmp/isitfit/` for the ec2instances.info cache
 - bugfix: if pypi.python.org is unreachable, just skip it silently instead of throwing an exception
 - bugfix: `isitfit cost analyze --help` was prompting for `ndays`. fixed
+- enh: instead of prompting twice about sharing by email, just prompt once with blank to skip
 
 
 Version 0.16.{0,1} (2019-11-27)
