@@ -1,0 +1,54 @@
+# snapcraft config file so that users can install isitfit with snap:
+# snap install isitfit
+# snap connect isitfit:config-isitfit
+#
+# Still doesn't work though. The `snapcraft` command just freezes
+
+name: isitfit
+base: core18 # the base snap is the execution environment for this snap
+
+# can get the same version as pypi with something like
+# https://github.com/tqdm/tqdm/blob/master/Makefile#L99
+version: git # just for humans, typically '1.2+git' or '1.3.2'
+
+summary: A command-line tool to analyze cost efficiency of AWS EC2/Redshift # 79 char long summary
+description: |
+  isitfit is a command-line tool to analyze cost efficiency of AWS EC2/Redshift.
+  It analyzes all EC2 instances and Redshift clusters in an AWS account
+  in all regions and evaluates the efficiency of the sizing in terms
+  of cost and utilization. It also gives the recommended sizings and helps with tagging.
+
+grade: devel # must be 'stable' to release into candidate/stable channels
+
+confinement: devmode # use 'strict' once you have the right plugs and slots
+
+# License for the snap content, based on SPDX license expressions.
+# https://snapcraft.io/docs/snap-format
+# https://spdx.org/licenses/Apache-2.0.html
+license: Apache-2.0
+
+parts:
+  isitfit:
+    # See 'snapcraft plugins'
+    plugin: python
+    python-version: python3
+    source: .
+
+    # https://github.com/tqdm/tqdm/blob/master/.meta/.snapcraft.yml#L46
+    parse-info: [setup.py]
+
+
+plugs:
+  config-isitfit:
+    interface: personal-files
+    read:
+    - $HOME/.aws/credentials
+    write:
+    - $HOME/.isitfit/
+
+
+apps:
+  isitfit:
+    command: isitfit
+    plugs:
+    - config-isitfit
