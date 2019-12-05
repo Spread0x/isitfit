@@ -74,6 +74,10 @@ class ServiceReporter(ReporterBase):
     # concatenate
     t_all = [t_ec2, t_rsh]
     t_all = [x for x in t_all if x is not None]
+
+    if len(t_all)==0:
+      return context_all
+
     import pandas as pd
     self.table_c = pd.concat(t_all, axis=0, sort=False)
 
@@ -148,6 +152,9 @@ class ServiceReporter(ReporterBase):
       click.secho("No optimizations from redshift", fg='red')
     elif self.table_d['redshift']['analyzer'].analyze_df.shape[0]==0:
       click.secho("No optimizations from redshift", fg='red')
+
+    if self.table_c is None:
+      return context_all
 
     # save concatenated table to CSV
     # copied from isitfit.cost.optimizationListener.storecsv...
