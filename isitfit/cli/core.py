@@ -18,7 +18,8 @@ from .. import isitfit_version
 # For the --share-email "multiple options"
 # https://click.palletsprojects.com/en/7.x/options/#multiple-options
 
-@click.group(invoke_without_command=False)
+from isitfit.cli.click_descendents import isitfit_group
+@isitfit_group(invoke_without_command=False)
 @click.option('--debug', is_flag=True, help='Display more details to help with debugging')
 @click.option('--verbose', is_flag=True, help='Display more details to help with understanding program flow')
 @click.option('--optimize', is_flag=True, help='DEPRECATED: use "isitfit cost optimize" instead', hidden=True)
@@ -29,9 +30,9 @@ from .. import isitfit_version
 def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upgrade):
     # usage stats
     # https://docs.python.org/3.5/library/string.html#format-string-syntax
-    from isitfit.utils import ping_matomo
-    ping_url = "/?debug={}&verbose={}&optimize={}&version={}&share_email={}&skip_check_upgrade={}"
-    ping_url = ping_url.format(debug, verbose, optimize, version, len(share_email)>0, skip_check_upgrade)
+    from isitfit.utils import ping_matomo, b2l
+    ping_url = "/?debug={}&verbose={}&share_email={}&skip_check_upgrade={}"
+    ping_url = ping_url.format(b2l(debug), b2l(verbose), b2l(len(share_email)>0), b2l(skip_check_upgrade))
     ping_matomo(ping_url)
 
     # choose log level based on debug and verbose flags
@@ -59,16 +60,16 @@ def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upg
         from click.exceptions import UsageError
         if optimize:
           err_msg = "As of version 0.11, please use `isitfit cost optimize` instead of `isitfit --optimize`."
-          ping_matomo("/error?message=%s"%err_msg)
+          ping_matomo("/error/UsageError?message=%s"%err_msg)
           raise UsageError(err_msg)
         elif version:
           # ctx.invoke(cli_version)
           err_msg = "As of version 0.11, please use `isitfit version` instead of `isitfit --version`."
-          ping_matomo("/error?message=%s"%err_msg)
+          ping_matomo("/error/UsageError?message=%s"%err_msg)
           raise UsageError(err_msg)
         else:
           err_msg = "As of version 0.11, please use `isitfit cost analyze` instead of `isitfit` to calculate the cost-weighted utilization."
-          ping_matomo("/error?message=%s"%err_msg)
+          ping_matomo("/error/UsageError?message=%s"%err_msg)
           raise UsageError(err_msg)
 
     # make sure that context is a dict
@@ -91,13 +92,17 @@ def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upg
         from ..utils import prompt_upgrade
         is_outdated = prompt_upgrade('isitfit', isitfit_version)
         ctx.obj['is_outdated'] = is_outdated
-        ping_matomo("/version/prompt_upgrade?is_outdated=%s"%is_outdated)
+        if is_outdated:
+          ping_matomo("/version/prompt_upgrade?is_outdated=%s"%b2l(is_outdated))
 
 
     if ctx.invoked_subcommand not in ['version', 'migrations']:
-      ping_matomo("/migrations/silent")
       from isitfit.migrations.migman import silent_migrate
-      silent_migrate()
+      migname_l = silent_migrate()
+      if len(migname_l)>0:
+        from isitfit.utils import l2s
+        migname_s = l2s(migname_l)
+        ping_matomo("/migrations/silent?migname=%s"%(migname_s))
 
 
     # save `verbose` and `debug` for later tqdm

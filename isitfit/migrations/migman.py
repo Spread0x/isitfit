@@ -138,6 +138,8 @@ class MigMan:
 def silent_migrate():
   migman = MigMan()
   migman.quiet = True
+  migman.not_dry_run = True
   migman.connect()
   migman.read()
   migman.migrate_all() 
+  return migman.df_mig.migname.tolist()

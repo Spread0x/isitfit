@@ -60,3 +60,18 @@ def test_mergeSeriesOnTimestampRange():
   #print(expected)
   #print(actual)
   pd.testing.assert_frame_equal(expected, actual)
+
+
+def test_b2l():
+  from isitfit.utils import b2l
+  a = b2l(True)
+  assert a=='T'
+  a = b2l(False)
+  assert a=='F'
+
+
+
+def test_l2s():
+  from isitfit.utils import l2s
+  a = l2s(list(range(10)))
+  assert a=='0,1,...,8,9'

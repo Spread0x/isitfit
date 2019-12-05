@@ -5,7 +5,7 @@ import click
 
 # Use "cls" to use the IsitfitCommand class to show the footer
 # https://github.com/pallets/click/blob/8df9a6b2847b23de5c65dcb16f715a7691c60743/click/decorators.py#L92
-from ..utils import IsitfitCommand
+from isitfit.cli.click_descendents import IsitfitCommand, isitfit_group
 
 
 # Note about below --ndays: Cannot put it in the `cost` function
@@ -13,7 +13,7 @@ from ..utils import IsitfitCommand
 # would prompt for the "ndays" value, eventhough a --help was passed
 # Hence, duplicating this in `analyze` and `optimize`
 # Reference: https://github.com/pallets/click/issues/295
-@click.group(help="Evaluate AWS EC2 costs", invoke_without_command=False)
+@isitfit_group(help="Evaluate AWS EC2 costs", invoke_without_command=False)
 @click.option('--filter-region', default=None, help='specify a single region against which to run cost analysis/optimization')
 # @click.option('--ndays', default=90, prompt='Number of days to lookback (use `isitfit cost --ndays=90 ...` to skip this prompt)', help='number of days to look back in the data history', type=int)
 @click.pass_context
@@ -35,8 +35,8 @@ def cost(ctx, filter_region):
 @click.pass_context
 def analyze(ctx, ndays, filter_tags, save_details):
     # gather anonymous usage statistics
-    from ..utils import ping_matomo
-    ping_matomo("/cost/analyze?ndays=%i&filter_tags=%s&save_details=%s"%(ndays, filter_tags, save_details ))
+    from isitfit.utils import ping_matomo, b2l
+    ping_matomo("/cost/analyze?ndays=%i&filter_tags=%s&save_details=%s"%(ndays, filter_tags, b2l(save_details) ))
 
     # save to click context
     ctx.obj['ndays'] = ndays

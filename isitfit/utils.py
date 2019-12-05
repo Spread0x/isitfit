@@ -236,6 +236,10 @@ def ping_matomo(action_name):
   """
   Gather anonymous usage statistics
   """
+  import logging
+  logger = logging.getLogger('isitfit')
+  logger.debug("ping_matomo('%s')"%action_name)
+
   # get uuid
   from .dotMan import DotMan
   uuid_val = DotMan().get_myuid()
@@ -273,17 +277,6 @@ def display_footer():
 
 
 
-from click.core import Command as ClickCommand
-class IsitfitCommand(ClickCommand):
-    """
-    Call display_footer at the end of each invokation
-    https://github.com/pallets/click/blob/8df9a6b2847b23de5c65dcb16f715a7691c60743/click/core.py#L945
-    """
-    def invoke(self, *args, **kwargs):
-        ret = super().invoke(*args, **kwargs)
-        display_footer()
-        return ret
-
 
 
 def myreturn(df_xxx):
@@ -294,5 +287,19 @@ def myreturn(df_xxx):
 
 
 
+def b2l(b_in):
+  """
+  return "T" on true and "F" on false
+  Instead of "True" and "False"
+  """
+  return str(b_in)[0]
 
 
+def l2s(x):
+  """
+  [1,2,3,4,5,6,7,8] -> '1,2,...,7,8'
+  """
+  if len(x)>5: x = x[:2] + ['...'] + x[-2:]
+  y = [str(z) for z in x] # convert to list of strings, eg if list of int
+  y = ",".join(y)
+  return y
