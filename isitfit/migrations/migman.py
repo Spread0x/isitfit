@@ -1,5 +1,5 @@
-import logging
-logger = logging.getLogger('isitfit')
+from isitfit.utils import logger
+
 
 import click
 from isitfit.utils import IsitfitCliError

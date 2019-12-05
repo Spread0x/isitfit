@@ -1,7 +1,7 @@
 from ..utils import IsitfitCliError
 
-import logging
-logger = logging.getLogger('isitfit')
+from isitfit.utils import logger
+
 
 # https://pypi.org/project/termcolor/
 from termcolor import colored

@@ -1,5 +1,5 @@
-import logging
-logger = logging.getLogger('isitfit')
+from isitfit.utils import logger
+
 
 from ..utils import SECONDS_IN_ONE_DAY
 SECONDS_IN_10MINS = 60*10

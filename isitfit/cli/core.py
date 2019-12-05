@@ -7,8 +7,8 @@ from ..utils import mysetlocale
 mysetlocale()
 
 
-import logging
-logger = logging.getLogger('isitfit')
+from isitfit.utils import logger
+
 
 import click
 

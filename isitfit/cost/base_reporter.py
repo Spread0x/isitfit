@@ -5,8 +5,8 @@
 from termcolor import colored
 import click
 
-import logging
-logger = logging.getLogger('isitfit')
+from isitfit.utils import logger
+
 
 
 class ReporterBase:

@@ -3,8 +3,8 @@ import datetime as dt
 from isitfit.utils import SECONDS_IN_ONE_DAY
 import pandas as pd
 
-import logging
-logger = logging.getLogger('isitfit')
+from isitfit.utils import logger
+
 
 from isitfit.utils import IsitfitCliError
 

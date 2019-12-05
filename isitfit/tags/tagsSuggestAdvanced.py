@@ -1,5 +1,5 @@
-import logging
-logger = logging.getLogger('isitfit')
+from isitfit.utils import logger
+
 
 from .tagsSuggestBasic import TagsSuggestBasic
 from ..utils import MAX_ROWS

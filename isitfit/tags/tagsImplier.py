@@ -1,7 +1,7 @@
 import pandas as pd
 
-import logging
-logger = logging.getLogger('isitfit')
+from isitfit.utils import logger
+
 
 class TagsImplierHelper:
   def __init__(self, names_df):

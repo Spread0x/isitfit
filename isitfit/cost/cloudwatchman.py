@@ -6,8 +6,8 @@ import boto3
 
 from isitfit.utils import raise_noCwExc, NoCloudwatchException, myreturn
 
-import logging
-logger = logging.getLogger('isitfit')
+from isitfit.utils import logger
+
 
 
 

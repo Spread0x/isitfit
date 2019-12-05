@@ -2,8 +2,8 @@ import pandas as pd
 import os
 from ..utils import NoCloudtrailException
 
-import logging
-logger = logging.getLogger('isitfit')
+from isitfit.utils import logger
+
 
 
 from isitfit.cost.cloudtrail_iterator import dict2service

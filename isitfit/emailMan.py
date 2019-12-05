@@ -1,7 +1,7 @@
 from .apiMan import ApiMan
 import json
-import logging
-logger = logging.getLogger('isitfit')
+from isitfit.utils import logger
+
 
 from .utils import IsitfitCliError
 

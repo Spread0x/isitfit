@@ -8,8 +8,8 @@ class Ec2Catalog:
     from cachecontrol import CacheControl
     from cachecontrol.caches.file_cache import FileCache
 
-    import logging
-    logger = logging.getLogger('isitfit')
+    from isitfit.utils import logger
+    
     logger.debug("Downloading ec2 catalog (cached to local file)")
 
     # based on URL = 'http://www.ec2instances.info/instances.json'

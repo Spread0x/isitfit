@@ -15,8 +15,8 @@ from dateutil.relativedelta import relativedelta
 import boto3
 import json
 
-import logging
-logger = logging.getLogger('isitfit')
+from isitfit.utils import logger
+
 
 #------------------------------
 # utility to serialize date

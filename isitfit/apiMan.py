@@ -1,5 +1,5 @@
-import logging
-logger = logging.getLogger('isitfit')
+from isitfit.utils import logger
+
 
 # URL of isitfit API
 BASE_HOST = 'api.isitfit.io' # FIXME this should be in master

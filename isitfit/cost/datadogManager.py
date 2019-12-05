@@ -19,8 +19,8 @@ import time
 import pandas as pd
 import os
 
-import logging
-logger = logging.getLogger('isitfit')
+from isitfit.utils import logger
+
 
 # Configure the module according to your needs
 from datadog import initialize

@@ -1,5 +1,5 @@
-import logging
-logger = logging.getLogger('isitfit')
+from isitfit.utils import logger
+
 
 from isitfit.utils import mergeSeriesOnTimestampRange
 import numpy as np

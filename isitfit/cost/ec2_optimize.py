@@ -2,8 +2,8 @@ from isitfit.cost.ec2_analyze import Ec2Iterator
 
 
 
-import logging
-logger = logging.getLogger('isitfit')
+from isitfit.utils import logger
+
 
 
 
