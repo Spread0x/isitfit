@@ -335,11 +335,12 @@ class ReporterOptimizeEc2(ReporterBase):
     sum_comment = "extra cost" if self.sum_val>0 else "savings"
     sum_color = "red" if self.sum_val>0 else "green"
 
+    import click
     #logger.info("Optimization based on the following CPU thresholds:")
     #logger.info(self.thresholds)
     #logger.info("")
-    logger.info(colored("Recommended %s: %0.0f $ (over the next 3 months)"%(sum_comment, self.sum_val), sum_color))
-    logger.info("")
+    click.echo(colored("Recommended %s: %0.0f $ (over the next 3 months)"%(sum_comment, self.sum_val), sum_color))
+    click.echo("")
 
     # display dataframe
     from isitfit.utils import display_df

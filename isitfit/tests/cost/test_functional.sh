@@ -1,26 +1,20 @@
 #!/bin/sh
 
-set -e
-set -x
-
 # set caching
 ISITFIT_REDIS_HOST=localhost
 ISITFIT_REDIS_PORT=6379
 ISITFIT_REDIS_DB=0
 
 # clear caching
-rm -rf /tmp/isitfit_ec2info.cache
+rm -rf /tmp/isitfit/ec2info.cache
 redis-cli -n $ISITFIT_REDIS_DB flushdb #  || echo "redis db clear failed" (eg db number out of range)
-rm -f ~/.isitfit/iterator_cache-*.pkl
+rm -f /tmp/isitfit/iterator_cache-*.pkl
 
 # Set the UID to the one for testing (so as not to clutter matomo data)
 # This risks no longer testing the automatic creation of the folders
 # but that's already covered by the unit tests anyway
 if [ -f ~/.isitfit/uid.txt.bkpDuringTest ]; then
   echo "It seems that a test run was aborted."
-  #echo "Options:"
-  #echo "- Restore the UID backup: mv ~/.isitfit/uid.txt.bkpDuringTest ~/.isitfit/uid.txt"
-  #echo "- Remove the UID backup: rm ~/.isitfit/uid.txt.bkpDuringTest"
   echo "To restore the UID backup, execute:"
   echo "mv ~/.isitfit/uid.txt.bkpDuringTest ~/.isitfit/uid.txt"
   exit 1
@@ -34,6 +28,10 @@ echo "bb5794d7e0294962bdefb47bab7ff0e0" > ~/.isitfit/uid.txt
 
 
 # start
+
+set -e
+set -x
+
 #echo "Test 0a: version runs ok"
 #isitfit --version
 #

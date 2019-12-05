@@ -1,5 +1,4 @@
-import logging
-logger = logging.getLogger('isitfit')
+from isitfit.utils import logger
 
 
 from isitfit.cost.redshift_common import CalculatorBaseRedshift
@@ -36,6 +35,9 @@ class CalculatorOptimizeRedshift(CalculatorBaseRedshift):
 
 
   def calculate(self, context_all):
+    if self.analyze_df.shape[0]==0:
+      return context_all
+
     def classify_cluster_single(row):
         # classify
         if row.CpuMinMin > 70: return "Overused"
@@ -45,7 +47,9 @@ class CalculatorOptimizeRedshift(CalculatorBaseRedshift):
 
     # convert percentages to int since fractions are not very useful
     analyze_df = self.analyze_df
+
     analyze_df['classification'] = analyze_df.apply(classify_cluster_single, axis=1)
+
     return context_all
 
 
@@ -56,15 +60,20 @@ class ReporterOptimize(ReporterBase):
   def postprocess(self, context_all):
     # unpack
     self.analyzer = context_all['analyzer']
+    analyze_df = self.analyzer.analyze_df
+
+    # check if no data
+    if analyze_df.shape[0]==0:
+      return context_all
 
     # proceed
-    analyze_df = self.analyzer.analyze_df
     analyze_df['CpuMaxMax'] = analyze_df['CpuMaxMax'].fillna(value=0).astype(int)
     analyze_df['CpuMinMin'] = analyze_df['CpuMinMin'].fillna(value=0).astype(int)
 
     # copied from isitfit.cost.optimizationListener.storecsv...
     import tempfile
-    with tempfile.NamedTemporaryFile(prefix='isitfit-full-redshift-', suffix='.csv', delete=False) as  csv_fh_final:
+    from isitfit.dotMan import DotMan
+    with tempfile.NamedTemporaryFile(prefix='isitfit-full-redshift-', suffix='.csv', delete=False, dir=DotMan().tempdir()) as  csv_fh_final:
       self.csv_fn_final = csv_fh_final.name
       import click
       from termcolor import colored

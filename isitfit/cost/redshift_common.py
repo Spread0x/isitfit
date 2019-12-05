@@ -81,15 +81,7 @@ class CalculatorBaseRedshift:
 
 import click
 
-import logging
-logger = logging.getLogger('isitfit')
-
-
-
-
-
-
-
+from isitfit.utils import logger
 
 
 

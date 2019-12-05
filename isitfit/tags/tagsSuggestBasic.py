@@ -1,5 +1,4 @@
-import logging
-logger = logging.getLogger('isitfit')
+from isitfit.utils import logger
 
 
 def dump_df_to_csv(df_dump, csv_prefix):
@@ -8,8 +7,8 @@ def dump_df_to_csv(df_dump, csv_prefix):
 
     # https://pypi.org/project/termcolor/
     from termcolor import colored
-
-    with tempfile.NamedTemporaryFile(prefix=csv_prefix, suffix='.csv', delete=False) as fh:
+    from isitfit.dotMan import DotMan
+    with tempfile.NamedTemporaryFile(prefix=csv_prefix, suffix='.csv', delete=False, dir=DotMan().tempdir()) as fh:
       logger.info(colored("Dumping data into %s"%fh.name, "cyan"))
       df_dump.to_csv(fh.name, index=False)
       return fh.name

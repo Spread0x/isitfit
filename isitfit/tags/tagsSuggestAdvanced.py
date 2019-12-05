@@ -37,7 +37,8 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
     s3_client  = self.api_man.boto3_session.client('s3' )
 
     import tempfile
-    with tempfile.NamedTemporaryFile(suffix='.csv', prefix='isitfit-ec2names-', delete=True) as fh:
+    from isitfit.dotMan import DotMan
+    with tempfile.NamedTemporaryFile(suffix='.csv', prefix='isitfit-ec2names-', delete=True, dir=DotMan().tempdir()) as fh:
       logger.debug("Will use temporary file %s"%fh.name)
       self.tags_df.to_csv(fh.name, index=False)
       self.s3_key_suffix = 'tags_request.csv'
@@ -71,7 +72,8 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
           return
 
         self.csv_fn = None
-        with tempfile.NamedTemporaryFile(suffix='.csv', prefix='isitfit-tags-suggestAdvanced-', delete=False) as fh:
+        from isitfit.dotMan import DotMan
+        with tempfile.NamedTemporaryFile(suffix='.csv', prefix='isitfit-tags-suggestAdvanced-', delete=False, dir=DotMan().tempdir()) as fh:
           self.csv_fn = fh.name
           s3_path = os.path.join(self.api_man.r_body['s3_keyPrefix'], m.body_decoded['s3_key_suffix'])
           logger.info("Downloading tag suggestions from isitfit server")

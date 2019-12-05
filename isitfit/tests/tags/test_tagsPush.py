@@ -2,9 +2,16 @@ from ...tags.tagsPush import TagsPush
 import pytest
 from ...utils import IsitfitCliError
 
-def test_validateTagsFile_fail_empty():
+
+def getTempFile():
   import tempfile
-  with tempfile.NamedTemporaryFile(suffix='.csv', prefix='isitfit-testTagsPush-', delete=True) as fh:
+  from isitfit.dotMan import DotMan
+  fh = tempfile.NamedTemporaryFile(suffix='.csv', prefix='isitfit-testTagsPush-', delete=True, dir=DotMan().tempdir())
+  return fh
+
+
+def test_validateTagsFile_fail_empty():
+  with getTempFile() as fh:
     tp = TagsPush(fh.name, None)
     with pytest.raises(IsitfitCliError) as e_info:
       tp.read_csv()
@@ -17,8 +24,7 @@ def test_validateTagsFile_fail_format_1():
     {'A': 'abc', 'B': 'some instance'},
     {'A': 'def', 'B': 'some instance'},
   ])
-  import tempfile
-  with tempfile.NamedTemporaryFile(suffix='.csv', prefix='isitfit-testTagsPush-', delete=True) as fh:
+  with getTempFile() as fh:
     df.to_csv(fh.name, index=False)
     tp = TagsPush(fh.name, None)
     with pytest.raises(IsitfitCliError) as e_info:
@@ -31,8 +37,7 @@ def test_validateTagsFile_fail_format_2():
     {'instance_id': 'i-1', 'A': 'abc', 'B': 'some instance'},
     {'instance_id': 'i-2', 'A': 'def', 'B': 'some instance'},
   ])
-  import tempfile
-  with tempfile.NamedTemporaryFile(suffix='.csv', prefix='isitfit-testTagsPush-', delete=True) as fh:
+  with getTempFile() as fh:
     df.to_csv(fh.name, index=False)
     tp = TagsPush(fh.name, None)
     tp.read_csv()
@@ -47,8 +52,7 @@ def test_validateTagsFile_ok():
     {'instance_id': 'i-2', 'Name': 'another instance', 'Environment': 'Dev'},
     {'instance_id': 'i-2', 'Name': 'another instance', 'Environment': 'Dev'},
   ])
-  import tempfile
-  with tempfile.NamedTemporaryFile(suffix='.csv', prefix='isitfit-testTagsPush-', delete=True) as fh:
+  with getTempFile() as fh:
     df.to_csv(fh.name, index=False)
     tp = TagsPush(fh.name, None)
     tp.read_csv()

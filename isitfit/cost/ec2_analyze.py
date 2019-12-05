@@ -83,8 +83,9 @@ class CalculatorAnalyzeEc2:
   def handle_pre(self, context_pre):
     if not self.save_details: return context_pre
     import tempfile
+    from isitfit.dotMan import DotMan
     csvi_prefix = 'isitfit-cost-analyze-ec2-details-1-'
-    self.csv_fn_intermediate = tempfile.NamedTemporaryFile(prefix=csvi_prefix, suffix='.csv', delete=False)
+    self.csv_fn_intermediate = tempfile.NamedTemporaryFile(prefix=csvi_prefix, suffix='.csv', delete=False, dir=DotMan().tempdir())
     return context_pre
 
 
@@ -152,8 +153,9 @@ class CalculatorAnalyzeEc2:
 
       # save 2nd file and display message
       import tempfile
+      from isitfit.dotMan import DotMan
       csvi_prefix = 'isitfit-cost-analyze-ec2-details-2-'
-      csv_fh_final = tempfile.NamedTemporaryFile(prefix=csvi_prefix, suffix='.csv', delete=False)
+      csv_fh_final = tempfile.NamedTemporaryFile(prefix=csvi_prefix, suffix='.csv', delete=False, dir=DotMan().tempdir())
 
       df_all.to_csv(csv_fh_final.name, index=False)
 

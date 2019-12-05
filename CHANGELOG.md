@@ -8,6 +8,11 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - enh: click `cli_core:invoke_without_command=False` 
 - enh: move isitfit command from utils to `cli.click_descendents`
 - feat: ping matomo on uncaught click exceptions. In isitfit command and group
+- bugfix: several temporary files were still getting saved into `/tmp`. Fixed
+- feat: concatenate `isitfit cost optimize` tables from ec2 and redshift into one
+- bugfix: better handling of case of no redshift data
+- tests: functional tests for cost was still clearing the cache files from the old deprecated locations
+- enh: get logger from `isitfit.utils` instead of calling logging all over the place
 
 
 Version 0.17.0 (2019-12-04)

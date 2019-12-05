@@ -1,6 +1,10 @@
 SECONDS_IN_ONE_DAY = 60*60*24 # 86400  # used for granularity (daily)
 
 
+import logging
+logger = logging.getLogger('isitfit')
+
+
 class NoCloudwatchException(Exception):
     pass
 
@@ -236,8 +240,6 @@ def ping_matomo(action_name):
   """
   Gather anonymous usage statistics
   """
-  import logging
-  logger = logging.getLogger('isitfit')
   logger.debug("ping_matomo('%s')"%action_name)
 
   # get uuid

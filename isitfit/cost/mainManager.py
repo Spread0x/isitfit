@@ -3,9 +3,7 @@ import pandas as pd
 import datetime as dt
 import pytz
 
-import logging
-logger = logging.getLogger('isitfit')
-
+from isitfit.utils import logger
 
 from ..utils import SECONDS_IN_ONE_DAY, NoCloudwatchException, myreturn, NoCloudtrailException
 
