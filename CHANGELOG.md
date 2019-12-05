@@ -5,6 +5,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
 
 - ...
 - enh: each click group/command to have its own usage stats with its local parameters
+- enh: click `cli_core:invoke_without_command=False` 
 
 
 Version 0.17.0 (2019-12-04)

@@ -18,7 +18,7 @@ from .. import isitfit_version
 # For the --share-email "multiple options"
 # https://click.palletsprojects.com/en/7.x/options/#multiple-options
 
-@click.group(invoke_without_command=True)
+@click.group(invoke_without_command=False)
 @click.option('--debug', is_flag=True, help='Display more details to help with debugging')
 @click.option('--verbose', is_flag=True, help='Display more details to help with understanding program flow')
 @click.option('--optimize', is_flag=True, help='DEPRECATED: use "isitfit cost optimize" instead', hidden=True)
