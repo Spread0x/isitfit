@@ -33,6 +33,9 @@ class ServiceReporter(ReporterBase):
     if 'df_sort' not in self.table_d['ec2']:
       return None
 
+    if self.table_d['ec2']['df_sort'] is None:
+      return None
+
     # get 2 dataframes
     t_ec2 = self.table_d['ec2']['df_sort'].copy()
 
@@ -139,6 +142,8 @@ class ServiceReporter(ReporterBase):
       sum_val = self.table_d['ec2']['sum_val']
       if sum_val==0:
         # click.secho("No optimizations from EC2", fg='red')
+        pass
+      elif sum_val is None:
         pass
       else:
         sum_comment = "extra cost" if sum_val>0 else "savings"
