@@ -36,6 +36,7 @@ def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upg
     ping_matomo(ping_url)
 
     # choose log level based on debug and verbose flags
+    import logging
     logLevel = logging.DEBUG if debug else (logging.INFO if verbose else logging.WARNING)
 
     ch = logging.StreamHandler()
