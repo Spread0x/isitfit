@@ -6,6 +6,11 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
+Version 0.17.2 (2019-12-05)
+
+- bugfix: add init file in isitfit.migrations
+
+
 Version 0.17.1 (2019-12-05)
 
 - enh: each click group/command to have its own usage stats with its local parameters
