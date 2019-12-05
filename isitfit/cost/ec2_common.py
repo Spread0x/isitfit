@@ -100,6 +100,9 @@ class Ec2Common:
 
 
 def tagsContain(f_tn, ec2_obj):
+  """
+  Similar to isitfit.cost.redshift_common.tagsContain
+  """
   if ec2_obj.tags is None:
     return False
   
@@ -119,7 +122,7 @@ class Ec2TagFilter:
   def per_ec2(self, context_ec2):
     # if filters requested, check that this instance passes
 
-    # set in context
+    # set in context for the sake of filtering the taglist in ec2_optimize.Calculator.per_ec2
     context_ec2['filter_tags'] = self.filter_tags
 
     if self.filter_tags is None:

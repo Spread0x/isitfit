@@ -13,7 +13,8 @@ aws redshift create-cluster \
   --master-user-password="Abcdef123###" \
   --number-of-nodes=2 \
   --no-publicly-accessible \
-  --automated-snapshot-retention-period=0
+  --automated-snapshot-retention-period=0 \
+  --tags "Key=app,Value=isitfit-cli"
 
 
 # sleep for 5 minutes, for the cluster to get created

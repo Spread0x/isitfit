@@ -46,7 +46,12 @@
     		"PublicIPAddress": "123.123.123.123"
     	}],
     	"ClusterRevisionNumber": "1111",
-    	"Tags": [],
+      "Tags": [
+          {
+              "Key": "app",
+              "Value": "isitfit-cli"
+          }
+      ],
     	"EnhancedVpcRouting": False,
     	"IamRoles": [],
     	"MaintenanceTrackName": "current",

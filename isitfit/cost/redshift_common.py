@@ -27,6 +27,50 @@ from isitfit.cost.mainManager import NoCloudwatchException
 
 
 
+def tagsContain(f_tn, ec2_dict):
+  """
+  Similar to isitfit.cost.ec2_common.tagsContain
+  """
+  if ec2_dict['Tags'] is None: return False
+  if len(ec2_dict['Tags']): return False
+
+  for t in ec2_dict['Tags']:
+    for k in ['Key', 'Value']:
+      if f_tn in t[k].lower():
+        return True
+  
+  return False
+
+
+class RedshiftTagFilter:
+  """
+  Similar to isitfit.cost.ec2_common.Ec2TagFilter
+  """
+  def __init__(self, filter_tags):
+    self.filter_tags = filter_tags
+
+  def per_cluster(self, context_cluster):
+    # if filters requested, check that this instance passes
+
+    # set in context for the sake of filtering the taglist in redshift_optimize.Calculator.per_ec2
+    context_cluster['filter_tags'] = self.filter_tags
+
+    if self.filter_tags is None:
+      # to continue with other listeners
+      return context_cluster
+
+    f_tn = self.filter_tags.lower()
+    passesFilter = tagsContain(f_tn, context_cluster['ec2_dict'])
+
+    if not passesFilter:
+      # break other listeners
+      return None
+
+    # otherwise continue
+    return context_cluster
+
+
+
 class CalculatorBaseRedshift:
 
 
@@ -85,7 +129,7 @@ from isitfit.utils import logger
 
 
 
-def redshift_cost_core(ra, rr, share_email, filter_region, ctx):
+def redshift_cost_core(ra, rr, share_email, filter_region, ctx, filter_tags):
     """
     ra - Analyzer
     rr - Reporter
@@ -127,6 +171,10 @@ def redshift_cost_core(ra, rr, share_email, filter_region, ctx):
     mm.set_iterator(ri)
     mm.add_listener('pre', cache_man.handle_pre)
     mm.add_listener('pre', cloudtrail_manager.init_data)
+
+    rtf = RedshiftTagFilter(filter_tags)
+    mm.add_listener('ec2', rtf.per_cluster)
+
     mm.add_listener('ec2', cwman.per_ec2)
     mm.add_listener('ec2', cloudtrail_manager.single)
     mm.add_listener('ec2', ra.per_ec2)

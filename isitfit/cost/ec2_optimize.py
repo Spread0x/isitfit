@@ -66,6 +66,9 @@ def ec2obj_to_name(ec2_obj):
     return ec2_name[0]['Value']
 
 
+from isitfit.utils import taglist2str
+
+
 class CalculatorOptimizeEc2:
 
   def __init__(self, n, thresholds = None):
@@ -176,14 +179,7 @@ class CalculatorOptimizeEc2:
     if taglist is None:
       taglist = []
 
-    if context_ec2['filter_tags'] is not None:
-      # filter the tag list for only those containing the filter-tags string
-      f_tn = context_ec2['filter_tags'].lower()
-      # similar to the isitfit.mainManager.tagsContain function, but filtering the tags themselves
-      taglist = [x for x in taglist if (f_tn in x['Key'].lower()) or (f_tn in x['Value'].lower())]
-
-    taglist = ["%s = %s"%(x['Key'], x['Value']) for x in taglist]
-    taglist = "\n".join(taglist)
+    taglist = taglist2str(taglist, context_ec2['filter_tags'])
 
     ec2_res = OrderedDict()
     ec2_res['region'] = ec2_obj.region_name

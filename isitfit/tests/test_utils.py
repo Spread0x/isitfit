@@ -75,3 +75,17 @@ def test_l2s():
   from isitfit.utils import l2s
   a = l2s(list(range(10)))
   assert a=='0,1,...,8,9'
+
+
+
+def test_taglist2str():
+  from isitfit.utils import taglist2str
+
+  a = taglist2str([{'Key':'app', 'Value':'isitfit'}, {'Key':'app', 'Value':'another'}], None)
+  assert a == 'app = isitfit\napp = another'
+
+  a = taglist2str([{'Key':'app', 'Value':'isitfit'}, {'Key':'app', 'Value':'another'}], 'is')
+  assert a == 'app = isitfit'
+
+  a = taglist2str([{'Key':'app', 'Value':'isitfit'}, {'Key':'app', 'Value':'another'}], 'foo')
+  assert a == ''

@@ -49,7 +49,7 @@ def analyze(ctx, ndays, filter_tags, save_details):
     # set up pipelines for ec2, redshift, and aggregator
     from isitfit.cost import ec2_cost_analyze, redshift_cost_analyze, account_cost_analyze
     mm_eca = ec2_cost_analyze(ctx, filter_tags, save_details)
-    mm_rca = redshift_cost_analyze(share_email, filter_region=ctx.obj['filter_region'], ctx=ctx)
+    mm_rca = redshift_cost_analyze(share_email, filter_region=ctx.obj['filter_region'], ctx=ctx, filter_tags=filter_tags)
 
     # combine the 2 pipelines into a new pipeline
     mm_all = account_cost_analyze(mm_eca, mm_rca, ctx, share_email)
@@ -82,7 +82,7 @@ def optimize(ctx, ndays, n, filter_tags):
 
     from isitfit.cost import ec2_cost_optimize, redshift_cost_optimize, account_cost_optimize
     mm_eco = ec2_cost_optimize(ctx, n, filter_tags)
-    mm_rco = redshift_cost_optimize(filter_region=ctx.obj['filter_region'], ctx=ctx)
+    mm_rco = redshift_cost_optimize(filter_region=ctx.obj['filter_region'], ctx=ctx, filter_tags=filter_tags)
 
     # merge and run pipelines
     mm_all = account_cost_optimize(mm_eco, mm_rco, ctx)

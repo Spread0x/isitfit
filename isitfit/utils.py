@@ -305,3 +305,27 @@ def l2s(x):
   y = [str(z) for z in x] # convert to list of strings, eg if list of int
   y = ",".join(y)
   return y
+
+
+
+def taglist2str(taglist, filter_tags):
+  """
+  eg
+  taglist2str([{'Key':'app', 'Value':'isitfit'}], 'boo')
+  returns ""
+
+  taglist2str([{'Key':'app', 'Value':'isitfit'}], 'is')
+  returns "app = isitfit"
+  """
+  if filter_tags is not None:
+    # filter the tag list for only those containing the filter-tags string
+    f_tn = filter_tags.lower()
+
+    # similar to the isitfit.mainManager.tagsContain function, but filtering the tags themselves
+    taglist = [x for x in taglist if (f_tn in x['Key'].lower()) or (f_tn in x['Value'].lower())]
+
+  # list to string
+  taglist = ["%s = %s"%(x['Key'], x['Value']) for x in taglist]
+  taglist = "\n".join(taglist)
+
+  return taglist

@@ -13,6 +13,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - bugfix: better handling of case of no redshift data
 - tests: functional tests for cost was still clearing the cache files from the old deprecated locations
 - enh: get logger from `isitfit.utils` instead of calling logging all over the place
+- bugfix: `--filter-tags` to filter the redshift clusters just like it does on ec2
 
 
 Version 0.17.0 (2019-12-04)

@@ -221,13 +221,13 @@ class ReporterAnalyze(ReporterBase):
 
 
 
-def pipeline_factory(share_email, filter_region, ctx):
+def pipeline_factory(share_email, filter_region, ctx, filter_tags):
   # This is a factory method, so it doesn't make sense to display "Analyzing bla" if actually "foo" is analyzed first
   #logger.info("Analyzing redshift clusters")
 
   from .redshift_common import redshift_cost_core
   ra = CalculatorAnalyzeRedshift()
   rr = ReporterAnalyze()
-  mm = redshift_cost_core(ra, rr, share_email, filter_region, ctx)
+  mm = redshift_cost_core(ra, rr, share_email, filter_region, ctx, filter_tags)
   return mm
 

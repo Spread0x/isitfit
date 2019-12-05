@@ -15,13 +15,15 @@ class ServiceReporter(ReporterBase):
     if service_name=='ec2':
       self.table_d['ec2']['df_sort'] = context_all['df_sort']
       self.table_d['ec2']['sum_val'] = context_all['sum_val']
-      self.table_d['ec2']['csv_fn_final'] = context_all['csv_fn_final']
-      self.table_d['ec2']['analyzer'] = context_all['analyzer']
+      # after migration from display to display2, no need for these
+      # self.table_d['ec2']['csv_fn_final'] = context_all['csv_fn_final']
+      # self.table_d['ec2']['analyzer'] = context_all['analyzer']
 
     elif service_name=='redshift':
-      # self.table_d['redshift']['analyze_df'] = context_all['analyzer'].analyze_df
       self.table_d['redshift']['analyzer'] = context_all['analyzer']
-      self.table_d['redshift']['csv_fn_final'] = context_all['csv_fn_final']
+      # after migration from display to display2, no need for these
+      # self.table_d['redshift']['analyze_df'] = context_all['analyzer'].analyze_df
+      # self.table_d['redshift']['csv_fn_final'] = context_all['csv_fn_final']
 
     else:
       raise Exception("Invalid service runner description: %s"%service_name)

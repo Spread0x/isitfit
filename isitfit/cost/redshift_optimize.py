@@ -1,4 +1,4 @@
-from isitfit.utils import logger
+from isitfit.utils import logger, taglist2str
 
 
 from isitfit.cost.redshift_common import CalculatorBaseRedshift
@@ -16,6 +16,10 @@ class CalculatorOptimizeRedshift(CalculatorBaseRedshift):
       rc_describe_entry = context_ec2['ec2_dict']
       df_single = context_ec2['df_single']
 
+      # build string of taglist
+      taglist = rc_describe_entry['Tags']
+      taglist = taglist2str(taglist, context_ec2['filter_tags'])
+
       # summarize into maxmax, maxmin, minmax, minmin
       self.analyze_list.append({
         'Region': rc_describe_entry['Region'],
@@ -27,6 +31,8 @@ class CalculatorOptimizeRedshift(CalculatorBaseRedshift):
         #'CpuMaxMin': df_single.Maximum.min(),
         #'CpuMinMax': df_single.Minimum.max(),
         'CpuMinMin': df_single.Minimum.min(),
+
+        'tags': taglist
       })
 
       # done
@@ -111,14 +117,14 @@ class ReporterOptimize(ReporterBase):
 
 
 
-def pipeline_factory(filter_region, ctx):
+def pipeline_factory(filter_region, ctx, filter_tags):
   # This is a factory method, so it doesn't make sense to display "Analyzing bla" if actually "foo" is analyzed first
   #logger.info("Optimizing redshift clusters")
 
   from .redshift_common import redshift_cost_core
   ra = CalculatorOptimizeRedshift()
   rr = ReporterOptimize()
-  mm = redshift_cost_core(ra, rr, None, filter_region, ctx)
+  mm = redshift_cost_core(ra, rr, None, filter_region, ctx, filter_tags)
 
   # listener that was outed in the analyze step by the service aggregator
   # mm.add_listener('all', rr.display)
