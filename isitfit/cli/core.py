@@ -27,6 +27,13 @@ from .. import isitfit_version
 @click.option('--skip-check-upgrade', is_flag=True, help='Skip step for checking for upgrade of isitfit')
 @click.pass_context
 def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upgrade):
+    # usage stats
+    # https://docs.python.org/3.5/library/string.html#format-string-syntax
+    from isitfit.utils import ping_matomo
+    ping_url = "/?debug={}&verbose={}&optimize={}&version={}&share_email={}&skip_check_upgrade={}"
+    ping_url = ping_url.format(debug, verbose, optimize, version, len(share_email)>0, skip_check_upgrade)
+    ping_matomo(ping_url)
+
     # choose log level based on debug and verbose flags
     logLevel = logging.DEBUG if debug else (logging.INFO if verbose else logging.WARNING)
 
@@ -51,12 +58,18 @@ def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upg
         #  ctx.invoke(cost_analyze, filter_tags=filter_tags)
         from click.exceptions import UsageError
         if optimize:
-          raise UsageError("As of version 0.11, please use `isitfit cost optimize` instead of `isitfit --optimize`.")
+          err_msg = "As of version 0.11, please use `isitfit cost optimize` instead of `isitfit --optimize`."
+          ping_matomo("/error?message=%s"%err_msg)
+          raise UsageError(err_msg)
         elif version:
           # ctx.invoke(cli_version)
-          raise UsageError("As of version 0.11, please use `isitfit version` instead of `isitfit --version`.")
+          err_msg = "As of version 0.11, please use `isitfit version` instead of `isitfit --version`."
+          ping_matomo("/error?message=%s"%err_msg)
+          raise UsageError(err_msg)
         else:
-          raise UsageError("As of version 0.11, please use `isitfit cost analyze` instead of `isitfit` to calculate the cost-weighted utilization.")
+          err_msg = "As of version 0.11, please use `isitfit cost analyze` instead of `isitfit` to calculate the cost-weighted utilization."
+          ping_matomo("/error?message=%s"%err_msg)
+          raise UsageError(err_msg)
 
     # make sure that context is a dict
     ctx.ensure_object(dict)
@@ -65,8 +78,10 @@ def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upg
     if share_email is not None:
       max_n_recipients = 3
       if len(share_email) > max_n_recipients:
+          err_msg = "Maximum allowed number of email recipients is %i. Received %i"%(max_n_recipients, len(share_email))
+          ping_matomo("/error?message=%s"%err_msg)
           from click.exceptions import BadParameter
-          raise BadParameter("Maximum allowed number of email recipients is %i. Received %i"%(max_n_recipients, len(share_email)), param_hint="--share-email")
+          raise BadParameter(err_msg, param_hint="--share-email")
 
       ctx.obj['share_email'] = share_email
 
@@ -76,9 +91,11 @@ def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upg
         from ..utils import prompt_upgrade
         is_outdated = prompt_upgrade('isitfit', isitfit_version)
         ctx.obj['is_outdated'] = is_outdated
+        ping_matomo("/version/prompt_upgrade?is_outdated=%s"%is_outdated)
 
 
     if ctx.invoked_subcommand not in ['version', 'migrations']:
+      ping_matomo("/migrations/silent")
       from isitfit.migrations.migman import silent_migrate
       silent_migrate()
 

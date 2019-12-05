@@ -7,6 +7,10 @@ from ..utils import IsitfitCommand
 
 @click.group(help="Explore EC2 tags", invoke_without_command=False)
 def tags():
+  # gather anonymous usage statistics
+  from isitfit.utils import ping_matomo
+  ping_matomo("/tags")
+
   pass
 
 
@@ -16,8 +20,8 @@ def tags():
 @click.pass_context
 def suggest(ctx, advanced):
   # gather anonymous usage statistics
-  from ..utils import ping_matomo, IsitfitCliError
-  ping_matomo("/tags/suggest")
+  from isitfit.utils import ping_matomo
+  ping_matomo("/tags/suggest?advanced=%s"%advanced)
 
   tl = None
   if not advanced:
@@ -37,7 +41,7 @@ def suggest(ctx, advanced):
 @click.pass_context
 def dump(ctx):
   # gather anonymous usage statistics
-  from ..utils import ping_matomo, IsitfitCliError
+  from isitfit.utils import ping_matomo
   ping_matomo("/tags/dump")
 
   from ..tags.tagsDump import TagsDump
@@ -55,8 +59,8 @@ def dump(ctx):
 @click.pass_context
 def push(ctx, csv_filename, not_dry_run):
   # gather anonymous usage statistics
-  from ..utils import ping_matomo, IsitfitCliError
-  ping_matomo("/tags/push")
+  from isitfit.utils import ping_matomo
+  ping_matomo("/tags/push?csv_filename=%s&not_dry_run=%s"%(csv_filename, not_dry_run))
 
   from ..tags.tagsPush import TagsPush
 

@@ -18,6 +18,10 @@ from ..utils import IsitfitCommand
 # @click.option('--ndays', default=90, prompt='Number of days to lookback (use `isitfit cost --ndays=90 ...` to skip this prompt)', help='number of days to look back in the data history', type=int)
 @click.pass_context
 def cost(ctx, filter_region):
+  # gather anonymous usage statistics
+  from isitfit.utils import ping_matomo
+  ping_matomo("/cost?filter_region=%s"%filter_region)
+
   ctx.obj['filter_region'] = filter_region
   pass
 
@@ -30,12 +34,13 @@ def cost(ctx, filter_region):
 @click.option('--save-details', is_flag=True, help='Save details behind calculations to CSV files')
 @click.pass_context
 def analyze(ctx, ndays, filter_tags, save_details):
+    # gather anonymous usage statistics
+    from ..utils import ping_matomo
+    ping_matomo("/cost/analyze?ndays=%i&filter_tags=%s&save_details=%s"%(ndays, filter_tags, save_details ))
+
+    # save to click context
     ctx.obj['ndays'] = ndays
     share_email = ctx.obj.get('share_email', [])
-
-    # gather anonymous usage statistics
-    from ..utils import ping_matomo, IsitfitCliError
-    ping_matomo("/cost/analyze?ndays=%i&filter_region=%s&filter_tags=%s&share_email=%s"%(ctx.obj['ndays'], ctx.obj['filter_region'], filter_tags, len(share_email)>0 ))
 
     #logger.info("Is it fit?")
     logger.info("Initializing...")
@@ -64,12 +69,13 @@ def analyze(ctx, ndays, filter_tags, save_details):
 @click.option('--filter-tags', default=None, help='filter instances for only those carrying this value in the tag name or value')
 @click.pass_context
 def optimize(ctx, ndays, n, filter_tags):
+    # gather anonymous usage statistics
+    from isitfit.utils import ping_matomo
+    ping_matomo("/cost/optimize?ndays=%i&n=%i&filter_tags=%s"%(ndays, n, filter_tags ))
+
+    # save to context
     ctx.obj['ndays'] = ndays
     share_email = ctx.obj.get('share_email', [])
-
-    # gather anonymous usage statistics
-    from ..utils import ping_matomo, IsitfitCliError
-    ping_matomo("/cost/optimize?ndays=%i&filter_region=%s&filter_tags=%s&share_email=%s&n=%i"%(ctx.obj['ndays'], ctx.obj['filter_region'], filter_tags, len(share_email)>0, n ))
 
     #logger.info("Is it fit?")
     logger.info("Initializing...")

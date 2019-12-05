@@ -3,6 +3,10 @@ import click
 @click.group(help="Manage migrations for local files (useful for debugging)", invoke_without_command=False, hidden=True)
 @click.pass_context
 def migrations(ctx):
+  # usage stats
+  from isitfit.utils import ping_matomo
+  ping_matomo("/migrations")
+
   from isitfit.migrations.migman import MigMan
   migman = MigMan()
   migman.connect()
@@ -16,6 +20,7 @@ from isitfit.utils import IsitfitCommand
 @migrations.command(help="Show all migrations", cls=IsitfitCommand)
 @click.pass_context
 def show(ctx):
+  # usage stats
   from isitfit.utils import ping_matomo
   ping_matomo("/migrations/show")
 
@@ -34,6 +39,7 @@ def show(ctx):
 @click.option('--not-dry-run', is_flag=True, help='Simulate the migration without executing it')
 @click.pass_context
 def migrate(ctx, not_dry_run):
+  # usage stats
   from isitfit.utils import ping_matomo
   ping_matomo("/migrations/migrate?not_dry_run=%s"%not_dry_run)
 
