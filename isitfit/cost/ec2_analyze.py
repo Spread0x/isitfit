@@ -101,7 +101,8 @@ class CalculatorAnalyzeEc2:
     ec2_obj, ec2_df, mm, ddg_df = context_ec2['ec2_obj'], context_ec2['ec2_df'], context_ec2['mainManager'], context_ec2['ddg_df']
 
     # results: 2 numbers: capacity (USD), used (USD)
-    res_capacity = (ec2_df.nhours*ec2_df.cost_hourly).sum()
+    ec2_df['capacity_usd'] = ec2_df.nhours*ec2_df.cost_hourly
+    res_capacity = ec2_df['capacity_usd'].sum()
 
     if 'ram_used_avg.datadog' in ec2_df.columns:
       # use both the CPU Average from cloudwatch and the RAM average from datadog
@@ -110,7 +111,9 @@ class CalculatorAnalyzeEc2:
       # use only the CPU average from cloudwatch
       utilization_factor = ec2_df.Average
 
-    res_used     = (ec2_df.nhours*ec2_df.cost_hourly*utilization_factor/100).sum()
+    ec2_df['used_usd'] = ec2_df.nhours*ec2_df.cost_hourly*utilization_factor/100
+    res_used   = ec2_df['used_usd'].sum()
+
     #logger.debug("res_capacity=%s, res_used=%s"%(res_capacity, res_used))
 
     self.sum_capacity += res_capacity
@@ -128,6 +131,10 @@ class CalculatorAnalyzeEc2:
       )
       self.csv_fn_empty = False
 
+    # save ec2_df again since added columns used and capacity
+    context_ec2['ec2_df'] = ec2_df
+
+    # done
     return context_ec2
 
 
@@ -171,6 +178,90 @@ class CalculatorAnalyzeEc2:
     return context_all
 
 
+class BinCapUsed:
+  def __init__(self):
+    # sums, in a dataframe of time bins instead of 1 global number
+    self.df_bins = None
+    self.freq = '1M'
+
+  def handle_pre(self, context_pre):
+    dt_start = context_pre['mainManager'].StartTime
+    dt_end = context_pre['mainManager'].EndTime
+
+    # append 1 more month due to pandas date_range not yielding the EOM after dt_end
+    # https://stackoverflow.com/a/4406260/4126114
+    from dateutil.relativedelta import relativedelta
+    dt_end2 = dt_end + relativedelta(months=1)
+
+    # get list of dates with freq
+    # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.date_range.html
+    import pandas as pd
+    dt_range = pd.date_range(start=dt_start.date(), end=dt_end2.date(), freq=self.freq)
+
+    # create dataframe
+    self.df_bins = pd.DataFrame({
+      'Timestamp': dt_range,
+      'capacity_usd': 0,
+      'used_usd': 0,
+      'count_analyzed': 0,
+    })
+    self.df_bins.set_index('Timestamp', inplace=True)
+
+    return context_pre
+
+
+  def per_ec2(self, context_ec2):
+    if self.df_bins is None:
+      raise Exception("Call handle_pre first to set the dataframe")
+
+    ec2_df = context_ec2['ec2_df']
+    df_add = ec2_df[['Timestamp', 'capacity_usd', 'used_usd']].copy()
+
+    # index
+    df_add['Timestamp'] = pd.to_datetime(df_add['Timestamp'])
+    df_add.set_index('Timestamp', inplace=True)
+
+    # cast all to int for simplicity
+    for fx in ['capacity_usd', 'used_usd']:
+      df_add[fx] = df_add[fx].fillna(value=0)
+      df_add[fx] = df_add[fx].astype(int)
+
+    # resample
+    df_me = df_add.resample(self.freq).sum() # month end
+
+    # dummy column showing 1 where there is any capacity
+    df_me['count_analyzed'] = (df_me.capacity_usd > 0).astype(int)
+
+    # Add dataframes
+    # Using the "+" operator will just fill missing indeces with NaN
+    # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.add.html
+    self.df_bins = self.df_bins.add(df_me, fill_value=0)
+
+    # bug in pandas.DataFrame.add function: it converts the int to float 
+    # This is despite the dtypes of df_me and self.df_bins being int
+    # and the fill_value being int
+    # Probably due to missing index values feeding in "na" and later internally replacing the na with 0
+    # TODO file issue and/or PR?
+    for fx in ['capacity_usd', 'used_usd', 'count_analyzed']:
+      self.df_bins[fx] = self.df_bins[fx].astype(int)
+     
+    # done
+    return context_ec2
+
+  def after_all(self, context_all):
+    # add col for utilization in percentage
+    import numpy as np
+    import pandas as pd
+    def calc_usedPct(row):
+      if row.capacity_usd==0: return 0
+      o = row.used_usd / row.capacity_usd * 100
+      return int(o)
+
+    self.df_bins['used_pct'] = self.df_bins.apply(calc_usedPct, axis=1)
+
+    # inject result for reporter access
+    context_all['df_bins'] = self.df_bins
+    return context_all
 
 
 from isitfit.cost.base_reporter import ReporterBase
@@ -328,22 +419,28 @@ def pipeline_factory(ctx, filter_tags, save_details):
     inject_email_in_context = lambda context_all: dict({'emailTo': share_email}, **context_all)
     inject_analyzer = lambda context_all: dict({'analyzer': ul}, **context_all)
 
+    # binning
+    bcs = BinCapUsed()
+
     # utilization listeners
     mm.set_iterator(ec2_it)
     mm.add_listener('pre', cache_man.handle_pre)
     mm.add_listener('pre', cloudtrail_manager.init_data)
     mm.add_listener('pre', ec2_cat.handle_pre)
     mm.add_listener('pre', ul.handle_pre)
+    mm.add_listener('pre', bcs.handle_pre)
     mm.add_listener('ec2', etf.per_ec2)
     mm.add_listener('ec2', cloudwatchman.per_ec2)
     mm.add_listener('ec2', cloudtrail_manager.single)
     mm.add_listener('ec2', ec2_common._handle_ec2obj)
     mm.add_listener('ec2', ddg.per_ec2)
     mm.add_listener('ec2', ul.per_ec2)
+    mm.add_listener('ec2', bcs.per_ec2)
     mm.add_listener('all', ec2_common.after_all)
     mm.add_listener('all', ul.after_all)
     mm.add_listener('all', inject_analyzer)
     mm.add_listener('all', ra.postprocess)
+    mm.add_listener('all', bcs.after_all)
     #mm.add_listener('all', ra.display)
     #mm.add_listener('all', inject_email_in_context)
     #mm.add_listener('all', ra.email)

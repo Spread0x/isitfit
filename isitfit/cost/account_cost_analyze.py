@@ -44,6 +44,7 @@ class ServiceCalculatorGet:
 class ServiceCalculatorSave:
   def __init__(self):
     self.table_d = {}
+    self.dfbin_d = {}
 
   def per_service(self, context_service):
     service_name = context_service['ec2_id']
@@ -54,6 +55,14 @@ class ServiceCalculatorSave:
     table_single = context_all['table']
     table_single = {v['label']: v for v in table_single}
     self.table_d[service_name] = table_single
+
+    # get df_bin
+    if service_name=='ec2':
+      self.dfbin_d[service_name] = context_service['context_all']['df_bins']
+      # TODO continue working on this to add fields enough to replace the "single-column" display
+      logger.info("Binned ec2 cost analyze")
+      logger.info(self.dfbin_d[service_name].transpose())
+
     return context_service
 
 

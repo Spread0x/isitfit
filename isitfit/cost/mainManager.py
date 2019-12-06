@@ -61,6 +61,7 @@ class MainManager:
         context_pre['region_include'] = self.ec2_it.get_regionInclude()
         context_pre['n_ec2_total'] = n_ec2_total
         context_pre['click_ctx'] = self.ctx
+        context_pre['mainManager'] = self
 
         # call listeners
         for l in self.listeners['pre']:

@@ -89,3 +89,4 @@ def test_taglist2str():
 
   a = taglist2str([{'Key':'app', 'Value':'isitfit'}, {'Key':'app', 'Value':'another'}], 'foo')
   assert a == ''
+
