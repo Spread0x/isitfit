@@ -6,6 +6,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 - feat: ec2 cost analyze now gathers a per-month version of the same displayed single-column table
     - still doesn't show up by default in the end result unless `--verbose` is turned on. WIP
+    - add `regions_set` and `regions_str` as well as service column
 
 
 Version 0.17.2 (2019-12-05)

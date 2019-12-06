@@ -45,6 +45,7 @@ class ServiceCalculatorSave:
   def __init__(self):
     self.table_d = {}
     self.dfbin_d = {}
+    self.dfbin_p = None
 
   def per_service(self, context_service):
     service_name = context_service['ec2_id']
@@ -58,10 +59,26 @@ class ServiceCalculatorSave:
 
     # get df_bin
     if service_name=='ec2':
-      self.dfbin_d[service_name] = context_service['context_all']['df_bins']
+      # shortcut
+      df_i = context_service['context_all']['df_bins']
+
+      # timestamp index to regular column to convert to date
+      df_i = df_i.reset_index()
+      df_i['Timestamp'] = df_i['Timestamp'].dt.date
+      df_i.set_index('Timestamp', inplace=True)
+      
+      # transpose to match format of one-column output
+      df_i = df_i.transpose()
+
+      # add service name, so that EC2 and Redshift don't get mixed up
+      df_i['Service'] = service_name
+
+      # save
+      self.dfbin_d[service_name] = df_i
+
       # TODO continue working on this to add fields enough to replace the "single-column" display
       logger.info("Binned ec2 cost analyze")
-      logger.info(self.dfbin_d[service_name].transpose())
+      logger.info(df_i)
 
     return context_service
 

@@ -178,6 +178,7 @@ class CalculatorAnalyzeEc2:
     return context_all
 
 
+from isitfit.utils import pd_series_frozenset_union, l2s
 class BinCapUsed:
   def __init__(self):
     # sums, in a dataframe of time bins instead of 1 global number
@@ -204,6 +205,7 @@ class BinCapUsed:
       'capacity_usd': 0,
       'used_usd': 0,
       'count_analyzed': 0,
+      'regions_set': [frozenset([]) for x in dt_range], # list of sets
     })
     self.df_bins.set_index('Timestamp', inplace=True)
 
@@ -233,10 +235,18 @@ class BinCapUsed:
     # df_me['count_analyzed'] = 1
     df_me['count_analyzed'] = (df_me.capacity_usd > 0).astype(int)
 
-    # Add dataframes
+    # append region
+    #df_me['region'] = set([context_ec2['ec2_dict']['Region'])
+    df_me['regions_set'] = df_me.apply(lambda row: frozenset([context_ec2['ec2_dict']['Region']]), axis=1)
+
+    # Add dataframes ints
     # Using the "+" operator will just fill missing indeces with NaN
     # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.add.html
-    self.df_bins = self.df_bins.add(df_me, fill_value=0)
+    add_cols = ['capacity_usd', 'used_usd', 'count_analyzed']
+    df_sub1 = self.df_bins[add_cols]
+    df_sub2 = df_me[add_cols]
+    df_sub1 = df_sub1.add(df_sub2, fill_value=0)
+    self.df_bins[add_cols] = df_sub1
 
     # bug in pandas.DataFrame.add function: it converts the int to float 
     # This is despite the dtypes of df_me and self.df_bins being int
@@ -245,6 +255,9 @@ class BinCapUsed:
     # TODO file issue and/or PR?
     for fx in ['capacity_usd', 'used_usd', 'count_analyzed']:
       self.df_bins[fx] = self.df_bins[fx].astype(int)
+
+    # add the region sets
+    self.df_bins['regions_set'] = pd_series_frozenset_union(self.df_bins['regions_set'], df_me['regions_set'])
      
     # done
     return context_ec2
@@ -259,6 +272,9 @@ class BinCapUsed:
       return int(o)
 
     self.df_bins['used_pct'] = self.df_bins.apply(calc_usedPct, axis=1)
+
+    # add column for regions as string
+    self.df_bins['regions_str'] = self.df_bins['regions_set'].apply(lambda x: "%i (%s)"%(len(x), l2s(x)))
 
     # inject result for reporter access
     context_all['df_bins'] = self.df_bins

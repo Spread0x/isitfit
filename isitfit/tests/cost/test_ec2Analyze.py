@@ -23,12 +23,12 @@ class TestBinCapUsedHandlePre:
     bcs.handle_pre({'mainManager': FakeMm()})
 
     e = pd.DataFrame([
-        (dt.date(2019,1,31), 0, 0, 0),
-        (dt.date(2019,2,28), 0, 0, 0),
-        (dt.date(2019,3,31), 0, 0, 0),
-        (dt.date(2019,4,30), 0, 0, 0)
+        (dt.date(2019,1,31), 0, 0, 0, frozenset([])),
+        (dt.date(2019,2,28), 0, 0, 0, frozenset([])),
+        (dt.date(2019,3,31), 0, 0, 0, frozenset([])),
+        (dt.date(2019,4,30), 0, 0, 0, frozenset([]))
       ],
-      columns=['Timestamp','capacity_usd','used_usd','count_analyzed']
+      columns=['Timestamp', 'capacity_usd', 'used_usd', 'count_analyzed', 'regions_set']
     )
     e['Timestamp'] = pd.to_datetime(e['Timestamp'])
     e.set_index('Timestamp', inplace=True)
@@ -50,17 +50,18 @@ class TestBinCapUsedPerEc2:
     # calculate
     bcs = BinCapUsed()
     bcs.handle_pre({'mainManager': FakeMm()})
-    bcs.per_ec2({'ec2_df': df1})
-    bcs.per_ec2({'ec2_df': df1})
+    ctx = {'ec2_df': df1, 'ec2_dict': {'Region': 'us-west-2'}}
+    bcs.per_ec2(ctx)
+    bcs.per_ec2(ctx)
 
     # expected
     e = pd.DataFrame([
-        (dt.date(2019,1,31), 68, 300, 2),
-        (dt.date(2019,2,28),  0,   0, 0),
-        (dt.date(2019,3,31),  0,   0, 0),
-        (dt.date(2019,4,30),  0,   0, 0)
+        (dt.date(2019,1,31), 68, 300, 2, frozenset(['us-west-2'])),
+        (dt.date(2019,2,28),  0,   0, 0, frozenset([])),
+        (dt.date(2019,3,31),  0,   0, 0, frozenset([])),
+        (dt.date(2019,4,30),  0,   0, 0, frozenset([]))
       ],
-      columns=['Timestamp','capacity_usd','used_usd','count_analyzed']
+      columns=['Timestamp', 'capacity_usd', 'used_usd', 'count_analyzed', 'regions_set']
     )
     e['Timestamp'] = pd.to_datetime(e['Timestamp'])
     e.set_index('Timestamp', inplace=True)
@@ -100,20 +101,25 @@ class TestBinCapUsedPerEc2:
     # calculate
     bcs = BinCapUsed()
     bcs.handle_pre({'mainManager': FakeMm()})
-    bcs.per_ec2({'ec2_df': df1})
-    bcs.per_ec2({'ec2_df': df2})
+    ctx1 = {'ec2_df': df1, 'ec2_dict': {'Region': 'us-west-2'}}
+    bcs.per_ec2(ctx1)
+    ctx2 = {'ec2_df': df2, 'ec2_dict': {'Region': 'us-west-2'}}
+    bcs.per_ec2(ctx2)
 
     # expected
     e = pd.DataFrame([
-        (dt.date(2019,1,31), 510, 153, 2),
-        (dt.date(2019,2,28), 840, 252, 2),
-        (dt.date(2019,3,31), 930, 279, 2),
-        (dt.date(2019,4,30), 450, 135, 2)
+        (dt.date(2019,1,31), 510, 153, 2, frozenset(['us-west-2'])),
+        (dt.date(2019,2,28), 840, 252, 2, frozenset(['us-west-2'])),
+        (dt.date(2019,3,31), 930, 279, 2, frozenset(['us-west-2'])),
+        (dt.date(2019,4,30), 450, 135, 2, frozenset(['us-west-2']))
       ],
-      columns=['Timestamp','capacity_usd','used_usd','count_analyzed']
+      columns=['Timestamp', 'capacity_usd', 'used_usd', 'count_analyzed', 'regions_set']
     )
     e['Timestamp'] = pd.to_datetime(e['Timestamp'])
     e.set_index('Timestamp', inplace=True)
 
     # test expected = actual
     pd.testing.assert_frame_equal(e, bcs.df_bins)
+
+
+

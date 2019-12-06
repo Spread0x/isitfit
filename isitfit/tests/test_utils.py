@@ -90,3 +90,27 @@ def test_taglist2str():
   a = taglist2str([{'Key':'app', 'Value':'isitfit'}, {'Key':'app', 'Value':'another'}], 'foo')
   assert a == ''
 
+
+
+def test_pandasSets_sameIndex():
+  from isitfit.utils import pd_series_frozenset_union
+  import pandas as pd
+
+  fset = frozenset
+  s1=pd.Series([fset([1]), fset([1,2])])
+  s2=pd.Series([fset([1]), fset([1,3])])
+  a = pd_series_frozenset_union(s1, s2)
+  e = pd.DataFrame({'a3': [fset([1]), fset([1,2,3])]})
+  pd.testing.assert_series_equal(a, e.a3)
+
+
+def test_pandasSets_differentIndex():
+  from isitfit.utils import pd_series_frozenset_union
+  import pandas as pd
+
+  fset = frozenset
+  s1=pd.Series([fset([1]), fset([1,2])], index=[0,1])
+  s2=pd.Series([fset([1])], index=[0])
+  actual = pd_series_frozenset_union(s1, s2)
+  expected = pd.DataFrame({'a3': [fset([1]), fset([1,2])]})
+  pd.testing.assert_series_equal(actual, expected.a3)

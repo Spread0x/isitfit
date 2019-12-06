@@ -329,3 +329,20 @@ def taglist2str(taglist, filter_tags):
   taglist = "\n".join(taglist)
 
   return taglist
+
+
+def pd_series_frozenset_union(s1, s2):
+  """
+  Pandas doesn't have a built-in set union.
+  Worse, it doesn't support set as column type
+  Need to use frozenset
+  Check test for example
+  Ref https://python-forum.io/Thread-Error-Message-TypeError-unhashable-type-set
+  """
+  import pandas as pd
+  df1=pd.DataFrame({'a1': s1})
+  df2=pd.DataFrame({'a2': s2})
+  df3=df1.merge(df2, left_index=True, right_index=True, how='left')
+  df3['a3'] = df3.apply(lambda row: row.a1 if pd.isnull(row.a2) else row.a1.union(row.a2), axis=1)
+  return df3['a3']
+
