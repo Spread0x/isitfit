@@ -221,15 +221,16 @@ class BinCapUsed:
     df_add['Timestamp'] = pd.to_datetime(df_add['Timestamp'])
     df_add.set_index('Timestamp', inplace=True)
 
-    # cast all to int for simplicity
-    for fx in ['capacity_usd', 'used_usd']:
-      df_add[fx] = df_add[fx].fillna(value=0)
-      df_add[fx] = df_add[fx].astype(int)
-
     # resample
     df_me = df_add.resample(self.freq).sum() # month end
 
-    # dummy column showing 1 where there is any capacity
+    # cast all to int for simplicity
+    for fx in ['capacity_usd', 'used_usd']:
+      df_me[fx] = df_me[fx].fillna(value=0)
+      df_me[fx] = df_me[fx].astype(int)
+
+    # dummy column showing 1 for the current instance, ie where there is any capacity
+    # df_me['count_analyzed'] = 1
     df_me['count_analyzed'] = (df_me.capacity_usd > 0).astype(int)
 
     # Add dataframes
