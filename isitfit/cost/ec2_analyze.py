@@ -183,7 +183,9 @@ class BinCapUsed:
   def __init__(self):
     # sums, in a dataframe of time bins instead of 1 global number
     self.df_bins = None
-    self.freq = '1M'
+    # https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases
+    self.freq_end = '1M' # month end
+    self.freq_start = '1MS' # month start
 
   def handle_pre(self, context_pre):
     dt_start = context_pre['mainManager'].StartTime
@@ -192,20 +194,24 @@ class BinCapUsed:
     # append 1 more month due to pandas date_range not yielding the EOM after dt_end
     # https://stackoverflow.com/a/4406260/4126114
     from dateutil.relativedelta import relativedelta
-    dt_end2 = dt_end + relativedelta(months=1)
+    dt_end2   = dt_end   + relativedelta(months=1)
+    dt_start2 = dt_start - relativedelta(months=1)
 
     # get list of dates with freq
     # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.date_range.html
     import pandas as pd
-    dt_range = pd.date_range(start=dt_start.date(), end=dt_end2.date(), freq=self.freq)
+    dt_range_end   = pd.date_range(start=dt_start.date(),  end=dt_end2.date(), freq=self.freq_end  )
+    dt_range_start = pd.date_range(start=dt_start2.date(), end=dt_end.date(),  freq=self.freq_start)
 
     # create dataframe
     self.df_bins = pd.DataFrame({
-      'Timestamp': dt_range,
+      'Timestamp': dt_range_end,
       'capacity_usd': 0,
       'used_usd': 0,
       'count_analyzed': 0,
-      'regions_set': [frozenset([]) for x in dt_range], # list of sets
+      'regions_set': [frozenset([]) for x in dt_range_end], # list of sets
+      'dt_start': dt_range_end, # init at end, then search for min in per_ec2
+      'dt_end': dt_range_start, # init at start, then search for max in per_ec2
     })
     self.df_bins.set_index('Timestamp', inplace=True)
 
@@ -219,12 +225,17 @@ class BinCapUsed:
     ec2_df = context_ec2['ec2_df']
     df_add = ec2_df[['Timestamp', 'capacity_usd', 'used_usd']].copy()
 
-    # index
+    # index + add a duplicate column for the timestamp and use it to get min/max dates in a time bin
     df_add['Timestamp'] = pd.to_datetime(df_add['Timestamp'])
+    df_add['ts2'] = df_add.Timestamp.tolist()
     df_add.set_index('Timestamp', inplace=True)
 
-    # resample
-    df_me = df_add.resample(self.freq).sum() # month end
+    # resample ints
+    df_me = df_add[['capacity_usd', 'used_usd']].resample(self.freq_end).sum()
+
+    # resample dates
+    df_me['dt_start'] = df_add['ts2'].resample(self.freq_end).min()
+    df_me['dt_end'] = df_add['ts2'].resample(self.freq_end).max()
 
     # cast all to int for simplicity
     for fx in ['capacity_usd', 'used_usd']:
@@ -258,6 +269,10 @@ class BinCapUsed:
 
     # add the region sets
     self.df_bins['regions_set'] = pd_series_frozenset_union(self.df_bins['regions_set'], df_me['regions_set'])
+
+    # add the start/end dates
+    self.df_bins['dt_start'] = pd.concat([self.df_bins.dt_start, df_me.dt_start], axis=1).min(axis=1)
+    self.df_bins['dt_end'  ] = pd.concat([self.df_bins.dt_end,   df_me.dt_end  ], axis=1).max(axis=1)
      
     # done
     return context_ec2
@@ -274,7 +289,15 @@ class BinCapUsed:
     self.df_bins['used_pct'] = self.df_bins.apply(calc_usedPct, axis=1)
 
     # add column for regions as string
-    self.df_bins['regions_str'] = self.df_bins['regions_set'].apply(lambda x: "%i (%s)"%(len(x), l2s(x)))
+    self.df_bins['regions_str'] = self.df_bins['regions_set'].apply(lambda x: "0" if len(x)==0 else "%i (%s)"%(len(x), l2s(x)))
+
+    # cases where dt_start > dt_end are those where there was no data and the initialization remained
+    # so overwrite with na
+    self.df_bins['dt_start'] = self.df_bins.apply(lambda row: np.nan if row.count_analyzed==0 else row.dt_start, axis=1)
+    self.df_bins['dt_end']   = self.df_bins.apply(lambda row: np.nan if row.count_analyzed==0 else row.dt_end  , axis=1)
+
+    # convert the dt_{start,end} back to dates again, given the nans
+    for fx in ['dt_start', 'dt_end']: self.df_bins[fx] = pd.to_datetime(self.df_bins[fx])
 
     # inject result for reporter access
     context_all['df_bins'] = self.df_bins

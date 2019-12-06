@@ -64,7 +64,7 @@ class ServiceCalculatorSave:
 
       # timestamp index to regular column to convert to date
       df_i = df_i.reset_index()
-      df_i['Timestamp'] = df_i['Timestamp'].dt.date
+      for fx in ['Timestamp', 'dt_start', 'dt_end']: df_i[fx] = df_i[fx].dt.date
       df_i.set_index('Timestamp', inplace=True)
       
       # transpose to match format of one-column output

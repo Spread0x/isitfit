@@ -23,14 +23,14 @@ class TestBinCapUsedHandlePre:
     bcs.handle_pre({'mainManager': FakeMm()})
 
     e = pd.DataFrame([
-        (dt.date(2019,1,31), 0, 0, 0, frozenset([])),
-        (dt.date(2019,2,28), 0, 0, 0, frozenset([])),
-        (dt.date(2019,3,31), 0, 0, 0, frozenset([])),
-        (dt.date(2019,4,30), 0, 0, 0, frozenset([]))
+        (dt.date(2019,1,31), 0, 0, 0, frozenset([]), dt.date(2019,1,31), dt.date(2019,1,1), ),
+        (dt.date(2019,2,28), 0, 0, 0, frozenset([]), dt.date(2019,2,28), dt.date(2019,2,1), ),
+        (dt.date(2019,3,31), 0, 0, 0, frozenset([]), dt.date(2019,3,31), dt.date(2019,3,1), ),
+        (dt.date(2019,4,30), 0, 0, 0, frozenset([]), dt.date(2019,4,30), dt.date(2019,4,1), ),
       ],
-      columns=['Timestamp', 'capacity_usd', 'used_usd', 'count_analyzed', 'regions_set']
+      columns=['Timestamp', 'capacity_usd', 'used_usd', 'count_analyzed', 'regions_set', 'dt_start', 'dt_end']
     )
-    e['Timestamp'] = pd.to_datetime(e['Timestamp'])
+    for fx in ['Timestamp', 'dt_start', 'dt_end']: e[fx] = pd.to_datetime(e[fx])
     e.set_index('Timestamp', inplace=True)
 
     pd.testing.assert_frame_equal(e, bcs.df_bins)
@@ -56,14 +56,14 @@ class TestBinCapUsedPerEc2:
 
     # expected
     e = pd.DataFrame([
-        (dt.date(2019,1,31), 68, 300, 2, frozenset(['us-west-2'])),
-        (dt.date(2019,2,28),  0,   0, 0, frozenset([])),
-        (dt.date(2019,3,31),  0,   0, 0, frozenset([])),
-        (dt.date(2019,4,30),  0,   0, 0, frozenset([]))
+        (dt.date(2019,1,31), 68, 300, 2, frozenset(['us-west-2']), dt.date(2019,1,15), dt.date(2019,1,17), ),
+        (dt.date(2019,2,28),  0,   0, 0, frozenset([]),            dt.date(2019,2,28), dt.date(2019,2, 1), ),
+        (dt.date(2019,3,31),  0,   0, 0, frozenset([]),            dt.date(2019,3,31), dt.date(2019,3, 1), ),
+        (dt.date(2019,4,30),  0,   0, 0, frozenset([]),            dt.date(2019,4,30), dt.date(2019,4, 1), ),
       ],
-      columns=['Timestamp', 'capacity_usd', 'used_usd', 'count_analyzed', 'regions_set']
+      columns=['Timestamp', 'capacity_usd', 'used_usd', 'count_analyzed', 'regions_set', 'dt_start', 'dt_end']
     )
-    e['Timestamp'] = pd.to_datetime(e['Timestamp'])
+    for fx in ['Timestamp', 'dt_start', 'dt_end']: e[fx] = pd.to_datetime(e[fx])
     e.set_index('Timestamp', inplace=True)
 
     # test expected = actual
@@ -108,18 +108,42 @@ class TestBinCapUsedPerEc2:
 
     # expected
     e = pd.DataFrame([
-        (dt.date(2019,1,31), 510, 153, 2, frozenset(['us-west-2'])),
-        (dt.date(2019,2,28), 840, 252, 2, frozenset(['us-west-2'])),
-        (dt.date(2019,3,31), 930, 279, 2, frozenset(['us-west-2'])),
-        (dt.date(2019,4,30), 450, 135, 2, frozenset(['us-west-2']))
+        (dt.date(2019,1,31), 510, 153, 2, frozenset(['us-west-2']), dt.date(2019,1,15), dt.date(2019,1,31), ),
+        (dt.date(2019,2,28), 840, 252, 2, frozenset(['us-west-2']), dt.date(2019,2, 1), dt.date(2019,2,28), ),
+        (dt.date(2019,3,31), 930, 279, 2, frozenset(['us-west-2']), dt.date(2019,3, 1), dt.date(2019,3,31), ),
+        (dt.date(2019,4,30), 450, 135, 2, frozenset(['us-west-2']), dt.date(2019,4, 1), dt.date(2019,4,15), ),
       ],
-      columns=['Timestamp', 'capacity_usd', 'used_usd', 'count_analyzed', 'regions_set']
+      columns=['Timestamp', 'capacity_usd', 'used_usd', 'count_analyzed', 'regions_set', 'dt_start', 'dt_end']
     )
-    e['Timestamp'] = pd.to_datetime(e['Timestamp'])
+    for fx in ['Timestamp', 'dt_start', 'dt_end']: e[fx] = pd.to_datetime(e[fx])
     e.set_index('Timestamp', inplace=True)
 
     # test expected = actual
     pd.testing.assert_frame_equal(e, bcs.df_bins)
 
 
+class TestBinCapUsedAfterAll:
+  def test_preNoBreak(self, FakeMm):
+    bcs = BinCapUsed()
+    ret = bcs.handle_pre({'mainManager': FakeMm()})
+    assert ret is not None
+
+  def test_3m(self, FakeMm):
+    bcs = BinCapUsed()
+    bcs.handle_pre({'mainManager': FakeMm()})
+    bcs.after_all({})
+
+    import numpy as np
+    e = pd.DataFrame([
+        (dt.date(2019,1,31), 0, 0, 0, frozenset([]), np.nan, np.nan, 0, '0', ),
+        (dt.date(2019,2,28), 0, 0, 0, frozenset([]), np.nan, np.nan, 0, '0', ),
+        (dt.date(2019,3,31), 0, 0, 0, frozenset([]), np.nan, np.nan, 0, '0', ),
+        (dt.date(2019,4,30), 0, 0, 0, frozenset([]), np.nan, np.nan, 0, '0', ),
+      ],
+      columns=['Timestamp', 'capacity_usd', 'used_usd', 'count_analyzed', 'regions_set', 'dt_start', 'dt_end', 'used_pct', 'regions_str']
+    )
+    for fx in ['Timestamp', 'dt_start', 'dt_end']: e[fx] = pd.to_datetime(e[fx])
+    e.set_index('Timestamp', inplace=True)
+
+    pd.testing.assert_frame_equal(e, bcs.df_bins)
 
