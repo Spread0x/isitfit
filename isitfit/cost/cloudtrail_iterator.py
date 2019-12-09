@@ -455,7 +455,7 @@ class EventAggregatorPostprocessed(EventAggregatorCached):
         # Edit 2019-11-12 use initial=0 otherwise if "=1" used then the tqdm output would be "101it" at conclusion, i.e.
         # First pass through EC2 instances: 101it [00:05,  5.19it/s]
         t_iter = ec2_instances
-        t_iter = self.tqdmman(t_iter, total=n_ec2, desc="Pass 1/2 through EC2 instances", initial=0)
+        t_iter = self.tqdmman(t_iter, total=n_ec2, desc="Pass 1/2 Cloudtrail history (EC2, Redshift)", initial=0)
         for ec2_dict, ec2_id, ec2_launchtime, ec2_obj in t_iter:
             self._appendNow(ec2_dict, ec2_id)
 

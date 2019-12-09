@@ -10,6 +10,9 @@ from isitfit.utils import logger
 
 
 class ReporterBase:
+  def __init__(self):
+    self.emailTo = None
+
   def postprocess(self, context_all):
     raise Exception("To be implemented by derived class")
 

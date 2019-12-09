@@ -39,13 +39,11 @@ class ServiceCalculatorGet:
     context_all = service_i.get_ifi(tqdml2_obj)
     context_service['context_all'] = context_all
     return context_service
-    
+
 
 class ServiceCalculatorSave:
   def __init__(self):
     self.table_d = {}
-    self.dfbin_d = {}
-    self.dfbin_p = None
 
   def per_service(self, context_service):
     service_name = context_service['ec2_id']
@@ -57,156 +55,239 @@ class ServiceCalculatorSave:
     table_single = {v['label']: v for v in table_single}
     self.table_d[service_name] = table_single
 
+    return context_service
+
+    
+
+class ServiceCalculatorBinned:
+  def __init__(self):
+    self.dfbin_d = {}
+    self.dfbin_p = None
+
+  def per_service(self, context_service):
+    service_name = context_service['ec2_id']
+
+    context_all = context_service['context_all']
+    if context_all is None: return context_service
+
     # get df_bin
-    if 'df_bins' in context_service['context_all']:
-      # shortcut
-      df_i = context_service['context_all']['df_bins']
+    if 'df_bins' not in context_service['context_all']:
+      return context_service
 
-      # timestamp index to regular column to convert to date
-      df_i = df_i.reset_index()
-      for fx in ['Timestamp', 'dt_start', 'dt_end']: df_i[fx] = df_i[fx].dt.date
-      df_i.set_index('Timestamp', inplace=True)
-      
-      # transpose to match format of one-column output
-      df_i = df_i.transpose()
+    # shortcut
+    df_i = context_service['context_all']['df_bins']
 
-      # add service name, so that EC2 and Redshift don't get mixed up
-      df_i['Service'] = service_name
+    # timestamp index to regular column to convert to date
+    df_i = df_i.reset_index()
+    for fx in ['Timestamp', 'dt_start', 'dt_end']: df_i[fx] = df_i[fx].dt.date
+    df_i.set_index('Timestamp', inplace=True)
 
-      # save
-      self.dfbin_d[service_name] = df_i
+    # sort columns for later's after_all, and drop regions_set
+    df_i = df_i[['dt_start', 'dt_end', 'regions_str', 'count_analyzed', 'capacity_usd', 'used_usd', 'used_pct']]
+    
+    # Replace code-friendly strings with human-friendly strings
+    fm = {
+      'dt_start': 'Start date',
+      'dt_end': 'End date',
+      'regions_str': 'Regions',
+      'count_analyzed': 'Resources analyzed',
+      'capacity_usd': 'Billed cost',
+      'used_usd': 'Used cost',
+      'used_pct': 'CWAU (Used/Billed)',
+    }
+    df_i.rename(columns=fm, inplace=True)
 
-      # TODO continue working on this to add fields enough to replace the "single-column" display
-      logger.info("Binned cost analyze: %s"%service_name)
-      logger.info(df_i)
+    # transpose to match format of one-column output
+    df_i = df_i.transpose()
+
+    # add service name, so that EC2 and Redshift don't get mixed up
+    df_i['Service'] = service_name
+
+    # save
+    self.dfbin_d[service_name] = df_i
 
     return context_service
 
 
-from isitfit.cost.base_reporter import ReporterBase
-class ServiceReporter(ReporterBase):
-  def __init__(self):
-    self.table_merged = []
+  def after_all(self, context_all):
+    """
+    concatenate the self.dfbin_d dict to pandas dataframe
+    """
+    import pandas as pd
+    self.dfbin_p = pd.concat([v.reset_index() for k,v in self.dfbin_d.items()], axis=0)
 
-  def postprocess(self, context_all):
-    # get first available start/end date
-    analyzer = context_all['analyzer']
-    date_source = analyzer.table_d.get('ec2', analyzer.table_d.get('redshift', None))
-    if date_source is None:
-      # no data for ec2 and redshift
-      return context_all
+    # rename the weird "Timestamp" column to "Field"
+    self.dfbin_p.rename(columns={'index': 'Field'}, inplace=True)
 
-    self.table_merged += [
-      {'color': '',
-       'label': "Start date",
-       'value':  date_source['Start date']['value'] # just take first
-      },
-      {'color': '',
-       'label': "End date",
-       'value': date_source['End date']['value'] # just take first
-      },
-    ]
+    # set index
+    self.dfbin_p.set_index(['Service', 'Field'], inplace=True)
 
-    # if no EC2:
-    if 'ec2' not in analyzer.table_d.keys():
-      self.table_merged.append(
-        {'color': '',
-         'label': "EC2 instances",
-         'value': "None found",
-        },
-      )
-    else:
-      self.table_merged += [
-        {'color': '',
-         'label': "EC2 Regions",
-         'value': analyzer.table_d['ec2']['Regions']['value'],
-        },
-        {'color': '',
-         'label': "EC2 machines (total)",
-         'value': analyzer.table_d['ec2']['EC2 machines (total)']['value'] # only 1 anyway
-        },
-        {'color': '',
-         'label': "EC2 machines (analyzed)",
-         'value': analyzer.table_d['ec2']['EC2 machines (analyzed)']['value'] # only 1 anyway
-        },
-        {'color': 'cyan',
-         'label': "EC2 Billed cost",
-         'value': analyzer.table_d['ec2']['Billed cost']['value']
-        },
-        {'color': 'cyan',
-         'label': "EC2 Used cost",
-         'value': analyzer.table_d['ec2']['Used cost']['value']
-        },
-        {'color': analyzer.table_d['ec2']['CWAU (Used/Billed)']['color'],
-         'label': "EC2 CWAU (Used/Billed)",
-         'value': analyzer.table_d['ec2']['CWAU (Used/Billed)']['value']
-        },
-      ]
-
-    # if no Redshift:
-    if 'redshift' not in analyzer.table_d.keys():
-      self.table_merged.append(
-        {'color': '',
-         'label': "Redshift clusters",
-         'value': "None found",
-        },
-      )
-    else:
-      self.table_merged += [
-        {'color': '',
-         'label': "Redshift Regions",
-         'value': analyzer.table_d['redshift']['Regions']['value']
-        },
-        {'color': '',
-         'label': "Redshift clusters (total)",
-         'value': analyzer.table_d['redshift']['Redshift clusters (total)']['value'] # only 1 anyway
-        },
-        {'color': '',
-         'label': "Redshift clusters (analyzed)",
-         'value': analyzer.table_d['redshift']['Redshift clusters (analyzed)']['value'] # only 1 anyway
-        },
-        {'color': 'cyan',
-         'label': "Redshift Billed cost",
-         'value': analyzer.table_d['redshift']['Billed cost']['value']
-        },
-        {'color': 'cyan',
-         'label': "Redshift Used cost",
-         'value': analyzer.table_d['redshift']['Used cost']['value']
-        },
-        {'color': analyzer.table_d['redshift']['CWAU (Used/Billed)']['color'],
-         'label': "Redshift CWAU (Used/Billed)",
-         'value': analyzer.table_d['redshift']['CWAU (Used/Billed)']['value']
-        },
-    ]
+    # save for later processing
+    context_all['dfbin_p'] = self.dfbin_p
 
     # done
     return context_all
 
+
+
+from isitfit.cost.base_reporter import ReporterBase
+
+#class ServiceReporterTotals(ReporterBase):
+#  def __init__(self):
+#    self.table_merged = []
+#
+#  def postprocess(self, context_all):
+#    # get first available start/end date
+#    analyzer = context_all['analyzer']
+#    date_source = analyzer.table_d.get('ec2', analyzer.table_d.get('redshift', None))
+#    if date_source is None:
+#      # no data for ec2 and redshift
+#      return context_all
+#
+#    self.table_merged += [
+#      {'color': '',
+#       'label': "Start date",
+#       'value':  date_source['Start date']['value'] # just take first
+#      },
+#      {'color': '',
+#       'label': "End date",
+#       'value': date_source['End date']['value'] # just take first
+#      },
+#    ]
+#
+#    # if no EC2:
+#    if 'ec2' not in analyzer.table_d.keys():
+#      self.table_merged.append(
+#        {'color': '',
+#         'label': "EC2 instances",
+#         'value': "None found",
+#        },
+#      )
+#    else:
+#      self.table_merged += [
+#        {'color': '',
+#         'label': "EC2 Regions",
+#         'value': analyzer.table_d['ec2']['Regions']['value'],
+#        },
+#        {'color': '',
+#         'label': "EC2 machines (total)",
+#         'value': analyzer.table_d['ec2']['EC2 machines (total)']['value'] # only 1 anyway
+#        },
+#        {'color': '',
+#         'label': "EC2 machines (analyzed)",
+#         'value': analyzer.table_d['ec2']['EC2 machines (analyzed)']['value'] # only 1 anyway
+#        },
+#        {'color': 'cyan',
+#         'label': "EC2 Billed cost",
+#         'value': analyzer.table_d['ec2']['Billed cost']['value']
+#        },
+#        {'color': 'cyan',
+#         'label': "EC2 Used cost",
+#         'value': analyzer.table_d['ec2']['Used cost']['value']
+#        },
+#        {'color': analyzer.table_d['ec2']['CWAU (Used/Billed)']['color'],
+#         'label': "EC2 CWAU (Used/Billed)",
+#         'value': analyzer.table_d['ec2']['CWAU (Used/Billed)']['value']
+#        },
+#      ]
+#
+#    # if no Redshift:
+#    if 'redshift' not in analyzer.table_d.keys():
+#      self.table_merged.append(
+#        {'color': '',
+#         'label': "Redshift clusters",
+#         'value': "None found",
+#        },
+#      )
+#    else:
+#      self.table_merged += [
+#        {'color': '',
+#         'label': "Redshift Regions",
+#         'value': analyzer.table_d['redshift']['Regions']['value']
+#        },
+#        {'color': '',
+#         'label': "Redshift clusters (total)",
+#         'value': analyzer.table_d['redshift']['Redshift clusters (total)']['value'] # only 1 anyway
+#        },
+#        {'color': '',
+#         'label': "Redshift clusters (analyzed)",
+#         'value': analyzer.table_d['redshift']['Redshift clusters (analyzed)']['value'] # only 1 anyway
+#        },
+#        {'color': 'cyan',
+#         'label': "Redshift Billed cost",
+#         'value': analyzer.table_d['redshift']['Billed cost']['value']
+#        },
+#        {'color': 'cyan',
+#         'label': "Redshift Used cost",
+#         'value': analyzer.table_d['redshift']['Used cost']['value']
+#        },
+#        {'color': analyzer.table_d['redshift']['CWAU (Used/Billed)']['color'],
+#         'label': "Redshift CWAU (Used/Billed)",
+#         'value': analyzer.table_d['redshift']['CWAU (Used/Billed)']['value']
+#        },
+#    ]
+#
+#    # done
+#    return context_all
+#
+#  def display(self, context_all):
+#    import click
+#
+#    if not self.table_merged:
+#      click.echo("No resources found in AWS EC2, Redshift")
+#      return context_all
+#
+#    # https://pypi.org/project/termcolor/
+#    from termcolor import colored
+#
+#    def get_row(row):
+#        def get_cell(i):
+#          retc = row[i] if not row['color'] else colored(row[i], row['color'])
+#          return retc
+#        
+#        retr = [get_cell('label'), get_cell('value')]
+#        return retr
+#
+#    dis_tab = [get_row(row) for row in self.table_merged]
+#
+#    # logger.info("Summary:")
+#    from tabulate import tabulate
+#    click.echo("Cost-Weighted Average Utilization (CWAU) of the AWS account:")
+#    click.echo("")
+#    click.echo(tabulate(dis_tab, headers=['Field', 'Value']))
+#    click.echo("")
+#    click.echo("For reference:")
+#    click.echo(colored("* CWAU >= 70% is well optimized", 'green'))
+#    click.echo(colored("* CWAU <= 30% is underused", 'red'))
+#
+#    return context_all
+#
+#  def email(self, context_all):
+#      if self.emailTo is None: return context_all
+#
+#      context_2 = {}
+#      context_2['emailTo'] = self.emailTo
+#      context_2['click_ctx'] = context_all['click_ctx']
+#      context_2['dataType'] = 'cost analyze' # redshift + ec2
+#      context_2['dataVal'] = {'table': self.table_merged}
+#      super().email(context_2)
+#
+#      return context_all
+
+
+
+class ServiceReporterBinned(ReporterBase):
   def display(self, context_all):
+    dfbin_p = context_all['dfbin_p']
+
     import click
-
-    if not self.table_merged:
-      click.echo("No resources found in AWS EC2, Redshift")
-      return context_all
-
-    # https://pypi.org/project/termcolor/
     from termcolor import colored
-
-    def get_row(row):
-        def get_cell(i):
-          retc = row[i] if not row['color'] else colored(row[i], row['color'])
-          return retc
-        
-        retr = [get_cell('label'), get_cell('value')]
-        return retr
-
-    dis_tab = [get_row(row) for row in self.table_merged]
+    from tabulate import tabulate
 
     # logger.info("Summary:")
-    from tabulate import tabulate
     click.echo("Cost-Weighted Average Utilization (CWAU) of the AWS account:")
     click.echo("")
-    click.echo(tabulate(dis_tab, headers=['Field', 'Value']))
+    click.echo(dfbin_p)
     click.echo("")
     click.echo("For reference:")
     click.echo(colored("* CWAU >= 70% is well optimized", 'green'))
@@ -214,15 +295,23 @@ class ServiceReporter(ReporterBase):
 
     return context_all
 
+
   def email(self, context_all):
+      if self.emailTo is None: return context_all
+
+      dfbin_p = context_all['dfbin_p']
+      dfbin_s = dfbin_p.to_json()
+
       context_2 = {}
-      context_2['emailTo'] = context_all['emailTo']
+      context_2['emailTo'] = self.emailTo
       context_2['click_ctx'] = context_all['click_ctx']
-      context_2['dataType'] = 'cost analyze' # redshift + ec2
-      context_2['dataVal'] = {'table': self.table_merged}
+      context_2['dataType'] = 'cost analyze (binned)' # redshift + ec2
+      context_2['dataVal'] = {'table': dfbin_s}
       super().email(context_2)
 
       return context_all
+
+
 
 
 def pipeline_factory(mm_eca, mm_rca, ctx, share_email):
@@ -245,21 +334,25 @@ def pipeline_factory(mm_eca, mm_rca, ctx, share_email):
     service_calculator_save = ServiceCalculatorSave()
     mm_all.add_listener('ec2', service_calculator_save.per_service)
 
+    service_calculator_binned = ServiceCalculatorBinned()
+    mm_all.add_listener('ec2', service_calculator_binned.per_service)
+    mm_all.add_listener('all', service_calculator_binned.after_all)
+
     # update dict and return it
     # https://stackoverflow.com/a/1453013/4126114
-    inject_analyzer = lambda context_all: dict({'analyzer': service_calculator_save}, **context_all)
-    mm_all.add_listener('all', inject_analyzer)
+    # inject_analyzer = lambda context_all: dict({'analyzer': service_calculator_save}, **context_all)
+    # inject_analyzer = lambda context_all: dict({'calculator_binned': service_calculator_binned}, **context_all)
+    # mm_all.add_listener('all', inject_analyzer)
+    # 
+    # service_reporter = ServiceReporterTotals()
+    # service_reporter.emailTo = share_email
+    # mm_all.add_listener('all', service_reporter.postprocess)
+    # mm_all.add_listener('all', service_reporter.display)
+    # mm_all.add_listener('all', service_reporter.email)
 
-    service_reporter = ServiceReporter()
-    mm_all.add_listener('all', service_reporter.postprocess)
-
+    service_reporter = ServiceReporterBinned()
+    service_reporter.emailTo = share_email
     mm_all.add_listener('all', service_reporter.display)
-
-    # update dict and return it
-    # https://stackoverflow.com/a/1453013/4126114
-    inject_email_in_context = lambda context_all: dict({'emailTo': share_email}, **context_all)
-    mm_all.add_listener('all', inject_email_in_context)
-
     mm_all.add_listener('all', service_reporter.email)
 
     # done
