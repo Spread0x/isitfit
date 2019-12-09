@@ -78,8 +78,15 @@ class ServiceCalculatorBinned:
     df_i = context_service['context_all']['df_bins']
 
     # timestamp index to regular column to convert to date
+    # Update 2019-12-08 need to convert to string instead of date
+    # because otherwise in --share-email
+    # the shared email will show the UNIX integer timestamp in the column name
+    # and the date cells
     df_i = df_i.reset_index()
-    for fx in ['Timestamp', 'dt_start', 'dt_end']: df_i[fx] = df_i[fx].dt.date
+    for fx in ['Timestamp', 'dt_start', 'dt_end']:
+      # df_i[fx] = df_i[fx].dt.date
+      df_i[fx] = df_i[fx].dt.strftime("%Y-%m-%d")
+
     df_i.set_index('Timestamp', inplace=True)
 
     # sort columns for later's after_all, and drop regions_set
@@ -300,7 +307,12 @@ class ServiceReporterBinned(ReporterBase):
       if self.emailTo is None: return context_all
 
       dfbin_p = context_all['dfbin_p']
-      dfbin_s = dfbin_p.to_json()
+
+      # FIXME pandas bug: to_json on dataframe with index yields unreadable json
+      # i.e. pd.read_json(dfbin_p.to_json()) raises an exception
+      # So need to reset_index first, and then set index again on the server-side
+      # dfbin_s = dfbin_p.to_json()
+      dfbin_s = dfbin_p.reset_index().to_json()
 
       context_2 = {}
       context_2['emailTo'] = self.emailTo
