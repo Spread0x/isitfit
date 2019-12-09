@@ -75,10 +75,17 @@ class CalculatorAnalyzeRedshift(CalculatorBaseRedshift):
 
       # merge df_single (metrics) with df_type_ts1 (cloudtrail history)
       # (adds column NodeType, NumberOfNodes)
-      rc_df = mergeSeriesOnTimestampRange(df_single, df_type_ts1, ['NodeType', 'NumberOfNodes'])
+      df_single = mergeSeriesOnTimestampRange(df_single, df_type_ts1, ['NodeType', 'NumberOfNodes'])
 
       # merge with the price catalog (adds column Cost)
-      rc_df = rc_df.merge(redshiftPricing_df, left_on='NodeType', right_on='NodeType', how='left')
+      df_single = df_single.merge(redshiftPricing_df, left_on='NodeType', right_on='NodeType', how='left')
+
+      # calculate columns capacity_usd and used_usd
+      df_single['used_usd'    ] = df_single.Average / 100 * df_single.Cost * df_single.n_hours * df_single.NumberOfNodes
+      df_single['capacity_usd'] = 1                       * df_single.Cost * df_single.n_hours * df_single.NumberOfNodes
+
+      # save back to context for further binning
+      context_ec2['df_single'] = df_single
 
       # summarize into 1 row
       self.analyze_list.append({
@@ -90,8 +97,8 @@ class CalculatorAnalyzeRedshift(CalculatorBaseRedshift):
         'Region': rc_describe_entry['Region'],
 
         # cost used/billed, including cloudtrail history
-        'CostUsed':   (rc_df.Average / 100 * rc_df.Cost * rc_df.n_hours * rc_df.NumberOfNodes).sum(),
-        'CostBilled': (1                   * rc_df.Cost * rc_df.n_hours * rc_df.NumberOfNodes).sum()
+        'CostUsed':   df_single['used_usd'    ].sum(),
+        'CostBilled': df_single['capacity_usd'].sum()
       })
 
       # done

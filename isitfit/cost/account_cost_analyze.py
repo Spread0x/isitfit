@@ -58,7 +58,7 @@ class ServiceCalculatorSave:
     self.table_d[service_name] = table_single
 
     # get df_bin
-    if service_name=='ec2':
+    if 'df_bins' in context_service['context_all']:
       # shortcut
       df_i = context_service['context_all']['df_bins']
 
@@ -77,7 +77,7 @@ class ServiceCalculatorSave:
       self.dfbin_d[service_name] = df_i
 
       # TODO continue working on this to add fields enough to replace the "single-column" display
-      logger.info("Binned ec2 cost analyze")
+      logger.info("Binned cost analyze: %s"%service_name)
       logger.info(df_i)
 
     return context_service

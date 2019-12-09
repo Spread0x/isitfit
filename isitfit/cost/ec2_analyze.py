@@ -186,6 +186,7 @@ class BinCapUsed:
     # https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases
     self.freq_end = '1M' # month end
     self.freq_start = '1MS' # month start
+    self.context_key = 'ec2_df'
 
   def handle_pre(self, context_pre):
     dt_start = context_pre['mainManager'].StartTime
@@ -222,7 +223,7 @@ class BinCapUsed:
     if self.df_bins is None:
       raise Exception("Call handle_pre first to set the dataframe")
 
-    ec2_df = context_ec2['ec2_df']
+    ec2_df = context_ec2[self.context_key]
     df_add = ec2_df[['Timestamp', 'capacity_usd', 'used_usd']].copy()
 
     # index + add a duplicate column for the timestamp and use it to get min/max dates in a time bin
@@ -237,11 +238,6 @@ class BinCapUsed:
     df_me['dt_start'] = df_add['ts2'].resample(self.freq_end).min()
     df_me['dt_end'] = df_add['ts2'].resample(self.freq_end).max()
 
-    # cast all to int for simplicity
-    for fx in ['capacity_usd', 'used_usd']:
-      df_me[fx] = df_me[fx].fillna(value=0)
-      df_me[fx] = df_me[fx].astype(int)
-
     # dummy column showing 1 for the current instance, ie where there is any capacity
     # df_me['count_analyzed'] = 1
     df_me['count_analyzed'] = (df_me.capacity_usd > 0).astype(int)
@@ -249,6 +245,11 @@ class BinCapUsed:
     # append region
     #df_me['region'] = set([context_ec2['ec2_dict']['Region'])
     df_me['regions_set'] = df_me.apply(lambda row: frozenset([context_ec2['ec2_dict']['Region']]), axis=1)
+
+    # cast all to int for simplicity
+    for fx in ['capacity_usd', 'used_usd']:
+      df_me[fx] = df_me[fx].fillna(value=0)
+      df_me[fx] = df_me[fx].astype(int)
 
     # Add dataframes ints
     # Using the "+" operator will just fill missing indeces with NaN
@@ -273,7 +274,7 @@ class BinCapUsed:
     # add the start/end dates
     self.df_bins['dt_start'] = pd.concat([self.df_bins.dt_start, df_me.dt_start], axis=1).min(axis=1)
     self.df_bins['dt_end'  ] = pd.concat([self.df_bins.dt_end,   df_me.dt_end  ], axis=1).max(axis=1)
-     
+
     # done
     return context_ec2
 

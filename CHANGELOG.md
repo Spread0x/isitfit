@@ -8,6 +8,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
     - still doesn't show up by default in the end result unless `--verbose` is turned on. WIP
     - add `regions_set` and `regions_str` as well as service column
     - add date start/end
+    - apply the same binning class to redshift data
 
 
 Version 0.17.2 (2019-12-05)
