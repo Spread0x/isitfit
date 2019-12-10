@@ -149,10 +149,13 @@ def redshift_cost_core(ra, rr, share_email, filter_region, ctx, filter_tags):
     from isitfit.cost.cloudtrail_ec2type import CloudtrailCached
 
     mm = MainManager("Redshift cost analyze or optimize", ctx)
+    mm.set_ndays(ctx.obj['ndays'])
+
     cache_man = RedisPandasCacheManager()
 
     # manager of cloudwatch
     cwman = CloudwatchRedshift(cache_man)
+    cwman.set_ndays(ctx.obj['ndays'])
 
     # common stuff
     ec2_common = Ec2Common()

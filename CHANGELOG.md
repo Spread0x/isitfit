@@ -13,6 +13,8 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - bugfix: `--ndays` was not really having any effect.. fixed
 - enh: include ndays in redis cache keys
 - enh: `dt_end` in binned report's last column should be incremented by 1 day when ndays<64 (boto3/cloudwatch bug?)
+- bugfix: redshift cost analyze to also take into account `ndays`
+- bugfix: more empty-data checks
 
 
 Version 0.17.2 (2019-12-05)

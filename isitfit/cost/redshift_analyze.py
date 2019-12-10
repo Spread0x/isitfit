@@ -107,8 +107,21 @@ class CalculatorAnalyzeRedshift(CalculatorBaseRedshift):
 
 
   def calculate(self, context_all):
+    # defaults
+    self.cost_used = 0
+    self.cost_billed = 0
+    self.cwau_percent = 0
+    self.regions_n = 0
+
     # calculate cost-weighted utilization
     analyze_df = self.analyze_df
+
+    # no data, eg when ndays=1 and a cluster is launched a few minutes ago,
+    # cloudwatch has a bug whereby it doesn't return today's data anymore.
+    # Need to set ndays>=64 to get today's data. Check related bugfix in ec2_analyze
+    if analyze_df.shape[0]==0:
+      return context_all
+
     self.cost_used   = analyze_df.CostUsed.fillna(value=0).sum()
     self.cost_billed = analyze_df.CostBilled.fillna(value=0).sum()
     self.regions_n = len(analyze_df.Region.unique())

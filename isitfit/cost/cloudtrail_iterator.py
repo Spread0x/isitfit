@@ -464,6 +464,10 @@ class EventAggregatorPostprocessed(EventAggregatorCached):
         for ec2_dict, ec2_id, ec2_launchtime, ec2_obj in t_iter:
             self._appendNow(ec2_dict, ec2_id)
 
+        # if still no data, just return
+        if self.df_cloudtrail.shape[0]==0:
+          return self.df_cloudtrail
+
         # set index again, and sort decreasing this time (not like git-remote-aws default)
         # The descending sort is very important for the mergeTimeseries... function
         self.df_cloudtrail = self.df_cloudtrail.set_index(["Region", "ServiceName", "ResourceName", "EventTime"]).sort_index(ascending=False)
