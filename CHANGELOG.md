@@ -12,6 +12,7 @@ Version 0.18.{1,2} (2019-12-09)
   - found this issue when testing `isitfit cost analyze --ndays=15`
 - bugfix: cost analyze: when no ec2/redshift data found, just raise an exception in the binning aggregator and abort early
 - bugfix: cost optimize: skip the step of binning for redshift cost optimize in the "common" pipeline factory
+- enh: cost analyze: pretty-print dollars/percentages in binned report
 
 
 Version 0.18.0 (2019-12-09)

@@ -92,6 +92,12 @@ class ServiceCalculatorBinned:
     # sort columns for later's after_all, and drop regions_set
     df_i = df_i[['dt_start', 'dt_end', 'regions_str', 'count_analyzed', 'capacity_usd', 'used_usd', 'used_pct']]
     
+    # pretty-print dollar/percentage signs
+    df_i['capacity_usd'] = df_i['capacity_usd'].apply(lambda x: "%0.0f $"%x)
+    df_i['used_usd'    ] = df_i['used_usd'    ].apply(lambda x: "%0.0f $"%x)
+    df_i['used_pct'    ] = df_i['used_pct'    ].apply(lambda x: "%0.0f %%"%x)
+
+    
     # Replace code-friendly strings with human-friendly strings
     fm = {
       'dt_start': 'Start date',
