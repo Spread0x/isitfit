@@ -134,13 +134,21 @@ class BaseIterator:
 
       # boto3 clients
       # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/redshift.html#Redshift.Client.describe_logging_status
-      redshift_client = boto3.client(self.service_name)
+      # Update 2019-12-09
+      #   Unfolding the iterator can cause a rate limiting error for accounts with more than 200 EC2
+      #   as reported by u/moofishies on 2019-11-12
+      #   Similar to: https://github.com/boto/botocore/pull/891#issuecomment-303526763
+      #   The max_attempts config here is increased from the default 4 to decrease the rate limiting chances
+      #   https://github.com/boto/botocore/pull/1260
+      #   Note that with each extra retry, an exponential backoff is already implemented inside botocore
+      from botocore.config import Config
+      service_client = boto3.client(self.service_name, config=Config(retries={'max_attempts': 10}))
 
       # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/cloudwatch.html#metric
       self.cloudwatch_resource = boto3.resource('cloudwatch')
 
-      # iterate on redshift clusters
-      paginator = redshift_client.get_paginator(self.paginator_name)
+      # iterate on service resources, eg ec2 instances, redshift clusters
+      paginator = service_client.get_paginator(self.paginator_name)
       rc_iterator = paginator.paginate()
       try:
         region_anyClusterFound = False
