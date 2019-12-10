@@ -163,7 +163,17 @@ class CloudwatchCached(CloudwatchBase):
 
 
   def handle_main(self, rc_describe_entry, rc_id, rc_created):
-        cache_key = "mainManager._cloudwatch_metrics/%s"%rc_id
+        # build key out of the same parameters in metric.get_statistics and metrics.filter
+        #cache_key = "{Namespace}/{MetricName}/{DimensionName}/{DimensionValue}/{ndays}".format(
+        #  Namespace = self.cloudwatch_namespace,
+        #  MetricName = 'CPUUtilization',
+        #  DimensionName = self.entry_keyId,
+        #  DimensionValue = rc_id,
+        #  ndays = self.ndays
+        #)
+
+        # KISS for now
+        cache_key = "cloudwatch:cpu:%s:%i"%(rc_id, self.ndays)
 
         # in case of no cache
         if self.cache_man is None:

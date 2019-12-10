@@ -193,7 +193,8 @@ class DatadogCached(DatadogManager):
 
     def get_metrics_all(self, host_id):
         # check cache first
-        cache_key = "mainManager._get_ddg_cached/%s"%host_id
+        cache_key = "datadog:cpu+ram:%s:%i"%(host_id, self.ndays)
+
         if self.cache_man.isReady():
           df_cache = self.cache_man.get(cache_key)
           if df_cache is not None:

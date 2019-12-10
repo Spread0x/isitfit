@@ -69,6 +69,11 @@ class EventIterator:
 
         # edit 2019-11-20 instead of defining this client in Gra... and passing it through several layers,
         # just define it here
+        # Note 2019-12-09 Cloudtrail can return a max of 90 days
+        # In this class, the start/end dates are not specified so as to fetch the whole 90 days and cache them
+        # Not very efficient, but works ATM. This is not a per EC2/Redshift call
+        # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/cloudtrail.html#CloudTrail.Client.lookup_events
+        # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/cloudtrail.html#CloudTrail.Paginator.LookupEvents
         client = boto3.client('cloudtrail')
         self.region_name = client.meta.region_name
         cp = client.get_paginator(operation_name="lookup_events")
