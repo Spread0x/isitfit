@@ -300,6 +300,17 @@ class BinCapUsed:
     # convert the dt_{start,end} back to dates again, given the nans
     for fx in ['dt_start', 'dt_end']: self.df_bins[fx] = pd.to_datetime(self.df_bins[fx])
 
+    # Bugfix for cloudwatch:
+    # When 90>=ndays>=64, cloudwatchman/metric.get_statistics returns data with max Timestamp on mainmanager.EndTime
+    # Otherwise, the data max Timestamp is EndTime - 1 day
+    # Here, get around this problem by incrementing by 1 day (or just set to mainmanager.EndTime)
+    # This was tested on 2019-12-10 10:00 am UTC, and the last date was Dec 9 for ndays<64 and Dec 10 for ndays>=64
+    if pd.notnull(self.df_bins['dt_end'].iloc[-1]):
+      dt_max = context_all['mainManager'].EndTime.date()
+      import datetime as dt
+      dt_lastp1 = self.df_bins.dt_end.iloc[-1].date() + dt.timedelta(days=1)
+      self.df_bins.iloc[-1, self.df_bins.columns=='dt_end'] = min(dt_max, dt_lastp1)
+
     # inject result for reporter access
     context_all['df_bins'] = self.df_bins
     return context_all
