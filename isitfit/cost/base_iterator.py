@@ -141,6 +141,7 @@ class BaseIterator:
       #   The max_attempts config here is increased from the default 4 to decrease the rate limiting chances
       #   https://github.com/boto/botocore/pull/1260
       #   Note that with each extra retry, an exponential backoff is already implemented inside botocore
+      #   More: https://botocore.amazonaws.com/v1/documentation/api/latest/reference/config.html
       from botocore.config import Config
       service_client = boto3.client(self.service_name, config=Config(retries={'max_attempts': 10}))
 
