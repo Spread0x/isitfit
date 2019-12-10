@@ -292,7 +292,7 @@ class ServiceReporterBinned(ReporterBase):
     from tabulate import tabulate
 
     # logger.info("Summary:")
-    click.echo("Cost-Weighted Average Utilization (CWAU) of the AWS account:")
+    click.echo("Cost-Weighted Average Utilization (CWAU) of the AWS account (EC2, Redshift):")
     click.echo("")
     click.echo(dfbin_p)
     click.echo("")
