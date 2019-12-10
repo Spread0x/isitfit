@@ -15,6 +15,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - enh: `dt_end` in binned report's last column should be incremented by 1 day when ndays<64 (boto3/cloudwatch bug?)
 - bugfix: redshift cost analyze to also take into account `ndays`
 - bugfix: more empty-data checks
+- feat, cost analyze: change binning frequency depending on the ndays option
 
 
 Version 0.17.2 (2019-12-05)

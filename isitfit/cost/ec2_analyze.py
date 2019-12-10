@@ -183,20 +183,52 @@ class BinCapUsed:
   def __init__(self):
     # sums, in a dataframe of time bins instead of 1 global number
     self.df_bins = None
-    # https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases
-    self.freq_end = '1M' # month end
-    self.freq_start = '1MS' # month start
     self.context_key = 'ec2_df'
 
+  def _set_freq(self, ndays):
+    # append x more month due to pandas date_range not yielding the EOM after dt_end
+    # https://stackoverflow.com/a/4406260/4126114
+    from dateutil.relativedelta import relativedelta
+
+    # https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases
+
+    if ndays <= 7:
+      self.freq_start = '1D' # daily start
+      self.freq_end = '1D' # daily end
+      self.freq_delta = relativedelta(days=1)
+      return
+
+    if ndays <= 30:
+      self.freq_start = '1W-MON' # weekly start
+      self.freq_end = '1W-SUN' # weekly end
+      self.freq_delta = relativedelta(days=7)
+      return
+
+    if ndays <= 60:
+      self.freq_start = '1SMS' # semi-month start
+      self.freq_end = '1SM' # semi-month end
+      self.freq_delta = relativedelta(days=15)
+      return
+
+    # otherwise monthly. Max data is 90 days from cloudwatch anyway
+    self.freq_start = '1MS' # month start
+    self.freq_end = '1M' # month end
+    self.freq_delta = relativedelta(months=1)
+    return
+
+
   def handle_pre(self, context_pre):
+    # set freq
+    ndays = context_pre['mainManager'].ndays
+    self._set_freq(ndays)
+
+    # set df_bins
     dt_start = context_pre['mainManager'].StartTime
     dt_end = context_pre['mainManager'].EndTime
 
     # append 1 more month due to pandas date_range not yielding the EOM after dt_end
-    # https://stackoverflow.com/a/4406260/4126114
-    from dateutil.relativedelta import relativedelta
-    dt_end2   = dt_end   + relativedelta(months=1)
-    dt_start2 = dt_start - relativedelta(months=1)
+    dt_end2   = dt_end   + self.freq_delta
+    dt_start2 = dt_start - self.freq_delta
 
     # get list of dates with freq
     # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.date_range.html
@@ -206,7 +238,7 @@ class BinCapUsed:
 
     # create dataframe
     self.df_bins = pd.DataFrame({
-      'Timestamp': dt_range_end,
+      'Timestamp': dt_range_end, # use dt_range_end in conjunction with label='right' in the .resample calls below
       'capacity_usd': 0,
       'used_usd': 0,
       'count_analyzed': 0,
@@ -232,11 +264,11 @@ class BinCapUsed:
     df_add.set_index('Timestamp', inplace=True)
 
     # resample ints
-    df_me = df_add[['capacity_usd', 'used_usd']].resample(self.freq_end).sum()
+    df_me = df_add[['capacity_usd', 'used_usd']].resample(self.freq_end, label='right').sum()
 
     # resample dates
-    df_me['dt_start'] = df_add['ts2'].resample(self.freq_end).min()
-    df_me['dt_end'] = df_add['ts2'].resample(self.freq_end).max()
+    df_me['dt_start'] = df_add['ts2'].resample(self.freq_end, label='right').min()
+    df_me['dt_end'] = df_add['ts2'].resample(self.freq_end, label='right').max()
 
     # dummy column showing 1 for the current instance, ie where there is any capacity
     # df_me['count_analyzed'] = 1
