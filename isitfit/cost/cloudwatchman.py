@@ -19,14 +19,13 @@ class CloudwatchBase:
 
   cloudwatch_namespace = None
   entry_keyId = None
-  ndays = 90
-
 
   def __init__(self):
-    self._initDates()
+    self.set_ndays(90) # default is 90 days
 
+  def set_ndays(self, ndays):
+    self.ndays = ndays
 
-  def _initDates(self):
     # set start/end dates
 
     # FIXME? in mainManager, used pytz

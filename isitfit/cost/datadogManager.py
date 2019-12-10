@@ -106,10 +106,12 @@ class DatadogAssistant:
 
 
 class DatadogManager:
-    ndays = 90
-    
     def __init__(self):
         initialize()
+        self.set_ndays(90) # default is 90 days
+
+    def set_ndays(self, ndays):
+        self.ndays = ndays
         self.end = int(time.time())
         
         # datadog will automatically set the resolution based on the start-end range
