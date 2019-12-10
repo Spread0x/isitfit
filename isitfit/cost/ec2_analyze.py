@@ -1,8 +1,5 @@
 from isitfit.utils import logger
-
-
-
-
+import pandas as pd
 
 from isitfit.cost.base_iterator import BaseIterator
 class Ec2Iterator(BaseIterator):
@@ -56,7 +53,6 @@ class Ec2Iterator(BaseIterator):
 
 
 
-import pandas as pd
 from tabulate import tabulate
 
 # https://pypi.org/project/termcolor/
@@ -188,32 +184,32 @@ class BinCapUsed:
   def _set_freq(self, ndays):
     # append x more month due to pandas date_range not yielding the EOM after dt_end
     # https://stackoverflow.com/a/4406260/4126114
-    from dateutil.relativedelta import relativedelta
+    #from dateutil.relativedelta import relativedelta
 
     # https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases
 
     if ndays <= 7:
       self.freq_start = '1D' # daily start
       self.freq_end = '1D' # daily end
-      self.freq_delta = relativedelta(days=1)
+      #self.freq_delta = relativedelta(days=1)
       return
 
     if ndays <= 30:
       self.freq_start = '1W-MON' # weekly start
       self.freq_end = '1W-SUN' # weekly end
-      self.freq_delta = relativedelta(days=7)
+      #self.freq_delta = relativedelta(days=7)
       return
 
     if ndays <= 60:
       self.freq_start = '1SMS' # semi-month start
       self.freq_end = '1SM' # semi-month end
-      self.freq_delta = relativedelta(days=15)
+      #self.freq_delta = relativedelta(days=15)
       return
 
     # otherwise monthly. Max data is 90 days from cloudwatch anyway
     self.freq_start = '1MS' # month start
     self.freq_end = '1M' # month end
-    self.freq_delta = relativedelta(months=1)
+    #self.freq_delta = relativedelta(months=1)
     return
 
 
@@ -222,19 +218,33 @@ class BinCapUsed:
     ndays = context_pre['mainManager'].ndays
     self._set_freq(ndays)
 
-    # set df_bins
+    # util vars
     dt_start = context_pre['mainManager'].StartTime
-    dt_end = context_pre['mainManager'].EndTime
+    dt_end   = context_pre['mainManager'].EndTime
+
+    # set df_bins
+    dt_daily = pd.date_range(start=dt_start.date(), end=dt_end.date(),  freq='1D')
+    df_d1 = pd.DataFrame({
+      'Timestamp': dt_daily,
+      'dummy': [0]*len(dt_daily),
+    })
+    df_d1.set_index('Timestamp', inplace=True)
+    df_d2s = df_d1.resample(self.freq_end, label='left' ).sum()
+    df_d2e = df_d1.resample(self.freq_end, label='right').sum()
 
     # append 1 more month due to pandas date_range not yielding the EOM after dt_end
-    dt_end2   = dt_end   + self.freq_delta
-    dt_start2 = dt_start - self.freq_delta
+    # Update 2019-12-09 no longer needed due to usage of .resample instead of .date_range
+    #dt_start2 = dt_start - self.freq_delta
+    #dt_end2   = dt_end   + self.freq_delta
 
     # get list of dates with freq
     # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.date_range.html
-    import pandas as pd
-    dt_range_end   = pd.date_range(start=dt_start.date(),  end=dt_end2.date(), freq=self.freq_end  )
-    dt_range_start = pd.date_range(start=dt_start2.date(), end=dt_end.date(),  freq=self.freq_start)
+    # Update 2019-12-09 instead of using date_range to manually build the dataframe,
+    # just use .resample on a dummy dataframe and pick up the index
+    #dt_range_start = pd.date_range(start=dt_start2.date(), end=dt_end.date(),  freq=self.freq_start)
+    #dt_range_end   = pd.date_range(start=dt_start.date(),  end=dt_end2.date(), freq=self.freq_end  )
+    dt_range_start = df_d2s.reset_index().Timestamp.tolist()
+    dt_range_end   = df_d2e.reset_index().Timestamp.tolist()
 
     # create dataframe
     self.df_bins = pd.DataFrame({
@@ -313,7 +323,6 @@ class BinCapUsed:
   def after_all(self, context_all):
     # add col for utilization in percentage
     import numpy as np
-    import pandas as pd
     def calc_usedPct(row):
       if row.capacity_usd==0: return 0
       o = row.used_usd / row.capacity_usd * 100

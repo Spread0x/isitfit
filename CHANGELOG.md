@@ -6,6 +6,11 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
+Version 0.18.1 (2019-12-09)
+
+- hotfix: cost analyze: use resample instead of manually constructing the binned dataframe with `date_range`
+
+
 Version 0.18.0 (2019-12-09)
 
 - feat: ec2 cost analyze now gathers a per-month version of the same displayed single-column table
