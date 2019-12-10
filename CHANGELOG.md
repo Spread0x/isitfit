@@ -6,10 +6,11 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
-Version 0.18.1 (2019-12-09)
+Version 0.18.{1,2} (2019-12-09)
 
-- hotfix: cost analyze: use resample instead of manually constructing the binned dataframe with `date_range`
+- bugfix: cost analyze: use resample instead of manually constructing the binned dataframe with `date_range`
   - found this issue when testing `isitfit cost analyze --ndays=15`
+- bugfix: cost analyze: when no ec2/redshift data found, just raise an exception in the binning aggregator and abort early
 
 
 Version 0.18.0 (2019-12-09)

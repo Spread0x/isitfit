@@ -120,8 +120,13 @@ class ServiceCalculatorBinned:
     """
     concatenate the self.dfbin_d dict to pandas dataframe
     """
+    dfbin_l = [v.reset_index() for k,v in self.dfbin_d.items()]
+    if len(dfbin_l)==0:
+      from isitfit.utils import IsitfitCliError
+      raise IsitfitCliError("No data found")
+
     import pandas as pd
-    self.dfbin_p = pd.concat([v.reset_index() for k,v in self.dfbin_d.items()], axis=0)
+    self.dfbin_p = pd.concat(dfbin_l, axis=0)
 
     # rename the weird "Timestamp" column to "Field"
     self.dfbin_p.rename(columns={'index': 'Field'}, inplace=True)
