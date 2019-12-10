@@ -171,15 +171,27 @@ def redshift_cost_core(ra, rr, share_email, filter_region, ctx, filter_tags):
     inject_analyzer = lambda context_all: dict({'analyzer': ra}, **context_all)
 
     # binning
-    from isitfit.cost.ec2_analyze import BinCapUsed
-    bcs = BinCapUsed()
-    bcs.context_key = 'df_single'
+    do_binning = False
+    ra_name = type(ra).__name__
+    if ra_name == 'CalculatorOptimizeRedshift':
+      do_binning = False
+    elif ra_name == 'CalculatorAnalyzeRedshift':
+      do_binning = True
+    else:
+      raise Exception("Invalid calculator class passed: %s"%ra_name)
+
+    if do_binning:
+      from isitfit.cost.ec2_analyze import BinCapUsed
+      bcs = BinCapUsed()
+      bcs.context_key = 'df_single'
 
     # setup pipeline
     mm.set_iterator(ri)
     mm.add_listener('pre', cache_man.handle_pre)
     mm.add_listener('pre', cloudtrail_manager.init_data)
-    mm.add_listener('pre', bcs.handle_pre)
+
+    if do_binning:
+      mm.add_listener('pre', bcs.handle_pre)
 
     rtf = RedshiftTagFilter(filter_tags)
     mm.add_listener('ec2', rtf.per_cluster)
@@ -187,14 +199,18 @@ def redshift_cost_core(ra, rr, share_email, filter_region, ctx, filter_tags):
     mm.add_listener('ec2', cwman.per_ec2)
     mm.add_listener('ec2', cloudtrail_manager.single)
     mm.add_listener('ec2', ra.per_ec2)
-    mm.add_listener('ec2', bcs.per_ec2)
+
+    if do_binning:
+      mm.add_listener('ec2', bcs.per_ec2)
 
     mm.add_listener('all', ec2_common.after_all) # just show IDs missing cloudwatch/cloudtrail
     mm.add_listener('all', ra.after_all)
     mm.add_listener('all', ra.calculate)
     mm.add_listener('all', inject_analyzer)
     mm.add_listener('all', rr.postprocess)
-    mm.add_listener('all', bcs.after_all)
+
+    if do_binning:
+      mm.add_listener('all', bcs.after_all)
 
     #inject_email_in_context = lambda context_all: dict({'emailTo': share_email}, **context_all)
     #mm.add_listener('all', rr.display)

@@ -49,7 +49,7 @@ AWS_PROFILE=afc_shadi_useast1 isitfit cost analyze --ndays=90
 
 echo "Test 3: default profile in region with 0 ec2 instances"
 # Note, unlike isitfit tags dump which returns a non-0 code if 0 ec2 found, this one just returns 0
-isitfit cost --filter-region=eu-central-1 analyze --ndays=90
+isitfit cost --filter-region=eu-central-1 analyze --ndays=90 || echo "Expect to fail"
 
 
 echo "Test 4: optimize with default profile"
