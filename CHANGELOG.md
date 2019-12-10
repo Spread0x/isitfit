@@ -6,7 +6,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
-Version 0.18.{1,2,3} (2019-12-09)
+Version 0.18.{1,2,3,4} (2019-12-09)
 
 - bugfix: cost analyze: use resample instead of manually constructing the binned dataframe with `date_range`
   - found this issue when testing `isitfit cost analyze --ndays=15`
@@ -14,6 +14,7 @@ Version 0.18.{1,2,3} (2019-12-09)
 - bugfix: cost optimize: skip the step of binning for redshift cost optimize in the "common" pipeline factory
 - enh: cost analyze: pretty-print dollars/percentages in binned report
 - feat: cost: increase `config.retries.max_attempts` from 4 to 10 (knowing that botocore has exponential backoff) to get around rate limiting
+- enh: cost: disable the global service-level progressbar in favor of showing the individual step bars, at least until a more meaningful service-level progressbar is implemented
 
 
 Version 0.18.0 (2019-12-09)
