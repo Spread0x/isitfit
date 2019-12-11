@@ -9,6 +9,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - feat: cost analyze: send profile and `filter-region` to `share-email` endpoint for display in email
 - enh: refactor to move `IsitfitCliError` from `isitfit.utils` to `isitfit.cli.click_descendents`
 - enh: cost analyze: add some spaces to align progress bars
+- enh: cost: change default of `ndays` from 90 to 7 to inspire user repeat usage
 
 
 Version 0.18.{1,2,3,4} (2019-12-09)
