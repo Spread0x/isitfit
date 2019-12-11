@@ -4,6 +4,7 @@ Semantic versioning
 Version latest (0.18.0rc?, 2019-12-05?)
 
 - ...
+- enh: cost analyze: use `click.IntRange` for `--ndays`
 
 
 Version 0.18.{1,2,3,4} (2019-12-09)
