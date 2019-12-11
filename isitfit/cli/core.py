@@ -119,6 +119,9 @@ def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upg
     import os
     os.environ['AWS_PROFILE'] = profile
 
+    # save profile in click context for other usage in displayed/emailed report
+    ctx.obj['aws_profile'] = profile
+
 
 
 

@@ -6,6 +6,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 - enh: cost analyze: use `click.IntRange` for `--ndays`
 - feat: prompt user for aws profile to use
+- feat: send profile and `filter-region` to `share-email` endpoint for display in email
 
 
 Version 0.18.{1,2,3,4} (2019-12-09)

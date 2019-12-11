@@ -318,6 +318,7 @@ class ServiceReporterBinned(ReporterBase):
       if self.emailTo is None: return context_all
 
       dfbin_p = context_all['dfbin_p']
+      ctx = context_all['click_ctx']
 
       # FIXME pandas bug: to_json on dataframe with index yields unreadable json
       # i.e. pd.read_json(dfbin_p.to_json()) raises an exception
@@ -329,7 +330,13 @@ class ServiceReporterBinned(ReporterBase):
       context_2['emailTo'] = self.emailTo
       context_2['click_ctx'] = context_all['click_ctx']
       context_2['dataType'] = 'cost analyze (binned)' # redshift + ec2
-      context_2['dataVal'] = {'table': dfbin_s}
+      context_2['dataVal'] = {
+        'table': dfbin_s,
+        'options': {
+          'aws_profile': ctx.obj['aws_profile'],
+          'filter_region': ctx.obj['filter_region'] or 'all'
+        }
+      }
       super().email(context_2)
 
       return context_all
