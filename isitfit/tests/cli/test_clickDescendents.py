@@ -105,3 +105,67 @@ def test_IsitfitGroup_exceptionsForwarded(ping_matomo, runner, group_case):
   else:
     ping_matomo.assert_not_called()
 
+
+@pytest.mark.skip(reason="This test needs to be fixed to replicate the actual behavior")
+def test_ClickOption_failsWithPrompt(runner):
+  @click.group()
+  def isitfit(): pass
+
+  @click.group()
+  @click.option('--prompt', default='foo', prompt='my prompt', type=str)
+  def cost(prompt): pass
+
+  @click.command()
+  def analyze(): pass
+
+  cost.add_command(analyze)
+  isitfit.add_command(cost)
+
+  # invoke and assert
+  result = runner.invoke(isitfit, ['cost', '--help'])
+  assert False # the invoke above is expected to halt at the prompt and fail, but not working as expected ATM
+
+
+def test_IsitfitOption_worksWithPrompt(runner):
+  """
+  This test is the working counter-part of test_ClickOption_failsWithPrompt which was expected to fail
+  """
+  from isitfit.cli.click_descendents import isitfit_option
+
+  @click.group()
+  def isitfit(): pass
+
+  @click.group()
+  @isitfit_option('--prompt', default='foo', prompt='my prompt', type=str)
+  def cost(prompt): pass
+
+  @click.command()
+  def analyze(): pass
+
+  cost.add_command(analyze)
+  isitfit.add_command(cost)
+
+  # invoke and assert
+  result = runner.invoke(isitfit, ['cost', '--help'])
+  assert True
+
+
+def test_IsitfitOptionProfile_ok(runner):
+  from isitfit.cli.click_descendents import isitfit_option_profile
+
+  @click.group()
+  def isitfit(): pass
+
+  @click.group()
+  @isitfit_option_profile()
+  def cost(prompt): pass
+
+  @click.command()
+  def analyze(): pass
+
+  cost.add_command(analyze)
+  isitfit.add_command(cost)
+
+  # invoke and assert
+  result = runner.invoke(isitfit, ['cost', '--help'])
+  assert True

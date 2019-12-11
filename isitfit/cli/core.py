@@ -14,14 +14,9 @@ import click
 
 from .. import isitfit_version
 
-from isitfit.utils import AwsProfileMan
-profile_man = AwsProfileMan()
-
 
 # For the --share-email "multiple options"
 # https://click.palletsprojects.com/en/7.x/options/#multiple-options
-# About --profile: docs at
-# https://click.palletsprojects.com/en/7.x/options/?highlight=prompt#values-from-environment-variables
 from isitfit.cli.click_descendents import isitfit_group
 @isitfit_group(invoke_without_command=False)
 @click.option('--debug', is_flag=True, help='Display more details to help with debugging')
@@ -30,9 +25,8 @@ from isitfit.cli.click_descendents import isitfit_group
 @click.option('--version', is_flag=True, help='DEPRECATED: use "isitfit version" instead', hidden=True)
 @click.option('--share-email', multiple=True, help='Share result to email address')
 @click.option('--skip-check-upgrade', is_flag=True, help='Skip step for checking for upgrade of isitfit')
-@click.option('--profile', type=str, default='default', callback=profile_man.validate_profile, prompt=profile_man.prompt(), help='Use a specific profile from your credential file.', envvar='AWS_PROFILE')
 @click.pass_context
-def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upgrade, profile):
+def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upgrade):
     # usage stats
     # https://docs.python.org/3.5/library/string.html#format-string-syntax
     from isitfit.utils import ping_matomo, b2l
@@ -103,6 +97,7 @@ def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upg
 
 
     if ctx.invoked_subcommand not in ['version', 'migrations']:
+      # run silent migrations
       from isitfit.migrations.migman import silent_migrate
       migname_l = silent_migrate()
       if len(migname_l)>0:
@@ -110,18 +105,9 @@ def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upg
         migname_s = l2s(migname_l)
         ping_matomo("/migrations/silent?migname=%s"%(migname_s))
 
-
     # save `verbose` and `debug` for later tqdm
     ctx.obj['debug'] = debug
     ctx.obj['verbose'] = verbose
-
-    # set the profile in an env var so that boto3 picks it up automatically
-    import os
-    os.environ['AWS_PROFILE'] = profile
-
-    # save profile in click context for other usage in displayed/emailed report
-    ctx.obj['aws_profile'] = profile
-
 
 
 

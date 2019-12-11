@@ -101,3 +101,71 @@ class IsitfitCliError(click.UsageError):
     hint_2 = "If the problem persists, please report it at https://github.com/autofitcloud/isitfit/issues/new"
     wrapecho(hint_2)
 
+
+
+def isitfit_option(name=None, **attrs):
+  """
+  Overrides click.option due to trouble with options having prompt=True (or prompt='bla') and the --help call
+  eg `isitfit cost analyze --help` was prompting for `--profile`
+     `isitfit version` was also prompting for `--profile` when it was at the `cli_core` level
+
+  This resolves click github issue: https://github.com/pallets/click/issues/295
+
+  Original notes (no longer valid since problems solved with isitfit_option):
+    --profile docs at
+      https://click.palletsprojects.com/en/7.x/options/?highlight=prompt#values-from-environment-variables
+    The first commented version with prompt=... is not possible to implement because in this case, `isitfit cost analyze --help` will also prompt for the profile
+      (similar to the --ndays reason it was duplicated to the click.commands instead of keeping it at the click.group leve)
+    Also, originally, this was in the cli.core.cli_core group,
+      and eventhough Click has a "eager" option and even a "version_option", but I'm not using those ATM
+      and the problem there was with `isitfit version` prompting for this.
+    This time, with profile, unlike ndays, instead of duplicating it for each command,
+      I'm implementing it manually if not provided
+  """
+  if not attrs.get('prompt'):
+    # nothing special required
+    return click.option(name, **attrs)
+
+  # shortcuts
+  prompt_ori = attrs.get('prompt')
+  callback_ori = attrs.get('callback')
+  default_ori = attrs.get('default')
+  type_ori = attrs.get('type')
+
+  # wrap callback_ori with manual prompt IF NO --help
+  def callback_wrap(ctx, param, value):
+    # check for --help
+    import sys
+    if '--help' in sys.argv:
+      # no need to do anything
+      return value
+
+    if value is None:
+      # manually prompt only if not already supplied
+      value = click.prompt(prompt_ori, default=default_ori, type=type_ori)
+
+    # call the original callback
+    return callback_ori(ctx, param, value)
+
+  # disable the originals since moved into callback_wrap
+  if 'prompt'   in attrs.keys(): attrs['prompt'] = False
+  if 'type'     in attrs.keys(): attrs['type'] = None
+  if 'default'  in attrs.keys(): attrs['default'] = None
+  if 'callback' in attrs.keys(): attrs['callback'] = callback_wrap
+
+  # return the "corrected" option
+  return click.option(name, **attrs)
+
+
+
+def isitfit_option_profile(name=None, **attrs):
+  """
+  Special option dedicated to --profile
+  Was worth it because it was in cli.tags and cli.cost
+  """
+  from isitfit.utils import AwsProfileMan
+  profile_man = AwsProfileMan()
+
+  ret_opt = isitfit_option('--profile', type=str, default='default', callback=profile_man.validate_profile, prompt=profile_man.prompt(), help='Use a specific profile from your credential file.', envvar='AWS_PROFILE')
+  return ret_opt
+

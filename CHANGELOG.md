@@ -6,6 +6,12 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
+Version 0.18.6 (2019-12-11)
+
+- bugfix: withdrew 0.18.5 from pypi after finding that `isitfit version` will prompt for the `--profile`
+    - fixed with `cli.click_descendents.isitfit_option_profile`
+
+
 Version 0.18.5 (2019-12-11)
 
 - enh: cost analyze: use `click.IntRange` for `--ndays`

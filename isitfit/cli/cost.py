@@ -5,7 +5,7 @@ import click
 
 # Use "cls" to use the IsitfitCommand class to show the footer
 # https://github.com/pallets/click/blob/8df9a6b2847b23de5c65dcb16f715a7691c60743/click/decorators.py#L92
-from isitfit.cli.click_descendents import IsitfitCommand, isitfit_group
+from isitfit.cli.click_descendents import IsitfitCommand, isitfit_group, isitfit_option_profile
 
 
 # Note about below --ndays: Cannot put it in the `cost` function
@@ -16,13 +16,15 @@ from isitfit.cli.click_descendents import IsitfitCommand, isitfit_group
 @isitfit_group(help="Evaluate AWS EC2 costs", invoke_without_command=False)
 @click.option('--filter-region', default=None, help='specify a single region against which to run cost analysis/optimization')
 # @click.option('--ndays', default=90, prompt='Number of days to lookback (use `isitfit cost --ndays=90 ...` to skip this prompt)', help='number of days to look back in the data history', type=int)
+@isitfit_option_profile()
 @click.pass_context
-def cost(ctx, filter_region):
+def cost(ctx, filter_region, profile):
   # gather anonymous usage statistics
   from isitfit.utils import ping_matomo
   ping_matomo("/cost?filter_region=%s"%filter_region)
 
   ctx.obj['filter_region'] = filter_region
+
   pass
 
 

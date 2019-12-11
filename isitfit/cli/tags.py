@@ -3,10 +3,11 @@ from isitfit.utils import logger
 
 import click
 
-from isitfit.cli.click_descendents import IsitfitCommand, isitfit_group
+from isitfit.cli.click_descendents import IsitfitCommand, isitfit_group, isitfit_option_profile
 
 @isitfit_group(help="Explore EC2 tags", invoke_without_command=False)
-def tags():
+@isitfit_option_profile()
+def tags(profile):
   # gather anonymous usage statistics
   from isitfit.utils import ping_matomo
   ping_matomo("/tags")

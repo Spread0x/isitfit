@@ -305,9 +305,23 @@ class AwsProfileMan:
     self.p_l = boto3.session.Session().available_profiles
 
   def validate_profile(self, ctx, param, value):
-    if value in self.p_l: return value
-    import click
-    raise click.BadParameter('Profile %s is not from ~/.aws/credentials file.'%value)
+    if value is None: return value
+    if value not in self.p_l:
+      import click
+      err_m = 'Profile %s is not from ~/.aws/credentials file.'%value
+      raise click.BadParameter(err_m)
+
+    # set the profile in an env var so that boto3 picks it up automatically
+    if value is not None:
+      import os
+      os.environ['AWS_PROFILE'] = value
+
+    # save profile in click context for other usage in displayed/emailed report
+    ctx.obj['aws_profile'] = value
+
+    # done
+    return value
+
 
   def prompt(self):
     x = []
