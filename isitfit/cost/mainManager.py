@@ -79,8 +79,12 @@ class MainManager:
         ec2_noCloudwatch = []
         ec2_noCloudtrail = []
 
+        # add some spaces for aligning the progress bars
+        desc="Pass 2/2 through %s"%self.ec2_it.service_description
+        desc = "%-50s"%desc
+
         # Edit 2019-11-12 use "initial=0" instead of "=1". Check more details in a similar note in "cloudtrail_ec2type.py"
-        iter_wrap = tqdml2_obj(self.ec2_it, total=n_ec2_total, desc="Pass 2/2 through %s"%self.ec2_it.service_description, initial=0)
+        iter_wrap = tqdml2_obj(self.ec2_it, total=n_ec2_total, desc=desc, initial=0)
         for ec2_dict, ec2_id, ec2_launchtime, ec2_obj in iter_wrap:
 
           # context dict to be passed between listeners

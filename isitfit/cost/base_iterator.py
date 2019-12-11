@@ -121,7 +121,10 @@ class BaseIterator:
     # iterate
     region_iterator = redshift_regions
     if display_tqdm:
-      region_iterator = self.tqdmman(region_iterator, total = len(redshift_regions), desc="%s, counting in all regions"%self.service_description)
+      # add some spaces for aligning the progress bars
+      desc = "%s, counting in all regions     "%self.service_description
+      desc = "%-50s"%desc
+      region_iterator = self.tqdmman(region_iterator, total = len(redshift_regions), desc=desc)
 
     for region_name in region_iterator:
       if self.regionInclude_ready and self.filter_region is None:
