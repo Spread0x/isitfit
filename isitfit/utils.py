@@ -346,3 +346,25 @@ def pd_series_frozenset_union(s1, s2):
   df3['a3'] = df3.apply(lambda row: row.a1 if pd.isnull(row.a2) else row.a1.union(row.a2), axis=1)
   return df3['a3']
 
+
+
+class AwsProfileMan:
+  def __init__(self):
+    import boto3
+    self.p_l = boto3.session.Session().available_profiles
+
+  def validate_profile(self, ctx, param, value):
+    if value in self.p_l: return value
+    import click
+    raise click.BadParameter('Profile %s is not from ~/.aws/credentials file.'%value)
+
+  def prompt(self):
+    x = []
+    x.append("Profiles in AWS credential file:")
+    x += ["- %s"%z for z in self.p_l]
+    x.append("")
+    x.append("(use `AWS_PROFILE=myprofile isitfit ...` or `isitfit --profile=myprofile ...` to skip this prompt)")
+    x.append("Profile to use")
+    y = "\n".join(x)
+    return y
+

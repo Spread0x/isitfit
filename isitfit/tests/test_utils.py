@@ -114,3 +114,27 @@ def test_pandasSets_differentIndex():
   actual = pd_series_frozenset_union(s1, s2)
   expected = pd.DataFrame({'a3': [fset([1]), fset([1,2])]})
   pd.testing.assert_series_equal(actual, expected.a3)
+
+
+
+from isitfit.utils import AwsProfileMan
+class TestAwsProfileMan:
+  def test_init(self):
+    pm = AwsProfileMan()
+    assert True # no exception
+
+  def test_validateProfile(self):
+    pm = AwsProfileMan()
+    actual = pm.validate_profile(None, "profile", "default")
+    assert actual=="default"
+
+    import pytest
+    import click
+    with pytest.raises(click.BadParameter):
+      pm.validate_profile(None, "profile", "inexistant")
+
+
+  def test_prompt(self):
+    pm = AwsProfileMan()
+    x = pm.prompt()
+    assert x is not None
