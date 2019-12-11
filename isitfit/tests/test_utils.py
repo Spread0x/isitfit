@@ -22,7 +22,7 @@ def test_pingMatomo_functional(mocker):
 
 def test_isitfitCliError():
     import pytest
-    from ..utils import IsitfitCliError
+    from isitfit.cli.click_descendents import IsitfitCliError
 
     class MockContext:
         obj = {'bar': 1}

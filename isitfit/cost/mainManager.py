@@ -41,7 +41,7 @@ class MainManager:
 
     def add_listener(self, event, listener):
       if event not in self.listeners:
-        from ..utils import IsitfitCliError
+        from isitfit.cli.click_descendents import IsitfitCliError
         err_msg = "Internal dev error: Event %s is not supported for listeners. Use: %s"%(event, ",".join(self.listeners.keys()))
         raise IsitfitCliError(err_msg, self.ctx)
 

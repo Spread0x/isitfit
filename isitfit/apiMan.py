@@ -7,7 +7,7 @@ BASE_HOST = 'api.isitfit.io' # FIXME this should be in master
 BASE_PREFIX = 'v0'
 BASE_URL = 'https://%s/%s/'%(BASE_HOST, BASE_PREFIX)
 
-from .utils import IsitfitCliError
+from isitfit.cli.click_descendents import IsitfitCliError
 from schema import SchemaError, Schema, Optional
 
 

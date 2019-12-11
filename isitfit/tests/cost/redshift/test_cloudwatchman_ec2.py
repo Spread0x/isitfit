@@ -144,7 +144,7 @@ class TestCloudwatchEc2:
 #    ec2_obj = MockEc2Obj()
 #
 #    import pytest
-#    from ...utils import IsitfitCliError
+#    from isitfit.cli.click_descendents import IsitfitCliError
 #    with pytest.raises(IsitfitCliError) as e:
 #      # raise exception
 #      mm._cloudwatch_metrics_cached(ec2_obj)

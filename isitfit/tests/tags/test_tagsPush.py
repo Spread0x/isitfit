@@ -1,6 +1,6 @@
 from ...tags.tagsPush import TagsPush
 import pytest
-from ...utils import IsitfitCliError
+from isitfit.cli.click_descendents import IsitfitCliError
 
 
 def getTempFile():

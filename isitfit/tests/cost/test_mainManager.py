@@ -6,7 +6,7 @@ class TestMainManager:
     from ...cost.mainManager import MainManager
     mm = MainManager(None, None)
     import pytest
-    from ...utils import IsitfitCliError
+    from isitfit.cli.click_descendents import IsitfitCliError
     with pytest.raises(IsitfitCliError) as e:
       # raise exception        
       mm.add_listener('foo', lambda x: x)

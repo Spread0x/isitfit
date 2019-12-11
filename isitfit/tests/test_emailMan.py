@@ -1,5 +1,5 @@
 import pytest
-from ..utils import IsitfitCliError
+from isitfit.cli.click_descendents import IsitfitCliError
 
 @pytest.fixture(scope='function')
 def MockEmailManFactory(mocker):

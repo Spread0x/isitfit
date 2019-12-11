@@ -2,7 +2,7 @@ from isitfit.utils import logger
 
 
 import click
-from isitfit.utils import IsitfitCliError
+from isitfit.cli.click_descendents import IsitfitCliError
 import pandas as pd
 
 

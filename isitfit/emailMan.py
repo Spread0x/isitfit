@@ -3,7 +3,7 @@ import json
 from isitfit.utils import logger
 
 
-from .utils import IsitfitCliError
+from isitfit.cli.click_descendents import IsitfitCliError
 
 class EmailMan:
 

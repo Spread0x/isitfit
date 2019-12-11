@@ -50,7 +50,7 @@ class TagsSuggestAdvanced(TagsSuggestBasic):
     # POST /tags/suggest
     r2, dt_now = self._tags_suggest()
     if 'Message' in r2:
-        from ..utils import IsitfitCliError
+        from isitfit.cli.click_descendents import IsitfitCliError
         raise IsitfitCliError(r2['Message'], self.ctx)
 
     # now listen on sqs

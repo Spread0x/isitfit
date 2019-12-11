@@ -1,4 +1,4 @@
-from ..utils import IsitfitCliError
+from isitfit.cli.click_descendents import IsitfitCliError
 
 from isitfit.utils import logger
 

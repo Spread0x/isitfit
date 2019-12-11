@@ -40,7 +40,7 @@ class TagsSuggestBasic:
     n_ec2_total = len(list(self.ec2_resource.instances.all()))
     msg_total = "Found a total of %i EC2 instances"%n_ec2_total
     if n_ec2_total==0:
-      from ..utils import IsitfitCliError
+      from isitfit.cli.click_descendents import IsitfitCliError
       raise IsitfitCliError(msg_total, self.ctx)
 
     logger.warning(msg_total)

@@ -6,7 +6,7 @@ import pandas as pd
 from isitfit.utils import logger
 
 
-from isitfit.utils import IsitfitCliError
+from isitfit.cli.click_descendents import IsitfitCliError
 
 
 class BaseIterator:

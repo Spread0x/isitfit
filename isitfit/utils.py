@@ -119,55 +119,6 @@ def display_df(title, df, csv_fn, shape, logger):
     return
 
 
-# Inherit from click's usageError since click can handle it automatically
-# https://click.palletsprojects.com/en/7.x/exceptions/
-from click import UsageError
-class IsitfitCliError(UsageError):
-  """
-  Inherited from click.exceptions.UsageError
-  because it adds the context as a constructor argument,
-  which I need for checking "is_outdated"
-  https://github.com/pallets/click/blob/8df9a6b2847b23de5c65dcb16f715a7691c60743/click/exceptions.py#L51
-  """
-
-  # exit code
-  exit_code = 10
-
-  # constructor parameters from
-  # https://github.com/pallets/click/blob/8df9a6b2847b23de5c65dcb16f715a7691c60743/click/exceptions.py#L11
-  def show(self, file=None):
-    # ping matomo about error
-    ping_matomo("/error?message=%s"%self.message)
-
-    # continue
-    from click._compat import get_text_stderr
-    if file is None:
-        file = get_text_stderr()
-
-    # echo wrap
-    color = 'red'
-    import click
-    def echo(message):
-      # from click.utils import echo
-      # echo('Error: %s' % self.format_message(), file=file, color=color)
-
-      click.secho(message, fg=color)
-
-    # main error
-    echo('Error: %s' % self.format_message())
-
-    # if isitfit installation is outdated, append a message to upgrade
-    if self.ctx is not None:
-      if self.ctx.obj.get('is_outdated', None):
-        hint_1 = "Upgrade your isitfit installation with `pip3 install --upgrade isitfit` and try again."
-        echo(hint_1)
-
-    # add link to github issues
-    hint_2 = "If the problem persists, please report it at https://github.com/autofitcloud/isitfit/issues/new"
-    echo(hint_2)
-
-
-
 def prompt_upgrade(pkg_name, current_version):
   """
   check if current version is out-of-date

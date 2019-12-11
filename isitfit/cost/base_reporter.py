@@ -28,7 +28,7 @@ class ReporterBase:
         ping_matomo("/cost/share_email?original=T")
         return emailTo
 
-    #from isitfit.utils import IsitfitCliError
+    #from isitfit.cli.click_descendents import IsitfitCliError
 
     # more quick validation
     # works with a@b.c but not a@b@c.d

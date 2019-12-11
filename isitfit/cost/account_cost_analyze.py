@@ -128,7 +128,7 @@ class ServiceCalculatorBinned:
     """
     dfbin_l = [v.reset_index() for k,v in self.dfbin_d.items()]
     if len(dfbin_l)==0:
-      from isitfit.utils import IsitfitCliError
+      from isitfit.cli.click_descendents import IsitfitCliError
       raise IsitfitCliError("No data found")
 
     import pandas as pd

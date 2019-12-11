@@ -1,7 +1,7 @@
 from moto import mock_sts
 import pytest
 from ..apiMan import ApiMan
-from ..utils import IsitfitCliError
+from isitfit.cli.click_descendents import IsitfitCliError
 
 
 @pytest.fixture(scope='function')
