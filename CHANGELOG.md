@@ -10,6 +10,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - enh: refactor to move `IsitfitCliError` from `isitfit.utils` to `isitfit.cli.click_descendents`
 - enh: cost analyze: add some spaces to align progress bars
 - enh: cost: change default of `ndays` from 90 to 7 to inspire user repeat usage
+- bugfix: cost analyze: binned start/end dates had a few small bugs: start date was not the start of the period, issues with pandas implementation of resample for 1D (end) and 1SM (semi-month), no longer filling NaT for columns with no data
 
 
 Version 0.18.{1,2,3,4} (2019-12-09)

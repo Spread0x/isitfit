@@ -190,7 +190,7 @@ class BinCapUsed:
 
     if ndays <= 7:
       self.freq_start = '1D' # daily start
-      self.freq_end = '1D' # daily end
+      self.freq_end = '1D' # daily end, note will require subtracting 1 day
       #self.freq_delta = relativedelta(days=1)
       return
 
@@ -229,8 +229,33 @@ class BinCapUsed:
       'dummy': [0]*len(dt_daily),
     })
     df_d1.set_index('Timestamp', inplace=True)
-    df_d2s = df_d1.resample(self.freq_end, label='left' ).sum()
-    df_d2e = df_d1.resample(self.freq_end, label='right').sum()
+    df_d2s = df_d1.resample(self.freq_start, label='left' ).sum()
+    df_d2e = df_d1.resample(self.freq_end,   label='right').sum()
+
+    # some pandas issues with the freq_{start,end}
+    if self.freq_end=='1SM':
+      # FIXME bug in pandas: when freq_end='1SM', the mid-month start is e.g. 2019-10-15 and the previous mid-month end is also 2019-10-15.
+      # This is not the case for the mid-month ranges at the beginning, i.e. when start=2019-10-15 and end=2019-10-31
+      # This is inconsistent with the month-start and month-end which are 2019-10-01 and 2019-09-30 respectively
+      # So, substracting 1 day from the end date when it's the 15th
+      df_d2e = df_d2e.reset_index()
+      df_d2e['Timestamp'] = df_d2e.Timestamp.apply(lambda x: x - pd.DateOffset(1) if x.day==15 else x)
+      df_d2e.set_index('Timestamp', inplace=True)
+    elif self.freq_end=='1D':
+      # subtract 1 day from the end date since there was no freq_end='1DE' (day-end, hypothetically would yield the same date with hour:minute 23:59)
+      # such that [start,end] are inclusive just like the data
+      # Alternatively, just copy df_d2s
+      #df_d2e = df_d2e.reset_index()
+      #df_d2e['Timestamp'] = df_d2e.Timestamp.apply(lambda x: x - pd.DateOffset(1))
+      #df_d2e.set_index('Timestamp', inplace=True)
+      df_d2e = df_d2s.copy()
+
+
+    # FIXME bug in pandas: for ndays=30, hence freq_start='1W-MON', the df_d2s was getting 1 extra week for the week before the dt_start
+    # I'm guessing that if the first day in df_d1 is a monday, the .resample adds 1 more entry for the monday before
+    # Getting around this by chopping off dates before dt_start
+    if df_d2s.shape[0]==(df_d2e.shape[0]+1):
+      df_d2s = df_d2s[dt_start.date():dt_end.date()]
 
     # append 1 more month due to pandas date_range not yielding the EOM after dt_end
     # Update 2019-12-09 no longer needed due to usage of .resample instead of .date_range
@@ -243,10 +268,14 @@ class BinCapUsed:
     # just use .resample on a dummy dataframe and pick up the index
     #dt_range_start = pd.date_range(start=dt_start2.date(), end=dt_end.date(),  freq=self.freq_start)
     #dt_range_end   = pd.date_range(start=dt_start.date(),  end=dt_end2.date(), freq=self.freq_end  )
+
+    # Do not convert to `.dt.date` yet to avoid losing the `.dt` accessor later, eg `.dt.strftime`
     dt_range_start = df_d2s.reset_index().Timestamp.tolist()
     dt_range_end   = df_d2e.reset_index().Timestamp.tolist()
 
     # create dataframe
+    # Alternatively than creating lists of dates dt_range_{start,end}, could have merged as follows:
+    # df_d2s.reset_index().merge(df_d2e.reset_index(), left_index=True, right_index=True, how='outer')
     self.df_bins = pd.DataFrame({
       'Timestamp': dt_range_end, # use dt_range_end in conjunction with label='right' in the .resample calls below
       'capacity_usd': 0,
@@ -322,7 +351,6 @@ class BinCapUsed:
 
   def after_all(self, context_all):
     # add col for utilization in percentage
-    import numpy as np
     def calc_usedPct(row):
       if row.capacity_usd==0: return 0
       o = row.used_usd / row.capacity_usd * 100
@@ -335,8 +363,15 @@ class BinCapUsed:
 
     # cases where dt_start > dt_end are those where there was no data and the initialization remained
     # so overwrite with na
-    self.df_bins['dt_start'] = self.df_bins.apply(lambda row: np.nan if row.count_analyzed==0 else row.dt_start, axis=1)
-    self.df_bins['dt_end']   = self.df_bins.apply(lambda row: np.nan if row.count_analyzed==0 else row.dt_end  , axis=1)
+    # Update 2019-12-11 Now that the df_bins timestamps are set with resample and dt_end is inclusive,
+    # instead of setting to na, just swap the start/end fake timestamps which represent the end/start of the periods
+    #import numpy as np
+    #self.df_bins['dt_start'] = self.df_bins.apply(lambda row: np.nan if row.count_analyzed==0 else row.dt_start, axis=1)
+    #self.df_bins['dt_end']   = self.df_bins.apply(lambda row: np.nan if row.count_analyzed==0 else row.dt_end  , axis=1)
+    self.df_bins['dt_start_bkp']  = self.df_bins['dt_start']
+    self.df_bins['dt_start'] = self.df_bins.apply(lambda row: row.dt_end       if row.count_analyzed==0 else row.dt_start, axis=1)
+    self.df_bins['dt_end']   = self.df_bins.apply(lambda row: row.dt_start_bkp if row.count_analyzed==0 else row.dt_end  , axis=1)
+    del self.df_bins['dt_start_bkp']
 
     # convert the dt_{start,end} back to dates again, given the nans
     for fx in ['dt_start', 'dt_end']: self.df_bins[fx] = pd.to_datetime(self.df_bins[fx])
