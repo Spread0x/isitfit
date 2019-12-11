@@ -4,6 +4,10 @@ Semantic versioning
 Version latest (0.18.0rc?, 2019-12-05?)
 
 - ...
+
+
+Version 0.18.5 (2019-12-11)
+
 - enh: cost analyze: use `click.IntRange` for `--ndays`
 - feat: prompt user for aws profile to use
 - feat: cost analyze: send profile and `filter-region` to `share-email` endpoint for display in email
@@ -14,7 +18,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - bugfix: pinging matomo before an unhandled error was causing the ping to be done 3 times, first for the command (eg isitfit cost analyze), then for the group (eg isitfit cost), and finally for the core (ie isitfit)
 
 
-Version 0.18.{1,2,3,4} (2019-12-09)
+Version 0.18.{1,2,3,4} (2019-12-{09,10})
 
 - bugfix: cost analyze: use resample instead of manually constructing the binned dataframe with `date_range`
   - found this issue when testing `isitfit cost analyze --ndays=15`
