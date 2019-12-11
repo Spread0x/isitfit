@@ -11,6 +11,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - enh: cost analyze: add some spaces to align progress bars
 - enh: cost: change default of `ndays` from 90 to 7 to inspire user repeat usage
 - bugfix: cost analyze: binned start/end dates had a few small bugs: start date was not the start of the period, issues with pandas implementation of resample for 1D (end) and 1SM (semi-month), no longer filling NaT for columns with no data
+- bugfix: pinging matomo before an unhandled error was causing the ping to be done 3 times, first for the command (eg isitfit cost analyze), then for the group (eg isitfit cost), and finally for the core (ie isitfit)
 
 
 Version 0.18.{1,2,3,4} (2019-12-09)

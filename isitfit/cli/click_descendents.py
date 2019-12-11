@@ -1,10 +1,19 @@
 import click
 
 
-def pingOnError(error):
+def pingOnError(ctx, error):
+  # check if the error's ping was done
+  didPing = 'unhandled_error_pinged' in ctx.obj.keys()
+  if didPing: return
+
   from isitfit.utils import ping_matomo
   exception_type = type(error).__name__ # https://techeplanet.com/python-catch-all-exceptions/
   ping_matomo("/error/unhandled/%s?message=%s"%(exception_type, str(error)))
+
+  # save a flag saying that the error sent a ping
+  # Note that it is not necessary to do more than that, such as storing a list of pinged errors,
+  # because there will be exactly one error raise at most before the program fails
+  ctx.obj['unhandled_error_pinged'] = True
 
 
 class IsitfitGroup(click.Group):
@@ -16,7 +25,7 @@ class IsitfitGroup(click.Group):
       ret = super().invoke(ctx)
       return ret
     except Exception as error:
-      pingOnError(error)
+      pingOnError(ctx, error)
       raise
 
 
@@ -35,7 +44,7 @@ class IsitfitCommand(click.Command):
       display_footer()
       return ret
     except Exception as error:
-      pingOnError(error)
+      pingOnError(ctx, error)
       raise
 
 
