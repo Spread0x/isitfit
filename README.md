@@ -66,15 +66,33 @@ If you don't have `pip3` installed yet, you can install it on Ubuntu 18.04 with:
 sudo apt-get install python3-pip
 ```
 
-To install with pip but without using `sudo`, you could use
+At this stage, you have 3 options to install `isitfit` with `pip`:
+
+- use a virtual environment (eg with [pew](https://github.com/berdario/pew)):
+
+```
+sudo pip3 install pew  # install pew globally (on all computers around the world)
+pew new -d isitfit_env # create a virtual environment and don't activate it yet
+pew workon isitfit_env # explicitly activate the new environment
+pip3 install isitfit   # install isitfit in the activated environment only
+isitfit version        # use isitfit
+exit                   # de-activate the environment
+```
+- use sudo directly on isitfit:
+
+```
+sudo pip3 install isitfit
+```
+
+- install for the local user without a virtual environment
 
 ```
 pip3 install --user isitfit
 ```
 
-If you've just installed `pip3`, running `isitfit version` right after this step would yield an error `command not found`.
-Restarting the machine would set the proper environment variables so that `isitfit version` would work.
-You could restart it with `sudo shutdown -r now`.
+Note that for the `--user` option, if you've just installed `pip3`,
+running `isitfit version` right after this step would yield an error `command not found`.
+Restarting the machine (or log off/log on?) would set the proper environment variables so that `isitfit version` would work.
 
 
 ## Usage
@@ -106,7 +124,7 @@ For advanced tag suggestions and other server-side services, the following exist
 
 Check [SYNOPSIS.md](SYNOPSIS.md)
 
-To get help hints in the command-line use the `--help`
+To get help hints in the command-line use the `--help` option as follows
 
 ```
 > isitfit --help
@@ -125,7 +143,34 @@ isitfit version
 
 ### Cost-weighted average utilization
 
-Calculate AWS EC2 Cost-Weighted Average Utilization
+What's that?
+
+Say we have 2 machines A and B:
+
+- Machine A costs  1 $/day, its CPU is used at 90%, and its memory is used at 80%.
+- Machine B costs 10 $/day, its CPU is used at 10%, and its memory is used at 10% also.
+
+The un-normalized average utilization would be
+
+```
+( 90% + 80% + 10% + 10% ) / 4
+  ~ 47 %
+```
+
+The Cost-Weighted Average Utilization would be:
+
+```
+( 1 $/day * (90% + 80%)/2 + 10 $/day * (10% + 10%)/2 ) / (1$/day + 10$/day)
+  =  (0.85 $/day + 1 $/day) / (11 $/day)
+  ~ 16 %
+```
+
+The Cost-Weighted Average Utilization in the above example is much lower than the un-normalized average
+because it gives more weight to the underused and more expensive machine B
+than it does to the heavily-used and cheaper machine A.
+
+
+Executing isitfit in the terminal would yield:
 
 ```
 > isitfit cost analyze
@@ -175,7 +220,7 @@ i-024...        29.54     0.14
 ```
 
 Note that `isitfit cost analyze` will prompt the user for the number of days on which to perform the analysis.
-By default, it's 90 days. To skip the prompt, just use the `--ndays` option, eg `isitfit cost --ndays=90 analyze`.
+By default, it's 7 days. To skip the prompt, just use the `--ndays` option, eg `isitfit cost --ndays=7 analyze`.
 
 
 ### Recommended optimizations
@@ -232,7 +277,7 @@ Details
 ```
 
 Note that `isitfit cost optimize` will prompt the user for the number of days on which to perform the analysis.
-By default, it's 90 days. To skip the prompt, just use the `--ndays` option, eg `isitfit cost --ndays=90 optimize`.
+By default, it's 7 days. To skip the prompt, just use the `--ndays` option, eg `isitfit cost --ndays=7 optimize`.
 
 
 ### Filtering on region
@@ -322,22 +367,6 @@ To use it:
 isitfit tags suggest
 ```
 
-#### Advanced
-
-*(On hold. Check [here](https://trello.com/c/eKZawuvm/12-advanced-tag-suggestions) for status)*
-
-For more advanced tag suggestions, the `--advanced` option will
-send the EC2 instance names to the `isitfit` server-side API,
-run more sophisticated algorithms there for generating tag suggestions,
-and push back the results to your terminal.
-
-To use it:
-
-```
-isitfit tags suggest --advanced
-```
-
-
 ### Non-default awscli profile
 
 To specify a particular profile from `~/.aws/credentials`, set the `AWS_PROFILE` environment variable.
@@ -382,8 +411,6 @@ Check the [boto3 configuration](https://boto3.amazonaws.com/v1/documentation/api
 
 Caching in `isitfit` makes re-runs more efficient.
 
-It relies on `redis` and `pyarrow`.
-
 To use caching, install a local redis server:
 
 ```
@@ -404,12 +431,6 @@ Use isitfit as usual
 isitfit cost analyze
 isitfit cost optimize
 ```
-
-A few useful commands:
-
-- To clear the cache: `redis-cli -n 0 flushdb`
-- To list all keys: `redis-cli --scan --pattern '*'` ([ref](https://www.shellhacks.com/redis-get-all-keys-redis-cli/))
-- To delete a particular key: `redis-cli --scan --pattern "cloudtrail_ec2type._fetch" | xargs redis-cli del` ([ref](https://rdbtools.com/blog/redis-delete-keys-matching-pattern-using-scan/))
 
 Consider saving the environment variables in the `~/.bashrc` file.
 
@@ -491,9 +512,9 @@ The relevant source code is [here](https://github.com/autofitcloud/isitfit/blob/
 
 ## Statistics and Usage Tracking
 
-`isitfit` seeks to be driven by usage and demand of our community.
-We want to understand what users are doing by collecting various events and usage data,
-and we will use this data to iterate and improve `isitfit` based on this gained insight.
+`isitfit` seeks to be driven by the usage and demand of the community.
+We observe what users are doing by collecting various events and usage data,
+and we use this data to iterate and improve `isitfit` based on this gained insight.
 This includes things like the installed version of `isitfit` and the commands being used.
 
 We do not use event payloads to collect any identifying information,
@@ -512,11 +533,11 @@ Source country:   USA
 ```
 
 If you use the `--share-email` option,
-the email address is stored by AWS SES
+the email address is stored by [AWS SES](https://aws.amazon.com/ses/)
 to remember that it has already been verified.
 The email's contents are not stored.
 
-(Originally adapted from [serverless](https://serverless.com/framework/docs/providers/aws/cli-reference/slstats/))
+(This section was adapted from [serverless](https://serverless.com/framework/docs/providers/aws/cli-reference/slstats/))
 
 
 ## Changelog
@@ -526,9 +547,7 @@ Check [CHANGELOG.md](CHANGELOG.md)
 
 ## License
 
-Apache License 2.0. Check file `LICENSE`
-
-
+Apache License 2.0. Check file [LICENSE.md](LICENSE.md)
 
 
 ## Dev notes
@@ -546,7 +565,7 @@ to bring more cost savings to your AWS EC2 budget
 while improving `isitfit` through your use cases.
 
 - The pilot program sign up form is at the bottom of the homepage https://www.autofitcloud.com.
-- To get in touch, you can use the contact form at https://www.autofitcloud.com/contact
+- To send a custom message, you can use the contact form at https://www.autofitcloud.com/contact
 - To follow news and version announcements, check https://reddit.com/r/autofitcloud  or  https://twitter.com/autofitcloud
 
 --

@@ -61,21 +61,21 @@ by adding the line
 1.2.3.4   isitfit.matomo.cloud
 ```
 
-## Updating SYNOPSIS.md
+### Updating SYNOPSIS.md
 
 ```
 /bin/sh synopsis_update.sh > SYNOPSIS.md
 ```
 
 
-## Asciinema demo
+### Asciinema demo
 
 The https://isitfit.autofitcloud.com site hosts a demo recorded via asciinema.
 
 Check [asciinema-demo/README.md](asciinema-demo/README.md) for more details
 
 
-## Experimenting
+### Experimenting
 
 Through jupyter notebooks
 
@@ -84,3 +84,13 @@ jupyter notebook
 ```
 
 Notebooks not stored in this repository for space efficiency purposes.
+
+
+### Useful redis commands
+
+A few useful redis commands:
+
+- To clear the cache: `redis-cli -n 0 flushdb`
+- To list all keys: `redis-cli --scan --pattern '*'` ([ref](https://www.shellhacks.com/redis-get-all-keys-redis-cli/))
+- To delete a particular key: `redis-cli --scan --pattern "cloudtrail_ec2type._fetch" | xargs redis-cli del` ([ref](https://rdbtools.com/blog/redis-delete-keys-matching-pattern-using-scan/))
+
