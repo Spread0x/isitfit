@@ -328,7 +328,7 @@ class AwsProfileMan:
     x.append("Profiles in AWS credential file:")
     x += ["- %s"%z for z in self.p_l]
     x.append("")
-    x.append("(use `AWS_PROFILE=myprofile isitfit ...` or `isitfit --profile=myprofile ...` to skip this prompt)")
+    x.append("(use `AWS_PROFILE=myprofile isitfit ...` or `isitfit command --profile=myprofile ...` to skip this prompt)")
     x.append("Profile to use")
     y = "\n".join(x)
     return y
