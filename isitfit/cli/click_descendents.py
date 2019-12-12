@@ -132,8 +132,8 @@ def isitfit_option_base(name=None, **attrs):
     return click.option(name, **attrs)
 
   # shortcuts
-  prompt_ori = attrs.get('prompt')
   callback_ori = attrs.get('callback')
+  prompt_ori = attrs.get('prompt')
   default_ori = attrs.get('default')
   type_ori = attrs.get('type')
 
@@ -148,18 +148,18 @@ def isitfit_option_base(name=None, **attrs):
     if value is None:
       # manually prompt only if not already supplied
       value = click.prompt(prompt_ori, default=default_ori, type=type_ori)
+    else:
+      value = type_ori(value)
 
     # call the original callback
     if callback_ori is None: return value
     return callback_ori(ctx, param, value)
 
-  # disable the originals since moved into callback_wrap
-  if 'prompt'   in attrs.keys(): attrs['prompt'] = False
-  if 'type'     in attrs.keys(): attrs['type'] = None
-  if 'default'  in attrs.keys(): attrs['default'] = None
-
-  # always set the callback, because checking if it's missing is done inside callback_wrap
+  # over-ride the originals since moved into callback_wrap
   attrs['callback'] = callback_wrap
+  attrs['prompt'] = False
+  attrs['default'] = None
+  attrs['type'] = None
 
   # return the "corrected" option
   return click.option(name, **attrs)

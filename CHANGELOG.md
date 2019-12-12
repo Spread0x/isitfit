@@ -6,12 +6,13 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 - bugfix: in `pingOnError` check if click context ctx.obj is still None before using it
 - enh: cost optimize: show message "no optimizations from ec2" in display
-- feat: upon email entry, if sending fails because of pending verification, just prompt the user (max 3 times) to check email then click Enter when clicked on verification
+- feat: cost analyze: upon email entry, if sending fails because of pending verification, just prompt the user (max 3 times) to check email then click Enter when clicked on verification
 - bugfix: in `IsitfitCliError`, check if `ctx` is None as well as `ctx.obj`
 - bugfix: in `pingOnError` was missing a `import ping_matomo`. Not sure how it didnt show up until now
-- feat: save the last-used email and show it as default in the email prompter
+- feat: cost analyze: save the last-used email and show it as default in the email prompter
 - bugfix: click issue with `--help` triggering the code of `isitfit command` when `isitfit command subcommand --help` is issued (whereas it should be skipped)
-- enh: use `isitfit_option_base` for `ndays` and move it back to `isitfit cost` level rather than duplicating it in `isitfit cost {analyze,optimize}`
+- enh: cost: use `isitfit_option_base` for `ndays` and move it back to `isitfit cost` level rather than duplicating it in `isitfit cost {analyze,optimize}`
+- bugfix: cost: when `--ndays` passed on CLI, the option `type` was not being cast in `isitfit_option_base`
 
 
 Version 0.18.6 (2019-12-11)
