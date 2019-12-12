@@ -63,7 +63,8 @@ class RedisPandas:
         n_ec2_total = context_pre['n_ec2_total']
 
         # if more than 10 servers, recommend caching with redis
-        if n_ec2_total > 10 and not self.isSetup():
+        cond_prompt = n_ec2_total > 10 and not self.isSetup()
+        if cond_prompt:
             from termcolor import colored
             logger.warning(colored(
 """Since the number of EC2 instances is %i,
@@ -83,8 +84,9 @@ where ISITFIT_REDIS_DB is the ID of an unused database in redis.
 
 And finally re-run isitfit as usual.
 """%n_ec2_total, "yellow"))
-            continue_wo_redis = input(colored('Would you like to continue without redis caching (not recommended)? yes/[no] ', 'cyan'))
-            if not (continue_wo_redis.lower() == 'yes' or continue_wo_redis.lower() == 'y'):
+            import click
+            continue_wo_redis = click.confirm(colored('Would you like to continue without redis caching? ', 'cyan'), abort=False, default=True)
+            if not continue_wo_redis:
                 from isitfit.cli.click_descendents import IsitfitCliError
                 raise IsitfitCliError("Aborting to set up redis.", context_pre['click_ctx'])
 

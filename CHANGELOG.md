@@ -13,6 +13,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - bugfix: click issue with `--help` triggering the code of `isitfit command` when `isitfit command subcommand --help` is issued (whereas it should be skipped)
 - enh: cost: use `isitfit_option_base` for `ndays` and move it back to `isitfit cost` level rather than duplicating it in `isitfit cost {analyze,optimize}`
 - bugfix: cost: when `--ndays` passed on CLI, the option `type` was not being cast in `isitfit_option_base`
+- enh: general: prompt for using redis now uses click.confirm and makes the default "yes" instead of "no"
 
 
 Version 0.18.6 (2019-12-11)
