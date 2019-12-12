@@ -2,6 +2,9 @@ import click
 
 
 def pingOnError(ctx, error):
+  # if not dict yet
+  if ctx.obj is None: return
+
   # check if the error's ping was done
   didPing = 'unhandled_error_pinged' in ctx.obj.keys()
   if didPing: return
