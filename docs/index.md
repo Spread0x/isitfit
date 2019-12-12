@@ -48,3 +48,11 @@ AutofitCloud Technologies, Inc.
 To report a security vulnerability, please use the AutofitCloud [contact page](https://autofitcloud.com/contact).
 
 We will coordinate the fix and disclosure.
+
+
+## Social links
+
+- https://www.reddit.com/r/autofitcloud
+- https://discord.gg/56zmfDc
+- https://twitter.com/autofitcloud
+
