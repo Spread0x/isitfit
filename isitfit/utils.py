@@ -302,14 +302,17 @@ def pd_series_frozenset_union(s1, s2):
 class AwsProfileMan:
   def __init__(self):
     import boto3
-    self.p_l = boto3.session.Session().available_profiles
+    self.profile_list_nocolors = boto3.session.Session().available_profiles
 
     from isitfit.dotMan import DotLastProfile
     self.last_profile_cls = DotLastProfile()
 
+    self.w2c = Word2Color()
+
+
   def validate_profile(self, ctx, param, value):
     if value is None: return value
-    if value not in self.p_l:
+    if value not in self.profile_list_nocolors:
       import click
       err_m = 'Profile %s is not from ~/.aws/credentials file.'%value
       raise click.BadParameter(err_m)
@@ -332,7 +335,11 @@ class AwsProfileMan:
   def prompt(self):
     x = []
     x.append("Profiles in AWS credential file:")
-    x += ["- %s"%z for z in self.p_l]
+
+    from termcolor import colored
+    profile_list_colors = [colored(z, self.w2c.convert(z)) for z in self.profile_list_nocolors]
+
+    x += ["- %s"%z for z in profile_list_colors]
     x.append("")
     x.append("(use `AWS_PROFILE=myprofile isitfit ...` or `isitfit command --profile=myprofile ...` to skip this prompt)")
     x.append("Profile to use")
@@ -341,7 +348,10 @@ class AwsProfileMan:
 
 
   def default(self):
-    return self.last_profile_cls.get() or 'default'
+    from termcolor import colored
+    z = self.last_profile_cls.get() or 'default'
+    val_color = colored(z, self.w2c.convert(z))
+    return val_color
 
 
 
@@ -403,3 +413,22 @@ class PromptToEmailIfNotRequested():
       except ValueError:
         pass
 
+
+
+class Word2Color:
+    """
+    Calculate a color (from termcolor package) for a word.
+    Generates the same color for the same word.
+    https://github.com/hfeeki/termcolor/blob/master/termcolor.py
+    """
+    def __init__(self):
+      from termcolor import COLORS
+      self.colors = sorted(list(COLORS.keys()))
+      self.colors = [x for x in self.colors if x!='white']
+      self.n_colors = len(self.colors)
+
+    def convert(self, word):
+      hash_ = sum([ord(letter) for letter in word])
+      hash_ = hash_ % self.n_colors
+      #print("word", word, "hash", hash_)
+      return self.colors[hash_]

@@ -209,3 +209,19 @@ class TestPromptToEmailIfNotRequested:
     assert not result.exception
     assert '[skip]' not in result.output
     assert '[me@example.com]' in result.output
+
+
+def test_word2color():
+  from isitfit.utils import Word2Color
+  w2c = Word2Color()
+  actual = w2c.convert('whatever')
+  assert actual=='green'
+
+  actual = w2c.convert('heay')
+  assert actual=='grey'
+
+  actual = w2c.convert('another-word_under')
+  assert actual=='grey'
+
+  actual = w2c.convert('yih')
+  assert actual=='cyan'
