@@ -49,16 +49,16 @@ AWS_PROFILE=afc_shadi_useast1 isitfit cost --ndays=90 analyze
 
 echo "Test 3: default profile in region with 0 ec2 instances"
 # Note, unlike isitfit tags dump which returns a non-0 code if 0 ec2 found, this one just returns 0
-isitfit cost --filter-region=eu-central-1 --ndays=90 analyze || echo "Expect to fail"
+AWS_PROFILE=default isitfit cost --filter-region=eu-central-1 --ndays=90 analyze || echo "Expect to fail"
 
 
 echo "Test 4: optimize with default profile"
-isitfit cost --ndays=90 optimize
+AWS_PROFILE=default isitfit cost --ndays=90 optimize
 
 
 echo "Test 5: optimize in region with 0 ec2 instances"
 # Note, unlike isitfit tags dump which returns a non-0 code if 0 ec2 found, this one just returns 0
-isitfit cost --filter-region=eu-central-1 --ndays=90 optimize
+AWS_PROFILE=default isitfit cost --filter-region=eu-central-1 --ndays=90 optimize
 
 
 echo "Test 6a: optimize with n=1 on shadi@autofitcloud.com@amazonaws.com"
@@ -69,15 +69,15 @@ AWS_PROFILE=shadi_shadi isitfit cost --ndays=90 optimize --n=1
 
 
 echo "Test 7: {analyse,optimize} filter-tags {ffa,inexistant}"
-isitfit cost --ndays=90 optimize --filter-tags=ffa
-isitfit cost --ndays=90 analyze  --filter-tags=ffa
+AWS_PROFILE=default isitfit cost --ndays=90 optimize --filter-tags=ffa
+AWS_PROFILE=default isitfit cost --ndays=90 analyze  --filter-tags=ffa
 
-isitfit cost --ndays=90 optimize --filter-tags=inexistant
-isitfit cost --ndays=90 analyze  --filter-tags=inexistant
+AWS_PROFILE=default isitfit cost --ndays=90 optimize --filter-tags=inexistant
+AWS_PROFILE=default isitfit cost --ndays=90 analyze  --filter-tags=inexistant
 
 
 echo "Test 8: --share-email allowed max 3 times"
-isitfit --share-email=abc --share-email=fdas --share-email=fsf --share-email=fdasf cost --ndays=90 analyze || echo "expected to fail"
+AWS_PROFILE=default isitfit --share-email=abc --share-email=fdas --share-email=fsf --share-email=fdasf cost --ndays=90 analyze || echo "expected to fail"
 
 
 echo "Test 9: --share-email ok"
