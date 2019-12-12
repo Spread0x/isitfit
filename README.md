@@ -58,15 +58,35 @@ isitfit version
 
 ### pip-fu
 
-If you're new to python, here's some pip-fu for help:
+If you're new to python, here's some pip-fu for help.
 
-If you don't have `pip3` installed yet, you can install it on Ubuntu 18.04 with:
+Useful links:
+
+- [python download instructions](https://www.python.org/downloads/)
+- [pip installation instructions](http://pip.readthedocs.io/en/stable/installing/)
+
+
+Install [Python](https://www.python.org/) on Ubuntu 18.04:
+
+```
+sudo apt-get install python3
+```
+
+
+Install [pip](http://pip.readthedocs.io/en/stable/installing/) on Ubuntu 18.04:
 
 ```
 sudo apt-get install python3-pip
 ```
 
-At this stage, you have 3 options to install `isitfit` with `pip`:
+<!-- from https://www.mkdocs.org/#installation -->
+Alternatively, download [get-pip.py](https://bootstrap.pypa.io/get-pip.py). Then run the following command to install it:
+
+```
+python get-pip.py
+```
+
+After having installed `pip`, there are 3 options to install `isitfit`:
 
 - use a virtual environment (eg with [pew](https://github.com/berdario/pew)):
 
