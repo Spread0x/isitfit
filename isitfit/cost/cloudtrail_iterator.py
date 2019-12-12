@@ -376,8 +376,13 @@ class EventAggregatorAllRegions(EventAggregatorOneRegion):
         logger.debug("Downloading cloudtrail data (from %i regions)"%len(self.region_include))
         df_2 = []
         import boto3
+
+        # add some spaces for aligning the progress bars
+        desc="Cloudtrail events in all regions"
+        desc = "%-50s"%desc
+
         iter_wrap = self.region_include
-        iter_wrap = self.tqdmman(iter_wrap, desc="Cloudtrail events in all regions", total=len(self.region_include))
+        iter_wrap = self.tqdmman(iter_wrap, desc=desc, total=len(self.region_include))
         for region_name in iter_wrap:
           boto3.setup_default_session(region_name = region_name)
           df_1 = super().get()
