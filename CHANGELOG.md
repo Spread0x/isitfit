@@ -5,6 +5,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
 
 - ...
 - bugfix: in `pingOnError` check if click context ctx.obj is still None before using it
+- enh: cost optimize: show message "no optimizations from ec2" in display
 
 
 Version 0.18.6 (2019-12-11)

@@ -143,10 +143,13 @@ class ServiceReporter(ReporterBase):
       # copy from ec2_optimize.Reporter.display
       sum_val = self.table_d['ec2']['sum_val']
       if sum_val==0:
-        # click.secho("No optimizations from EC2", fg='red')
-        pass
+        # Update 2019-12-12 bring back the echo below (after having been commented out for a few days)
+        click.secho("No optimizations from EC2", fg='red')
+        #pass
       elif sum_val is None:
-        pass
+        # Update 2019-12-12 bring back the echo below (after having been commented out for a few days)
+        click.secho("No optimizations from EC2", fg='red')
+        #pass
       else:
         sum_comment = "extra cost" if sum_val>0 else "savings"
         sum_color = "red" if sum_val>0 else "green"
