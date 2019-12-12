@@ -14,6 +14,8 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - enh: cost: use `isitfit_option_base` for `ndays` and move it back to `isitfit cost` level rather than duplicating it in `isitfit cost {analyze,optimize}`
 - bugfix: cost: when `--ndays` passed on CLI, the option `type` was not being cast in `isitfit_option_base`
 - enh: general: prompt for using redis now uses click.confirm and makes the default "yes" instead of "no"
+- enh: cost analyze: after sending a verification email, use click.pause instead of click.prompt
+- enh: cost analyze: only save "last-used email" after the email verification is complete
 
 
 Version 0.18.6 (2019-12-11)

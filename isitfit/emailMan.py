@@ -42,9 +42,6 @@ class EmailMan:
     # pre-process spaces if any
     share_email = [x.strip() for x in share_email]
 
-    # save 1st entry as "last email"
-    self.last_email.set(share_email[0])
-
     # get resources available
     self.api_man.register()
 
@@ -61,7 +58,8 @@ class EmailMan:
         (response_json['isitfitapi_status']['code']=='Email verification in progress')
         and (self.try_again > 0)
       ):
-        click.prompt('A verification link was emailed to you now. Please click the link, then press Enter here to continue', default='Enter')
+        # https://click.palletsprojects.com/en/7.x/api/?highlight=click%20confirm#click.pause
+        click.pause(info='A verification link was emailed to you now. Please click the link, then press any key here to continue...', err=False)
         self.try_again -= 1
         response_json, dt_now = self._send_core(share_email)
 
@@ -75,6 +73,10 @@ class EmailMan:
     if response_json['isitfitapi_status']['code']!='ok':
         response_str = json.dumps(response_json)
         raise IsitfitCliError("Unsupported response from server: %s"%response_str, self.ctx)
+
+    # Save the 1st entry as "last-used email"
+    # Make sure to save this *after* the verification steps above are done so as to maintain the last *working* email
+    self.last_email.set(share_email[0])
 
     # validate schema
     from schema import SchemaError, Schema, Optional
