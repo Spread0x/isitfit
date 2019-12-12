@@ -85,6 +85,7 @@ where ISITFIT_REDIS_DB is the ID of an unused database in redis.
 And finally re-run isitfit as usual.
 """%n_ec2_total, "yellow"))
             import click
+            # not using abort=True so that I can send a cusomt message in the abort
             continue_wo_redis = click.confirm(colored('Would you like to continue without redis caching? ', 'cyan'), abort=False, default=True)
             if not continue_wo_redis:
                 from isitfit.cli.click_descendents import IsitfitCliError
