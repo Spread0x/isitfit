@@ -1,5 +1,5 @@
 #!/bin/sh
-# Usage: /bin/sh synopsis_update.sh > docs/synopsis.md
+# Usage: /bin/sh synopsis_update.sh > ../isitfit-docs/docs/synopsis.md
 # Note: Important to use /bin/sh and not bash for the \n to be rendered properly
 # Otherwise, maybe need "echo -e" with bash
 
