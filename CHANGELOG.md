@@ -6,6 +6,9 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 - bugfix: in `pingOnError` check if click context ctx.obj is still None before using it
 - enh: cost optimize: show message "no optimizations from ec2" in display
+- feat: upon email entry, if sending fails because of pending verification, just prompt the user (max 3 times) to check email then click Enter when clicked on verification
+- bugfix: in `IsitfitCliError`, check if `ctx` is None as well as `ctx.obj`
+- bugfix: in `pingOnError` was missing a `import ping_matomo`. Not sure how it didnt show up until now
 
 
 Version 0.18.6 (2019-12-11)

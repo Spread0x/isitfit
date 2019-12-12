@@ -265,6 +265,11 @@ class ApiMan:
         # Also, note that from isitfit-api, only the /register can lead to this code
         pass
 
+      elif r2['isitfitapi_status']['code']=='Email verification in progress':
+        # do nothing. This will be handled by EmailMan
+        # Also, note that from isitfit-api, only the /share/email can lead to this code
+        pass
+
       # check for isitfit unknown codes (i.e. maybe CLI is too old)
       elif r2['isitfitapi_status']['code'] != 'ok':
         # print(r2)

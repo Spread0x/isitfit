@@ -12,13 +12,9 @@ class EmailMan:
     self.dataVal = dataVal
     self.ctx = ctx
     self.api_man = ApiMan(tryAgainIn=1, ctx=ctx)
+    self.try_again = 3 # max attempts to try again
 
-  def send(self, share_email):
-    logger.info("Sending email")
-
-    # get resources available
-    self.api_man.register()
-
+  def _send_core(self, share_email):
     # submit POST http request
     response_json, dt_now = self.api_man.request(
       method='post',
@@ -29,13 +25,37 @@ class EmailMan:
         'share_email': share_email
       }
     )
+    return response_json, dt_now
 
-    # check if error
-    if response_json['isitfitapi_status']['code']=='Email verification in progress':
+  def send(self, share_email):
+    logger.info("Sending email")
+
+    # get resources available
+    self.api_man.register()
+
+    # submit POST http request
+    response_json, dt_now = self._send_core(share_email)
+
+    # check response status
+
+    # Update 2019-12-12 Instead of raising an exception and aborting,
+    # show the user a prompt to check his/her email
+    # and give the program a chance to re-send the email
+    import click
+    while (
+        (response_json['isitfitapi_status']['code']=='Email verification in progress')
+        and (self.try_again > 0)
+      ):
+        click.prompt('A verification link was emailed to you now. Please click the link, then press Enter here to continue', default='Enter')
+        self.try_again -= 1
+        response_json, dt_now = self._send_core(share_email)
+
+    if self.try_again==0:
         raise IsitfitCliError(response_json['isitfitapi_status']['description'], self.ctx)
 
-    if response_json['isitfitapi_status']['code']=='error':
-        raise IsitfitCliError(response_json['isitfitapi_status']['description'], self.ctx)
+    # Update 2019-12-12 This code will get handled by apiMan and will never arrive here, so commenting it out
+    #if response_json['isitfitapi_status']['code']=='error':
+    #    raise IsitfitCliError(response_json['isitfitapi_status']['description'], self.ctx)
 
     if response_json['isitfitapi_status']['code']!='ok':
         response_str = json.dumps(response_json)

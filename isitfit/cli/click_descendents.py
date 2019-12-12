@@ -76,6 +76,7 @@ class IsitfitCliError(click.UsageError):
   # https://github.com/pallets/click/blob/8df9a6b2847b23de5c65dcb16f715a7691c60743/click/exceptions.py#L11
   def show(self, file=None):
     # ping matomo about error
+    from isitfit.utils import ping_matomo
     ping_matomo("/error?message=%s"%self.message)
 
     # continue
@@ -96,9 +97,10 @@ class IsitfitCliError(click.UsageError):
 
     # if isitfit installation is outdated, append a message to upgrade
     if self.ctx is not None:
-      if self.ctx.obj.get('is_outdated', None):
-        hint_1 = "Upgrade your isitfit installation with `pip3 install --upgrade isitfit` and try again."
-        wrapecho(hint_1)
+      if self.ctx.obj is not None:
+        if self.ctx.obj.get('is_outdated', None):
+          hint_1 = "Upgrade your isitfit installation with `pip3 install --upgrade isitfit` and try again."
+          wrapecho(hint_1)
 
     # add link to github issues
     hint_2 = "If the problem persists, please report it at https://github.com/autofitcloud/isitfit/issues/new"
