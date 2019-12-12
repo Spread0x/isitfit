@@ -6,6 +6,11 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
+Version 0.18.8 (2019-12-12)
+
+- bugfix: strip color from profile name for case of using the default (which is colored)
+
+
 Version 0.18.7 (2019-12-12)
 
 - bugfix: in `pingOnError` check if click context ctx.obj is still None before using it

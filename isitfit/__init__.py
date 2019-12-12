@@ -1,1 +1,1 @@
-isitfit_version='0.18.7'
+isitfit_version='0.18.8'

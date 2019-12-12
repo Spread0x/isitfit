@@ -310,26 +310,34 @@ class AwsProfileMan:
     self.w2c = Word2Color()
 
 
-  def validate_profile(self, ctx, param, value):
-    if value is None: return value
-    if value not in self.profile_list_nocolors:
+  def validate_profile(self, ctx, param, value_colored):
+    if value_colored is None: return value_colored
+
+    # strip color from value_colored
+    # http://stackoverflow.com/questions/14693701/ddg#14693789
+    import re
+    ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
+    value_nocolor = ansi_escape.sub('', value_colored)
+
+    # check if in list
+    if value_nocolor not in self.profile_list_nocolors:
       import click
-      err_m = 'Profile %s is not from ~/.aws/credentials file.'%value
+      err_m = 'Profile %s is not from ~/.aws/credentials file.'%value_colored
       raise click.BadParameter(err_m)
 
     # set the profile in an env var so that boto3 picks it up automatically
-    if value is not None:
+    if value_nocolor is not None:
       import os
-      os.environ['AWS_PROFILE'] = value
+      os.environ['AWS_PROFILE'] = value_nocolor
 
     # save profile in click context for other usage in displayed/emailed report
-    ctx.obj['aws_profile'] = value
+    ctx.obj['aws_profile'] = value_nocolor
 
     # save in last-used profile file
-    self.last_profile_cls.set(value)
+    self.last_profile_cls.set(value_nocolor)
 
     # done
-    return value
+    return value_nocolor
 
 
   def prompt(self):
