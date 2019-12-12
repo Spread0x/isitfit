@@ -1,11 +1,14 @@
 #!/bin/sh
-# Usage: /bin/sh synopsis_update.sh > SYNOPSIS.md
+# Usage: /bin/sh synopsis_update.sh > docs/synopsis.md
 # Note: Important to use /bin/sh and not bash for the \n to be rendered properly
 # Otherwise, maybe need "echo -e" with bash
 
 set -e
 
-echo "# SYNOPSIS for isitfit\n"
+echo "# Synopsis\n"
+echo "A list of all commands and options with isitfit\n\n"
+echo "---\n\n"
+
 
 showHelp() {
   command_1="$1"
@@ -19,8 +22,9 @@ showHelp() {
 showHelp ""
 showHelp version
 showHelp cost
-showHelp "cost optimize"
 showHelp "cost analyze"
+showHelp "cost optimize"
+
 showHelp tags
 showHelp "tags dump"
 showHelp "tags suggest"

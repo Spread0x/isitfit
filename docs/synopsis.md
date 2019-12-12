@@ -1,4 +1,8 @@
-# SYNOPSIS for isitfit
+# Synopsis
+
+A list of all commands and options with isitfit
+
+---
 
 ## `isitfit  --help`
 
@@ -49,6 +53,21 @@ Commands:
   optimize  Generate recommendations of optimal EC2 sizes
 ```
 
+## `isitfit cost analyze --help`
+
+```
+Usage: isitfit cost analyze [OPTIONS]
+
+  Analyze AWS EC2 cost
+
+Options:
+  --ndays INTEGER     number of days to look back in the data history
+  --filter-tags TEXT  filter instances for only those carrying this value in
+                      the tag name or value
+  --save-details      Save details behind calculations to CSV files
+  --help              Show this message and exit.
+```
+
 
 ## `isitfit cost optimize --help`
 
@@ -63,22 +82,6 @@ Options:
                       stopping. Skip to get all optimizations
   --filter-tags TEXT  filter instances for only those carrying this value in
                       the tag name or value
-  --help              Show this message and exit.
-```
-
-
-## `isitfit cost analyze --help`
-
-```
-Usage: isitfit cost analyze [OPTIONS]
-
-  Analyze AWS EC2 cost
-
-Options:
-  --ndays INTEGER     number of days to look back in the data history
-  --filter-tags TEXT  filter instances for only those carrying this value in
-                      the tag name or value
-  --save-details      Save details behind calculations to CSV files
   --help              Show this message and exit.
 ```
 
