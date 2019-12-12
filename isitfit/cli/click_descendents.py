@@ -174,6 +174,6 @@ def isitfit_option_profile(name=None, **attrs):
   from isitfit.utils import AwsProfileMan
   profile_man = AwsProfileMan()
 
-  ret_opt = isitfit_option_base('--profile', type=str, default='default', callback=profile_man.validate_profile, prompt=profile_man.prompt(), help='Use a specific profile from your credential file.', envvar='AWS_PROFILE')
+  ret_opt = isitfit_option_base('--profile', type=str, default=profile_man.default(), callback=profile_man.validate_profile, prompt=profile_man.prompt(), help='Use a specific profile from your credential file.', envvar='AWS_PROFILE')
   return ret_opt
 

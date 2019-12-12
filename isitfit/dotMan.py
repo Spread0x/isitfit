@@ -101,3 +101,7 @@ class DotFile:
 
 class DotLastEmail(DotFile):
   filename = "last_email.txt"
+
+
+class DotLastProfile(DotFile):
+  filename = "last_profile.txt"

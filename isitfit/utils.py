@@ -304,6 +304,9 @@ class AwsProfileMan:
     import boto3
     self.p_l = boto3.session.Session().available_profiles
 
+    from isitfit.dotMan import DotLastProfile
+    self.last_profile_cls = DotLastProfile()
+
   def validate_profile(self, ctx, param, value):
     if value is None: return value
     if value not in self.p_l:
@@ -319,6 +322,9 @@ class AwsProfileMan:
     # save profile in click context for other usage in displayed/emailed report
     ctx.obj['aws_profile'] = value
 
+    # save in last-used profile file
+    self.last_profile_cls.set(value)
+
     # done
     return value
 
@@ -332,6 +338,10 @@ class AwsProfileMan:
     x.append("Profile to use")
     y = "\n".join(x)
     return y
+
+
+  def default(self):
+    return self.last_profile_cls.get() or 'default'
 
 
 

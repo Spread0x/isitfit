@@ -16,6 +16,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - enh: general: prompt for using redis now uses click.confirm and makes the default "yes" instead of "no"
 - enh: cost analyze: after sending a verification email, use click.pause instead of click.prompt
 - enh: cost analyze: only save "last-used email" after the email verification is complete
+- feat: cost: save last-used profile in `~/.isitfit/last_profile.txt`
 
 
 Version 0.18.6 (2019-12-11)
