@@ -108,7 +108,7 @@ class IsitfitCliError(click.UsageError):
 
 
 
-def isitfit_option(name=None, **attrs):
+def isitfit_option_base(name=None, **attrs):
   """
   Overrides click.option due to trouble with options having prompt=True (or prompt='bla') and the --help call
   eg `isitfit cost analyze --help` was prompting for `--profile`
@@ -150,13 +150,16 @@ def isitfit_option(name=None, **attrs):
       value = click.prompt(prompt_ori, default=default_ori, type=type_ori)
 
     # call the original callback
+    if callback_ori is None: return value
     return callback_ori(ctx, param, value)
 
   # disable the originals since moved into callback_wrap
   if 'prompt'   in attrs.keys(): attrs['prompt'] = False
   if 'type'     in attrs.keys(): attrs['type'] = None
   if 'default'  in attrs.keys(): attrs['default'] = None
-  if 'callback' in attrs.keys(): attrs['callback'] = callback_wrap
+
+  # always set the callback, because checking if it's missing is done inside callback_wrap
+  attrs['callback'] = callback_wrap
 
   # return the "corrected" option
   return click.option(name, **attrs)
@@ -171,6 +174,6 @@ def isitfit_option_profile(name=None, **attrs):
   from isitfit.utils import AwsProfileMan
   profile_man = AwsProfileMan()
 
-  ret_opt = isitfit_option('--profile', type=str, default='default', callback=profile_man.validate_profile, prompt=profile_man.prompt(), help='Use a specific profile from your credential file.', envvar='AWS_PROFILE')
+  ret_opt = isitfit_option_base('--profile', type=str, default='default', callback=profile_man.validate_profile, prompt=profile_man.prompt(), help='Use a specific profile from your credential file.', envvar='AWS_PROFILE')
   return ret_opt
 

@@ -10,6 +10,8 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - bugfix: in `IsitfitCliError`, check if `ctx` is None as well as `ctx.obj`
 - bugfix: in `pingOnError` was missing a `import ping_matomo`. Not sure how it didnt show up until now
 - feat: save the last-used email and show it as default in the email prompter
+- bugfix: click issue with `--help` triggering the code of `isitfit command` when `isitfit command subcommand --help` is issued (whereas it should be skipped)
+- enh: use `isitfit_option_base` for `ndays` and move it back to `isitfit cost` level rather than duplicating it in `isitfit cost {analyze,optimize}`
 
 
 Version 0.18.6 (2019-12-11)

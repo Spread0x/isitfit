@@ -130,13 +130,14 @@ def test_IsitfitOption_worksWithPrompt(runner):
   """
   This test is the working counter-part of test_ClickOption_failsWithPrompt which was expected to fail
   """
-  from isitfit.cli.click_descendents import isitfit_option
+  from isitfit.cli.click_descendents import isitfit_option_base
 
   @click.group()
   def isitfit(): pass
 
+  # Note that in the below, callback is not set
   @click.group()
-  @isitfit_option('--prompt', default='foo', prompt='my prompt', type=str)
+  @isitfit_option_base('--prompt', default='foo', prompt='my prompt', type=str)
   def cost(prompt): pass
 
   @click.command()
@@ -147,7 +148,7 @@ def test_IsitfitOption_worksWithPrompt(runner):
 
   # invoke and assert
   result = runner.invoke(isitfit, ['cost', '--help'])
-  assert True
+  assert not result.exception
 
 
 def test_IsitfitOptionProfile_ok(runner):
@@ -168,4 +169,5 @@ def test_IsitfitOptionProfile_ok(runner):
 
   # invoke and assert
   result = runner.invoke(isitfit, ['cost', '--help'])
-  assert True
+  assert not result.exception
+

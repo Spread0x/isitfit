@@ -4,6 +4,10 @@ from isitfit.cli.click_descendents import IsitfitCommand, isitfit_group
 @isitfit_group(help="Manage migrations for local files (useful for debugging)", invoke_without_command=False, hidden=True)
 @click.pass_context
 def migrations(ctx):
+  # FIXME click bug: `isitfit command subcommand --help` is calling the code in here. Workaround is to check --help and skip the whole section
+  import sys
+  if '--help' in sys.argv: return
+
   # usage stats
   from isitfit.utils import ping_matomo
   ping_matomo("/migrations")

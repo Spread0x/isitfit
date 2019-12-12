@@ -27,6 +27,10 @@ from isitfit.cli.click_descendents import isitfit_group
 @click.option('--skip-check-upgrade', is_flag=True, help='Skip step for checking for upgrade of isitfit')
 @click.pass_context
 def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upgrade):
+    # FIXME click bug: `isitfit cost --help` is calling the code in here. Workaround is to check --help
+    import sys
+    if '--help' in sys.argv: return
+
     # usage stats
     # https://docs.python.org/3.5/library/string.html#format-string-syntax
     from isitfit.utils import ping_matomo, b2l

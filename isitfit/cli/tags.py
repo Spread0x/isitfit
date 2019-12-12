@@ -8,6 +8,10 @@ from isitfit.cli.click_descendents import IsitfitCommand, isitfit_group, isitfit
 @isitfit_group(help="Explore EC2 tags", invoke_without_command=False)
 @isitfit_option_profile()
 def tags(profile):
+  # FIXME click bug: `isitfit command subcommand --help` is calling the code in here. Workaround is to check --help and skip the whole section
+  import sys
+  if '--help' in sys.argv: return
+
   # gather anonymous usage statistics
   from isitfit.utils import ping_matomo
   ping_matomo("/tags")
