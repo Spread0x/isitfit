@@ -120,3 +120,7 @@ class TestEmailManSendNoInput:
     # no trigger
     em.send([])
     assert True # no exception
+
+
+
+

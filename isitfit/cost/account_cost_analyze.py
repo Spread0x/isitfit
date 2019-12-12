@@ -310,6 +310,7 @@ class ServiceReporterBinned(ReporterBase):
     click.echo("For reference:")
     click.echo(colored("* CWAU >= 70% is well optimized", 'green'))
     click.echo(colored("* CWAU <= 30% is underused", 'red'))
+    click.echo("")
 
     return context_all
 

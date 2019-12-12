@@ -5,6 +5,9 @@ from isitfit.utils import logger
 
 from isitfit.cli.click_descendents import IsitfitCliError
 
+
+
+
 class EmailMan:
 
   def __init__(self, dataType, dataVal, ctx):
@@ -13,6 +16,11 @@ class EmailMan:
     self.ctx = ctx
     self.api_man = ApiMan(tryAgainIn=1, ctx=ctx)
     self.try_again = 3 # max attempts to try again
+
+    # for set/get last used email
+    from isitfit.dotMan import DotLastEmail
+    self.last_email = DotLastEmail()
+
 
   def _send_core(self, share_email):
     # submit POST http request
@@ -27,8 +35,15 @@ class EmailMan:
     )
     return response_json, dt_now
 
+
   def send(self, share_email):
     logger.info("Sending email")
+
+    # pre-process spaces if any
+    share_email = [x.strip() for x in share_email]
+
+    # save 1st entry as "last email"
+    self.last_email.set(share_email[0])
 
     # get resources available
     self.api_man.register()

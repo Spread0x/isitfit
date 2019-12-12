@@ -40,4 +40,22 @@ class TestDotMan:
       assert len(uuid_val)==32
 
 
+class TestDotLastEmail:
+  def test_ok(self):
+    from isitfit.dotMan import DotLastEmail
+    lst = DotLastEmail()
 
+    import tempfile
+    with tempfile.NamedTemporaryFile() as fh:
+      lst.fn = fh.name # over-write the saved filename
+
+      # get before any save
+      actual = lst.get()
+      print(lst.fn)
+      assert actual is None
+
+      # set/get
+      expected = "bla"
+      lst.set(expected)
+      actual = lst.get()
+      assert actual == expected

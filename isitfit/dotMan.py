@@ -61,3 +61,43 @@ class DotMan:
     isitfit_tmpdir = os.path.join(tempfile.gettempdir(), 'isitfit')
     os.makedirs(isitfit_tmpdir, exist_ok=True)
     return isitfit_tmpdir
+
+
+import os
+class DotFile:
+  """
+  Base class to set/get files in ~/.isitfit like ~/.isitfit/last_email.txt
+  """
+  filename = None
+  def __init__(self):
+    self._init_fn()
+
+  def _init_fn(self):
+    if self.filename is None:
+      raise Exception("Derived classes should set filename member")
+
+    from isitfit.dotMan import DotMan
+    dm = DotMan()
+    fold = dm.get_dotisitfit()
+    self.fn = os.path.join(fold, self.filename)
+
+  def get(self):
+    if not os.path.exists(self.fn):
+      return None
+
+    with open(self.fn, 'r') as fh:
+      val = fh.read()
+      val = val.strip()
+
+      if val=='':
+        return None
+
+      return val
+
+  def set(self, val):
+    with open(self.fn, 'w') as fh:
+      fh.write(val)
+
+
+class DotLastEmail(DotFile):
+  filename = "last_email.txt"

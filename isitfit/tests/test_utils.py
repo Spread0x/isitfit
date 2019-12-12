@@ -138,3 +138,74 @@ class TestAwsProfileMan:
     pm = AwsProfileMan()
     x = pm.prompt()
     assert x is not None
+
+
+
+# get fixture
+from isitfit.tests.cli.test_clickDescendents import ping_matomo
+
+# test functions using above fixture
+class TestPromptToEmailIfNotRequested:
+
+  def test_ok(self, ping_matomo):
+    """
+    No need for click.command here as this will never reach the click.prompt line
+    """
+    from isitfit.utils import PromptToEmailIfNotRequested
+    pte = PromptToEmailIfNotRequested()
+    import tempfile
+    with tempfile.NamedTemporaryFile() as fh:
+      pte.last_email_cl.fn = fh.name # overwrite file to save last-used email
+      expected = 'me@example.com'
+      actual = pte.prompt(expected)
+      assert actual == expected
+
+
+  def test_oneInputNoLast(self, ping_matomo):
+    """
+    # build a fake click command so that the click.prompt will be emulated
+    # https://click.palletsprojects.com/en/7.x/testing/?highlight=test#input-streams
+    """
+    import click
+    @click.command()
+    def cmd():
+      from isitfit.utils import PromptToEmailIfNotRequested
+      pte = PromptToEmailIfNotRequested()
+      import tempfile
+      with tempfile.NamedTemporaryFile() as fh:
+        pte.last_email_cl.fn = fh.name # overwrite file to save last-used email
+        pte.prompt(None)
+
+    # trigger
+    from click.testing import CliRunner
+    runner = CliRunner()
+    result = runner.invoke(cmd, input='me@example.com\n')
+    print(result.__dict__) # in case of exception, this will show details
+    assert not result.exception
+    assert '[skip]' in result.output
+
+
+  def test_oneInputSetLast(self, ping_matomo):
+    """
+    # build a fake click command so that the click.prompt will be emulated
+    # https://click.palletsprojects.com/en/7.x/testing/?highlight=test#input-streams
+    """
+    import click
+    @click.command()
+    def cmd():
+      from isitfit.utils import PromptToEmailIfNotRequested
+      pte = PromptToEmailIfNotRequested()
+      import tempfile
+      with tempfile.NamedTemporaryFile() as fh:
+        pte.last_email_cl.fn = fh.name # overwrite file to save last-used email
+        pte.last_email_cl.set('me@example.com')
+        pte.prompt(None)
+
+    # trigger
+    from click.testing import CliRunner
+    runner = CliRunner()
+    result = runner.invoke(cmd, input='\n')
+    print(result.__dict__) # in case of exception, this will show details
+    assert not result.exception
+    assert '[skip]' not in result.output
+    assert '[me@example.com]' in result.output

@@ -333,3 +333,63 @@ class AwsProfileMan:
     y = "\n".join(x)
     return y
 
+
+
+class PromptToEmailIfNotRequested():
+  def __init__(self):
+    from isitfit.dotMan import DotLastEmail
+    self.last_email_cl = DotLastEmail()
+    self.last_email_val = None
+
+    # more quick validation
+    # works with a@b.c but not a@b@c.d
+    # https://stackoverflow.com/questions/8022530/how-to-check-for-valid-email-address#8022584
+    import re
+    self.EMAIL_REGEX = re.compile(r"[^@]+@[^@]+\.[^@]+")
+
+  def _helper(self):
+      # use "default=''" so that the "leave blank to skip" works (instead of click re-prompting until it gets a value)
+      import click
+      res_prompt = click.prompt('Email to which to share the results (type "skip" to not send email)', type=str, default=self.last_email_val)
+
+      # check if blank
+      res_prompt = res_prompt.strip()
+      if res_prompt=='skip':
+        ping_matomo("/cost/share_email?original=F&provided=F")
+        return None
+
+      # quick validate
+      # shortest email is: a@b.c
+      # Longest email is: shadishadishadishadi@shadishadishadishadi.shadi
+      if len(res_prompt) >= 5:
+        if len(res_prompt) <= 50:
+          if bool(self.EMAIL_REGEX.match(res_prompt)):
+            ping_matomo("/cost/share_email?original=F&provided=T")
+            return [res_prompt]
+
+      # otherwise, invalid email
+      logger.error("Invalid email address: '%s'"%res_prompt)
+      raise ValueError
+
+
+  def prompt(self, emailTo):
+    from isitfit.utils import ping_matomo
+
+    if emailTo is not None:
+      if len(emailTo) > 0:
+        # user already requested email
+        ping_matomo("/cost/share_email?original=T")
+        return emailTo
+
+    # get last used email if available
+    self.last_email_val = self.last_email_cl.get()
+    if self.last_email_val is None: self.last_email_val='skip'
+
+    # prompt for email
+    while True:
+      try:
+        res = self._helper()
+        return res
+      except ValueError:
+        pass
+
