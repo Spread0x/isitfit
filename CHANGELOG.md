@@ -4,6 +4,10 @@ Semantic versioning
 Version latest (0.18.0rc?, 2019-12-05?)
 
 - ...
+
+
+Version 0.18.7 (2019-12-12)
+
 - bugfix: in `pingOnError` check if click context ctx.obj is still None before using it
 - enh: cost optimize: show message "no optimizations from ec2" in display
 - feat: cost analyze: upon email entry, if sending fails because of pending verification, just prompt the user (max 3 times) to check email then click Enter when clicked on verification
