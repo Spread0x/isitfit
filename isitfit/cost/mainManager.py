@@ -101,13 +101,16 @@ class MainManager:
             # Listener can return None to break out of loop,
             # i.e. to stop processing with other listeners
             for l in self.listeners['ec2']:
-              context_ec2 = l(context_ec2)
+              try:
+                context_ec2 = l(context_ec2)
+              except NoCloudwatchException:
+                ec2_noCloudwatch.append(ec2_id)
 
               # skip rest of listeners if one of them returned None
-              if context_ec2 is None: break
+              if context_ec2 is None:
+                logger.debug("Listener %s is breaking per_resource for resource %s"%(l, ec2_id))
+                break
 
-          except NoCloudwatchException:
-            ec2_noCloudwatch.append(ec2_id)
           except NoCloudtrailException:
             ec2_noCloudtrail.append(ec2_id)
 

@@ -73,7 +73,7 @@ class CloudwatchBase:
     #logger.debug(rc_describe_entry)
 
     # remember that max for cluster = max of stats of all nodes
-    logger.debug("Getting cloudwatch for cluster: %s"%(rc_id))
+    logger.debug("Getting cloudwatch for resource: %s"%(rc_id))
     metrics_iterator = self._metrics_filter(rc_id)
     for m_i in metrics_iterator:
         # skip node stats for now, and focus on cluster stats
@@ -134,7 +134,7 @@ class CloudwatchBase:
 
 
   def handle_main(self, rc_describe_entry, rc_id, rc_created):
-        logger.debug("Found cluster %s"%rc_id)
+        logger.debug("Fetching cloudwatch data for resource %s"%rc_id)
 
         # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/cloudwatch.html#metric
         self.cloudwatch_resource = self._cloudwatch_metrics_boto3(region_name = rc_describe_entry['Region'])
@@ -185,6 +185,7 @@ class CloudwatchCached(CloudwatchBase):
           df_cache = self.cache_man.get(cache_key)
           if df_cache is not None:
             logger.debug("Found cloudwatch metrics in redis cache for %s, and data.shape[0] = %i"%(rc_id, df_cache.shape[0]))
+
             df_ret = myreturn(df_cache)
             if df_ret is None: raise_noCwExc(rc_id)
             if df_ret.shape[0]==0: raise_noCwExc(rc_id)
@@ -240,7 +241,26 @@ class CloudwatchEc2(CloudwatchCached):
         Raises NoCloudwatchException if no data found in cloudwatch
         """
         ec2_obj = context_ec2['ec2_obj']
-        df_cw3 = self.handle_main({'Region': ec2_obj.region_name}, ec2_obj.instance_id, ec2_obj.launch_time)
-        context_ec2['df_metrics'] = df_cw3
+
+        try:
+          df_cw3 = self.handle_main({'Region': ec2_obj.region_name}, ec2_obj.instance_id, ec2_obj.launch_time)
+          context_ec2['df_metrics'] = df_cw3
+        except NoCloudwatchException:
+          # intercept exception to insert dummy tables into context_ec2, then raise to bubble up
+          # This is important so that the metric table gets merged with the catalog entry (containing number of available CPU...)
+          # and later these nans get overwritten by datadog data if available
+          import numpy as np
+          df_cw3 = pd.DataFrame([
+            { #'instance_id': ec2_obj.instance_id,
+              'Timestamp': self.EndTime,
+              'Minimum': np.nan,
+              'Average': np.nan,
+              'Maximum': np.nan,
+              'SampleCount': np.nan
+            }
+          ])
+          context_ec2['df_metrics'] = df_cw3
+          raise
+
         return context_ec2
 

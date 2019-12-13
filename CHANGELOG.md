@@ -5,6 +5,12 @@ Version latest (0.18.0rc?, 2019-12-05?)
 
 - ...
 - tests: exhaustive unit tests for `datadogManager`
+- bugfix: cost: datadog data was not being pulled at all when cloudwatch data was missing
+    - moved the try/except of "missing cloudwatch data" to inside the per-resource iterator on listeners
+    - on missing cloudwatch data, insert a single row of nans to preserve the entry for the hope that the nans will be overwritten by datadog
+    - datadog cpu data overwrites the cloudwatch cpu data if present, this means that the analysis is either all-cloudwatch or all-datadog
+    - add to datadog the following metrics cpu-min, ram-min, and nhours
+    - conversion of datadog entries to classification was completely bugged due to the `.datadog` suffix that was added to the columns
 
 
 Version 0.18.{9,10} (2019-12-13)

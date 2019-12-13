@@ -131,9 +131,9 @@ class CalculatorOptimizeEc2:
       return cpu_c1, cpu_c2
 
     # continue with datadog data
-    ram_maxmax = ddg_df.ram_used_max.max()
-    ram_maxavg = ddg_df.ram_used_max.mean()
-    ram_avgmax = ddg_df.ram_used_avg.max()
+    ram_maxmax = ddg_df['ram_used_max.datadog'].max()
+    ram_maxavg = ddg_df['ram_used_max.datadog'].mean()
+    ram_avgmax = ddg_df['ram_used_avg.datadog'].max()
     ram_c1, ram_c2 = self._xxx_to_classification(ram_maxmax, ram_maxavg, ram_avgmax)
 
     # consolidate ram with cpu

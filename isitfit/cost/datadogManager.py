@@ -36,6 +36,9 @@ class HostNotFoundInDdg(ValueError):
 class DataNotFoundForHostInDdg(ValueError):
   pass
 
+class DataQueryError(ValueError):
+  pass
+
 class DatadogAssistant:
     def __init__(self, start, end, host_id):
         self.end = end
@@ -44,10 +47,15 @@ class DatadogAssistant:
 
     def _get_metrics_core(self, query, col_i):
         m = api.Metric.query(start=self.start, end=self.end, query=query, host=self.host_id)
+        if m['status']=='error':
+          raise DatadogQueryError(m['error'])
+
         if len(m['series'])==0:
             raise DataNotFoundForHostInDdg("No %s found for %s"%(col_i, self.host_id))
+
         df = pd.DataFrame(m['series'][0]['pointlist'], columns=['ts_int', col_i])
         df['ts_dt'] = pd.to_datetime(df.ts_int, origin='unix', unit='ms')
+        del df['ts_int']
         return df
         
     def _get_meta(self):
@@ -72,6 +80,18 @@ class DatadogAssistant:
         df['cpu_used_max'] = 100 - df.cpu_idle_min
         df['cpu_used_max'] = df['cpu_used_max'].astype(int)
         return df
+
+    def get_metrics_cpu_min(self):
+        # query language
+        # https://docs.datadoghq.com/graphing/functions/
+        # Use minimum so that cpu_used will be the maximum
+        query = 'system.cpu.idle{host:%s}.rollup(max,%i)'%(self.host_id, SECONDS_IN_ONE_DAY)
+        col_i = 'cpu_idle_max'
+        df = self._get_metrics_core(query, col_i)
+        # calculate cpu used as 100 - cpu_idle
+        df['cpu_used_min'] = 100 - df.cpu_idle_max
+        df['cpu_used_min'] = df['cpu_used_min'].astype(int)
+        return df
         
     def get_metrics_cpu_avg(self):
         # repeat for average
@@ -93,6 +113,17 @@ class DatadogAssistant:
         df['ram_used_max'] = 100 - df['ram_free_min']
         return df
 
+    def get_metrics_ram_min(self):
+        # query language, check note above in get_metrics_cpu
+        query = 'system.mem.free{host:%s}.rollup(max,%i)'%(self.host_id, SECONDS_IN_ONE_DAY)
+        col_i = 'ram_free_max'
+        df =  self._get_metrics_core(query, col_i)
+        memory_total = self._get_meta()['memory_total']
+        df['ram_free_max'] = df.ram_free_max / memory_total * 100
+        df['ram_free_max'] = df['ram_free_max'].astype(int)
+        df['ram_used_min'] = 100 - df['ram_free_max']
+        return df
+
     def get_metrics_ram_avg(self):
         # query language, check note above in get_metrics_cpu
         query = 'system.mem.free{host:%s}.rollup(avg,%i)'%(self.host_id, SECONDS_IN_ONE_DAY)
@@ -104,11 +135,21 @@ class DatadogAssistant:
         df['ram_used_avg'] = 100 - df['ram_free_avg']
         return df
 
+    def get_metrics_count(self):
+        # query language, check note above in get_metrics_cpu
+        query = 'count_not_null(system.mem.free{host:%s})'%(self.host_id)
+        col_i = 'nhours'
+        df1 =  self._get_metrics_core(query, col_i)
+        # yields data per hour, so process in pandas to daily
+        df2 = df1.set_index('ts_dt').resample('1D').nhours.sum().reset_index()
+        return df2
+
 
 class DatadogManager:
     def __init__(self):
         initialize()
         self.set_ndays(90) # default is 90 days
+        self.print_configured = True
 
     def set_ndays(self, ndays):
         self.ndays = ndays
@@ -127,8 +168,15 @@ class DatadogManager:
       # check not None and not empty string
       if os.getenv('DATADOG_API_KEY', None):
         if os.getenv('DATADOG_APP_KEY', None):
+          if self.print_configured:
+            logger.info("Datadog env vars available")
+            self.print_configured = False
           return True
           
+      if self.print_configured:
+        logger.info("Datadog env vars missing. Set DATADOG_API_KEY and DATADOG_APP_KEY to get memory data from Datadog.")
+        self.print_configured = False
+
       return False
 
 
@@ -155,9 +203,18 @@ class DatadogManager:
         # merge
         ec2_df = context_ec2['ec2_df']
         ec2_df = ec2_df.merge(ddg_df, how='outer', left_on='Timestamp', right_on='ts_dt.datadog')
-        context_ec2['ec2_df'] = ec2_df # update context
+
+        # if Datadog CPU data available, overwrite the cloudwatch data
+        # This is inefficient, as the pipeline could have fetched data from Datadog only
+        # Especially in the case that cloudwatch data is missing (check cloudwatchman.CloudwatchEc2.per_ec2 section interception an exception to set nan)
+        # TODO improve later
+        if 'cpu_used_max.datadog' in ec2_df.columns: ec2_df['Maximum'] = ec2_df['cpu_used_max.datadog']
+        if 'cpu_used_avg.datadog' in ec2_df.columns: ec2_df['Average'] = ec2_df['cpu_used_avg.datadog']
+        if 'cpu_used_min.datadog' in ec2_df.columns: ec2_df['Minimum'] = ec2_df['cpu_used_min.datadog']
+        if 'nhours.datadog' in ec2_df.columns: ec2_df['nhours'] = ec2_df['nhours.datadog']
 
         # add to context
+        context_ec2['ec2_df'] = ec2_df # update context
         context_ec2['ddg_df'] = ddg_df
 
         # return
@@ -169,16 +226,22 @@ class DatadogManager:
         logger.debug("Fetching datadog data for %s"%host_id)
         ddgL2 = DatadogAssistant(self.start, self.end, host_id)
         df_cpu_max = ddgL2.get_metrics_cpu_max()
+        df_cpu_min = ddgL2.get_metrics_cpu_min()
         df_cpu_avg = ddgL2.get_metrics_cpu_avg()
         df_ram_max = ddgL2.get_metrics_ram_max()
+        df_ram_min = ddgL2.get_metrics_ram_min()
         df_ram_avg = ddgL2.get_metrics_ram_avg()
+        df_count   = ddgL2.get_metrics_count()
         df_all = (
             df_cpu_max
-            .merge(df_cpu_avg, how='outer', on=['ts_int', 'ts_dt'])
-            .merge(df_ram_max, how='outer', on=['ts_int', 'ts_dt'])
-            .merge(df_ram_avg, how='outer', on=['ts_int', 'ts_dt'])
+            .merge(df_cpu_min, how='outer', on=['ts_dt'])
+            .merge(df_cpu_avg, how='outer', on=['ts_dt'])
+            .merge(df_ram_max, how='outer', on=['ts_dt'])
+            .merge(df_ram_min, how='outer', on=['ts_dt'])
+            .merge(df_ram_avg, how='outer', on=['ts_dt'])
+            .merge(df_count,   how='outer', on=['ts_dt'])
         )
-        df_all = df_all[['ts_dt', 'cpu_used_max', 'cpu_used_avg', 'ram_used_max', 'ram_used_avg']]
+        df_all = df_all[['ts_dt', 'cpu_used_max', 'cpu_used_min', 'cpu_used_avg', 'ram_used_max', 'ram_used_min', 'ram_used_avg', 'nhours']]
         return df_all
 
 
