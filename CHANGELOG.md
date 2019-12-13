@@ -6,7 +6,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
-Version 0.18.9 (2019-12-13)
+Version 0.18.{9,10} (2019-12-13)
 
 - bugfix: tqdm in register that waited 30 seconds to completion: didnt have `desc` field + was using tqdm directly instead of TqdmL2Verbose
 - bugfix: `share/email` to not require AWS authentication, just the randomly generated local UID

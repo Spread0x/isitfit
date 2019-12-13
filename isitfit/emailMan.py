@@ -58,7 +58,8 @@ class EmailMan:
     share_email = [x.strip() for x in share_email]
 
     # get resources available
-    self.api_man.register()
+    # Update 2019-12-13 no need to register with API after istifit-api /share/email became anonymous
+    # self.api_man.register()
 
     # submit POST http request
     response_json, dt_now = self._send_core(share_email)
