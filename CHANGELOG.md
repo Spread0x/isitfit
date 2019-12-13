@@ -4,6 +4,7 @@ Semantic versioning
 Version latest (0.18.0rc?, 2019-12-05?)
 
 - ...
+- tests: exhaustive unit tests for `datadogManager`
 
 
 Version 0.18.{9,10} (2019-12-13)
