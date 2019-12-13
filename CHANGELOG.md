@@ -4,6 +4,7 @@ Semantic versioning
 Version latest (0.18.0rc?, 2019-12-05?)
 
 - ...
+- bugfix: tqdm in register that waited 30 seconds to completion: didnt have `desc` field + was using tqdm directly instead of TqdmL2Verbose
 
 
 Version 0.18.8 (2019-12-12)

@@ -41,5 +41,3 @@ class TqdmL2Verbose(TqdmL2Base):
     # self.show = ctx.obj['debug'] or ctx.obj['verbose']
     self.show = True
 
-
-

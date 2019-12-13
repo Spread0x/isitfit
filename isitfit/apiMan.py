@@ -92,8 +92,11 @@ class ApiMan:
           if self.call_n >= self.tryAgainIn:
               logger.debug("Will check again in %i seconds"%(self.nsecs_wait))
               import time
-              from tqdm import tqdm
-              for i in tqdm(range(self.nsecs_wait)):
+              #from tqdm import tqdm as tqdm_obj
+              from isitfit.tqdmman import TqdmL2Verbose
+              tqdm_obj = TqdmL2Verbose(self.ctx)
+              tqdm_iter = tqdm_obj(range(self.nsecs_wait), desc="First-time service access (isitfit.io) takes ~ 1 minute")
+              for i in tqdm_iter:
                 time.sleep(1)
 
               self.register()
