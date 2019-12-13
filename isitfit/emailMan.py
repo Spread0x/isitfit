@@ -18,8 +18,11 @@ class EmailMan:
     self.try_again = 3 # max attempts to try again
 
     # for set/get last used email
-    from isitfit.dotMan import DotLastEmail
+    from isitfit.dotMan import DotLastEmail, DotMan
     self.last_email = DotLastEmail()
+
+    # get uuid
+    self.isitfit_uuid = DotMan().get_myuid()
 
 
   def _send_core(self, share_email):
@@ -28,15 +31,27 @@ class EmailMan:
       method='post',
       relative_url='./share/email',
       payload_json={
+        'isitfit_uuid': self.isitfit_uuid,
         'dataType': self.dataType,
         'dataVal': self.dataVal,
         'share_email': share_email
-      }
+      },
+      # Update 2019-12-13 change this endpoint to become anonymous
+      #authenticated_user_path=True,
+      #anonymous_user_path=False
+      authenticated_user_path=False,
+      anonymous_user_path=True
     )
     return response_json, dt_now
 
 
   def send(self, share_email):
+    if share_email is None:
+      return
+
+    if len(share_email)==0:
+      return
+
     logger.info("Sending email")
 
     # pre-process spaces if any

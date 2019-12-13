@@ -86,13 +86,22 @@ class TestEmailManSendNoInput:
   """
   These tests do not use TestEmailManSendWithInputStream as they do not reach a click.prompt, so they don't need to handle the stream
   """
+  def test_send_empty(self, MockEmailManFactory):
+    ret = isitfit_return_helper('error', 'foo', None)
+    em = MockEmailManFactory([ret])
+
+    # trigger
+    em.send([])
+    assert True # no exception, nothing happens
+
+
   def test_send_failErrorGeneral(self, MockEmailManFactory):
     ret = isitfit_return_helper('error', 'foo', None)
     em = MockEmailManFactory([ret])
 
     # trigger
     with pytest.raises(IsitfitCliError) as e:
-      em.send([])
+      em.send(['bla@foo.bar'])
 
 
   def test_send_failNotOk(self, MockEmailManFactory):
@@ -101,7 +110,7 @@ class TestEmailManSendNoInput:
 
     # trigger
     with pytest.raises(IsitfitCliError) as e:
-      em.send([])
+      em.send(['bla@foo.bar'])
 
 
   def test_send_failSchema(self, MockEmailManFactory):
@@ -110,7 +119,7 @@ class TestEmailManSendNoInput:
 
     # trigger
     with pytest.raises(IsitfitCliError) as e:
-      em.send([])
+      em.send(['bla@foo.bar'])
 
 
   def test_send_ok(self, MockEmailManFactory):
@@ -118,7 +127,7 @@ class TestEmailManSendNoInput:
     em = MockEmailManFactory([ret])
 
     # no trigger
-    em.send([])
+    em.send(['bla@foo.bar'])
     assert True # no exception
 
 

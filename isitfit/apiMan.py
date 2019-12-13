@@ -168,30 +168,16 @@ class ApiMan:
       self.sqs_q = sqs_res.Queue(self.r_body['sqs_url'])
 
 
-  def request(self, method, relative_url, payload_json, authenticated_user_path=True):
-      """
-      Wrapper to the URL request
-      method - post
-      relative_url - eg ./tags/suggest
-      payload_json - "json" field for request call
-      authenticated_user_path - flag for self.register which can disable this as it doesn't have a account/user prefix in the URL
-      """
-      logger.debug("ApiMan::request")
+  def _get_auth(self, authenticated_user_path, anonymous_user_path):
+      if authenticated_user_path and anonymous_user_path:
+        raise ValueError("Doesnt make sense to have anonymous_user_path=True and authenticated_user_path=True")
 
-      # relative URL to absolute
-      # https://stackoverflow.com/a/8223955/4126114
-      if authenticated_user_path:
-        suffix_url='./%s/%s/%s'%(self.r_sts['Account'], self.r_sts['UserId'], relative_url)
-      else:
-        suffix_url = relative_url
-
-      import urllib.parse
-      absolute_url = urllib.parse.urljoin(BASE_URL, suffix_url)
-      import json
-      logger.debug("%s %s %s"%(method, absolute_url, json.dumps(payload_json)))
+      if anonymous_user_path:
+        return None
 
       # Either use a new boto session using the active AWS profile
       # or the boto session belonging to the assumed role
+      # Update 2019-12-13 actually, if it's
       import boto3
       boto_session=self.boto3_session if authenticated_user_path else boto3.session.Session()
 
@@ -212,12 +198,53 @@ class ApiMan:
                                     boto_session=boto_session
                                     )
 
+      # done
+      return auth
+
+
+  def request(self, method, relative_url, payload_json, authenticated_user_path=True, anonymous_user_path=False):
+      """
+      Wrapper to the URL request
+      method - post
+      relative_url - eg ./tags/suggest
+      payload_json - "json" field for request call
+      authenticated_user_path - False if can use the current local user
+                                True if need to use the isitfit-api-provided role
+                                Flag for self.register which can disable this as it doesn't have a account/user prefix in the URL
+
+      anonymous_user_path - False if endpoint needs to get the AWS user information (requires execute-api permissions)
+                            True if endpoint can be done by requests library without any AWS info
+
+      anonymous_user_path was introduced for the /share/email endpoint
+      - which is different than the older /account/user/share/email endpoint
+      - because some users used the root account
+      - Also some users dont have the execute-api permission
+
+      The combination anonymous_user_path=True and authenticated_user_path=True is not allowed
+      - the other combinations make sense
+      """
+      logger.debug("ApiMan::request")
+
+      # relative URL to absolute
+      # https://stackoverflow.com/a/8223955/4126114
+      if authenticated_user_path:
+        suffix_url='./%s/%s/%s'%(self.r_sts['Account'], self.r_sts['UserId'], relative_url)
+      else:
+        suffix_url = relative_url
+
+      import urllib.parse
+      absolute_url = urllib.parse.urljoin(BASE_URL, suffix_url)
+      import json
+      logger.debug("%s %s %s"%(method, absolute_url, json.dumps(payload_json)))
+
+
       # mark timestamp right before request (used in listen_sqs for dropping stale messages)
       import datetime as dt
       dt_now = dt.datetime.utcnow() #.strftime('%s')
 
       # make actual request
       import requests
+      auth = self._get_auth(authenticated_user_path, anonymous_user_path)
       r1 = requests.request(method, absolute_url, json=payload_json, auth=auth)
       #logger.debug("python requests http request header:")
       #logger.debug(r1.request.headers)
@@ -226,13 +253,17 @@ class ApiMan:
       import json
       r2 = json.loads(r1.text)
 
-      # check AWS-generated errors
+      # check AWS-generated errors (lambda?)
       if 'message' in r2:
         if r2['message']=='Internal server error':
           raise IsitfitCliError('Internal server error', self.ctx)
         else:
           # print(r2)
           raise IsitfitCliError('Serverside error #2: %s'%r2['message'], self.ctx)
+
+      # AWS API Gateway error
+      if 'Message' in r2:
+        raise IsitfitCliError("Serverside error #3: %s"%r2['Message'], self.ctx)
 
       # validate schema of response
       register_schema_2 = Schema({
