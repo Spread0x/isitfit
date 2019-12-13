@@ -4,6 +4,10 @@ Semantic versioning
 Version latest (0.18.0rc?, 2019-12-05?)
 
 - ...
+
+
+Version 0.18.11 (2019-12-13)
+
 - tests: exhaustive unit tests for `datadogManager`
 - bugfix: cost: datadog data was not being pulled at all when cloudwatch data was missing
     - moved the try/except of "missing cloudwatch data" to inside the per-resource iterator on listeners
