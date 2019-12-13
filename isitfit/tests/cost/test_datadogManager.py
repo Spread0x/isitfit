@@ -13,7 +13,7 @@ def test_datadogman_1():
 @pytest.fixture
 def datadog_assistant(mocker):
     def factory(series=[], host_list=[]):
-      mockreturn = lambda *args, **kwargs: {'series': series}
+      mockreturn = lambda *args, **kwargs: {'series': series, 'status': 'ok'}
       mockee = 'datadog.api.Metric.query'
       mocker.patch(mockee, side_effect=mockreturn)
 
@@ -62,19 +62,19 @@ class TestDatadogAssistant:
 
     actual = dda.get_metrics_cpu_max()
     assert actual.shape[0]==1
-    assert actual.shape[1]==4 # columns: ts_int  cpu_idle_min                   ts_dt  cpu_used_max
+    assert actual.shape[1]==3 # columns:  cpu_idle_min                   ts_dt  cpu_used_max
 
     actual = dda.get_metrics_cpu_avg()
     assert actual.shape[0]==1
-    assert actual.shape[1]==4
+    assert actual.shape[1]==3
 
     actual = dda.get_metrics_ram_max()
     assert actual.shape[0]==1
-    assert actual.shape[1]==4
+    assert actual.shape[1]==3
 
     actual = dda.get_metrics_ram_avg()
     assert actual.shape[0]==1
-    assert actual.shape[1]==4
+    assert actual.shape[1]==3
 
 
 @pytest.fixture
