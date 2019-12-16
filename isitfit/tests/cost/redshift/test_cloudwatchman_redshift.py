@@ -1,4 +1,4 @@
-from isitfit.cost.cloudwatchman import CloudwatchRedshift
+from isitfit.cost.metrics_cloudwatch import CloudwatchRedshift
 import pytest
 from isitfit.utils import NoCloudwatchException
 

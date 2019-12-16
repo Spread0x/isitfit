@@ -1,4 +1,4 @@
-from ...cost.datadogManager import DatadogManager, DatadogAssistant, DataNotFoundForHostInDdg, HostNotFoundInDdg, DatadogCached
+from ...cost.metrics_datadog import DatadogManager, DatadogAssistant, DataNotFoundForHostInDdg, HostNotFoundInDdg, DatadogCached
 
 import pytest
 @pytest.mark.skip(reason="Can only test this with live credentials ATM. Need to mock")

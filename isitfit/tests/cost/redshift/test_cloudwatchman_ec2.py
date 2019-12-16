@@ -3,7 +3,7 @@
 # and inherit here to avoid code redundancy
 
 
-from isitfit.cost.cloudwatchman import CloudwatchEc2
+from isitfit.cost.metrics_cloudwatch import CloudwatchEc2
 
 import pytest
 from isitfit.utils import NoCloudwatchException
@@ -155,7 +155,7 @@ class TestCloudwatchEc2:
   @mock_cloudwatch
   # @mock_cloudtrail
   def test_perEc2_ok(self, MockCwResource, mocker):
-    from isitfit.cost.cloudwatchman import CloudwatchEc2
+    from isitfit.cost.metrics_cloudwatch import CloudwatchEc2
     cw = CloudwatchEc2(None)
 
     # mock resource

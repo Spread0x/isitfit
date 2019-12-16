@@ -507,9 +507,9 @@ def pipeline_factory(ctx, filter_tags, save_details):
     from isitfit.cost.mainManager import MainManager
     from isitfit.cost.cloudtrail_ec2type import CloudtrailCached
     from isitfit.cost.cacheManager import RedisPandas as RedisPandasCacheManager
-    from isitfit.cost.datadogManager import DatadogCached
+    from isitfit.cost.metrics_datadog import DatadogCached
     from isitfit.cost.ec2_common import Ec2TagFilter
-    from isitfit.cost.cloudwatchman import CloudwatchEc2
+    from isitfit.cost.metrics_cloudwatch import CloudwatchEc2
     from isitfit.cost.catalog_ec2 import Ec2Catalog
     from isitfit.cost.ec2_common import Ec2Common
 
