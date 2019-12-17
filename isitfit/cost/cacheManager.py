@@ -45,12 +45,16 @@ class RedisPandas:
     pybytes = self.pyarrow_context.serialize(df).to_buffer().to_pybytes()
 
     # if dataframe with shape[0]==0, raise (no longer supported)
+    # Update 2019-12-17 Actually Cloudtrail needs to store an empty dataframe if there are no events in the last 90 days
     if not callable(df):
-      if type(df) != pd.DataFrame:
-        raise Exception("Only caching of callables or pandas dataframes supported as of isitfit 0.19")
+      from isitfit.cli.click_descendents import IsitfitCliError
 
-      if df.shape[0]==0:
-        raise Exception("Caching empty dataframes is no longer supported as of isitfit 0.19")
+      if type(df) != pd.DataFrame:
+        raise IsitfitCliError("Internal dev error: Only caching of callables or pandas dataframes supported as of isitfit 0.19")
+
+      # Check comment above about Cloudtrail needing to store empty dataframes
+      #if df.shape[0]==0:
+      #  raise IsitfitCliError("Internal dev error: caching empty dataframes is no longer supported as of isitfit 0.19")
 
     # set expiration of key-value pair to be 1 day if data was found, 10 minutes otherwise
     ex = SECONDS_IN_10MINS if callable(df) else SECONDS_IN_ONE_DAY

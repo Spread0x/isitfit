@@ -42,7 +42,7 @@ class CalculatorAnalyzeRedshift(CalculatorBaseRedshift):
 
       rc_type = rc_describe_entry['NodeType']
 
-      # append a n_hours field per day
+      # append a nhours field per day
       # and correct for number of hours on first and last day
       # Note that intermediate days are just 24 hours since Redshift cannot be stopped
       # Update 2019-11-20
@@ -53,25 +53,28 @@ class CalculatorAnalyzeRedshift(CalculatorBaseRedshift):
       # unlike ec2 where the instance ID gets generated randomly for each terminated and re-created instance
       # eg
       # (Pdb) df_single.head()
-      #     Timestamp  SampleCount   Average   Minimum    Maximum     Unit  n_hours
+      #     Timestamp  SampleCount   Average   Minimum    Maximum     Unit  nhours
       # 2  2019-11-19        918.0  2.324190  0.833333  53.500000  Percent       24
       # 0  2019-11-20          4.0  1.208333  1.000000   1.416667  Percent        4
-      ymd_creation = rc_describe_entry['ClusterCreateTime'].strftime("%Y-%m-%d")
-      ymd_today    = dt_now_d.strftime("%Y-%m-%d")
-
-      hc_ref = dt_now_d if ymd_creation == ymd_today else rc_describe_entry['ClusterCreateTime'].replace(hour=23, minute=59)
-      hours_creation = hc_ref - rc_describe_entry['ClusterCreateTime']
-      hours_creation = math.ceil(hours_creation.seconds/60/60)
-      hours_today = dt_now_d - dt_now_d.replace(hour=0, minute=0)
-      hours_today = math.ceil(hours_today.seconds/60/60)
-
-      def calc_nhours(ts):
-        ts_str = ts.strftime("%Y-%m-%d")
-        if ts_str == ymd_creation: return hours_creation
-        if ts_str == ymd_today:    return hours_today
-        return 24
-
-      df_single['n_hours'] = df_single.Timestamp.apply(calc_nhours)
+      #
+      # Update 2019-12-17 It turns out SampleCount for redshift is 1 per 10 minutes (wherease EC2 is 1 per 5 minutes)
+      # Commenting out the nhours calculation below and no need to add new calculation because Cloudwatch metrics class will already add the nhours field
+      #ymd_creation = rc_describe_entry['ClusterCreateTime'].strftime("%Y-%m-%d")
+      #ymd_today    = dt_now_d.strftime("%Y-%m-%d")
+      #
+      #hc_ref = dt_now_d if ymd_creation == ymd_today else rc_describe_entry['ClusterCreateTime'].replace(hour=23, minute=59)
+      #hours_creation = hc_ref - rc_describe_entry['ClusterCreateTime']
+      #hours_creation = math.ceil(hours_creation.seconds/60/60)
+      #hours_today = dt_now_d - dt_now_d.replace(hour=0, minute=0)
+      #hours_today = math.ceil(hours_today.seconds/60/60)
+      #
+      #def calc_nhours(ts):
+      #  ts_str = ts.strftime("%Y-%m-%d")
+      #  if ts_str == ymd_creation: return hours_creation
+      #  if ts_str == ymd_today:    return hours_today
+      #  return 24
+      #
+      #df_single['nhours'] = df_single.Timestamp.apply(calc_nhours)
 
       # merge df_single (metrics) with df_type_ts1 (cloudtrail history)
       # (adds column NodeType, NumberOfNodes)
@@ -81,8 +84,8 @@ class CalculatorAnalyzeRedshift(CalculatorBaseRedshift):
       df_single = df_single.merge(redshiftPricing_df, left_on='NodeType', right_on='NodeType', how='left')
 
       # calculate columns capacity_usd and used_usd
-      df_single['used_usd'    ] = df_single.cpu_used_avg / 100 * df_single.Cost * df_single.n_hours * df_single.NumberOfNodes
-      df_single['capacity_usd'] = 1                       * df_single.Cost * df_single.n_hours * df_single.NumberOfNodes
+      df_single['used_usd'    ] = df_single.cpu_used_avg / 100 * df_single.Cost * df_single.nhours * df_single.NumberOfNodes
+      df_single['capacity_usd'] = 1                       * df_single.Cost * df_single.nhours * df_single.NumberOfNodes
 
       # save back to context for further binning
       context_ec2['df_single'] = df_single
@@ -196,47 +199,48 @@ class ReporterAnalyze(ReporterBase):
     # done
     return context_all
 
-
-  def display(self, context_all):
-    # copied from isitfit.cost.ec2.calculator_analyze.display_all
-
-    # https://pypi.org/project/termcolor/
-    from termcolor import colored
-
-    def get_row(row):
-        def get_cell(i):
-          retc = row[i] if not row['color'] else colored(row[i], row['color'])
-          return retc
-
-        retr = [get_cell('label'), get_cell('value')]
-        return retr
-
-    dis_tab = [get_row(row) for row in self.table]
-
-    from tabulate import tabulate
-
-    # logger.info("Summary:")
-    logger.info("Cost-Weighted Average Utilization (CWAU) of the AWS Redshift account:")
-    logger.info("")
-    logger.info(tabulate(dis_tab, headers=['Field', 'Value']))
-    logger.info("")
-    logger.info("For reference:")
-    logger.info(colored("* CWAU >= 70% is well optimized", 'green'))
-    logger.info(colored("* CWAU <= 30% is underused", 'red'))
-    logger.info("")
-    logger.info("For the EC2 analysis, scroll up to the previous table.")
-    return context_all
-
-
-  def email(self, context_all):
-      context_2 = {}
-      context_2['emailTo'] = context_all['emailTo']
-      context_2['click_ctx'] = context_all['click_ctx']
-      context_2['dataType'] = 'cost analyze' # redshift, not ec2
-      context_2['dataVal'] = {'table': self.table}
-      super().email(context_2)
-
-      return context_all
+# DEPRECATED in favor of the reporter in account_cost_analyze.py
+#
+#  def display(self, context_all):
+#    # copied from isitfit.cost.ec2.calculator_analyze.display_all
+#
+#    # https://pypi.org/project/termcolor/
+#    from termcolor import colored
+#
+#    def get_row(row):
+#        def get_cell(i):
+#          retc = row[i] if not row['color'] else colored(row[i], row['color'])
+#          return retc
+#
+#        retr = [get_cell('label'), get_cell('value')]
+#        return retr
+#
+#    dis_tab = [get_row(row) for row in self.table]
+#
+#    from tabulate import tabulate
+#
+#    # logger.info("Summary:")
+#    logger.info("Cost-Weighted Average Utilization (CWAU) of the AWS Redshift account:")
+#    logger.info("")
+#    logger.info(tabulate(dis_tab, headers=['Field', 'Value']))
+#    logger.info("")
+#    logger.info("For reference:")
+#    logger.info(colored("* CWAU >= 70% is well optimized", 'green'))
+#    logger.info(colored("* CWAU <= 30% is underused", 'red'))
+#    logger.info("")
+#    logger.info("For the EC2 analysis, scroll up to the previous table.")
+#    return context_all
+#
+#
+#  def email(self, context_all):
+#      context_2 = {}
+#      context_2['emailTo'] = context_all['emailTo']
+#      context_2['click_ctx'] = context_all['click_ctx']
+#      context_2['dataType'] = 'cost analyze' # redshift, not ec2
+#      context_2['dataVal'] = {'table': self.table}
+#      super().email(context_2)
+#
+#      return context_all
 
 
 

@@ -76,37 +76,39 @@ class ReporterOptimize(ReporterBase):
     analyze_df['CpuMaxMax'] = analyze_df['CpuMaxMax'].fillna(value=0).astype(int)
     analyze_df['CpuMinMin'] = analyze_df['CpuMinMin'].fillna(value=0).astype(int)
 
-    # copied from isitfit.cost.optimizationListener.storecsv...
-    import tempfile
-    from isitfit.dotMan import DotMan
-    with tempfile.NamedTemporaryFile(prefix='isitfit-full-redshift-', suffix='.csv', delete=False, dir=DotMan().tempdir()) as  csv_fh_final:
-      self.csv_fn_final = csv_fh_final.name
-      import click
-      from termcolor import colored
-      click.echo(colored("Saving final results to %s"%csv_fh_final.name, "cyan"))
-      analyze_df.to_csv(csv_fh_final.name, index=False)
-      click.echo(colored("Save complete", "cyan"))
-
-    # save in context for aggregator
-    context_all['csv_fn_final'] = self.csv_fn_final
+#    # copied from isitfit.cost.optimizationListener.storecsv...
+#    # Update 2019-12-17 saving this table to csv is deprecated in favor of cost.account_cost_optimize.ServiceReporter.display2 which saves the data of both ec2 and redshift
+#    import tempfile
+#    from isitfit.dotMan import DotMan
+#    with tempfile.NamedTemporaryFile(prefix='isitfit-full-redshift-', suffix='.csv', delete=False, dir=DotMan().tempdir()) as  csv_fh_final:
+#      self.csv_fn_final = csv_fh_final.name
+#      import click
+#      from termcolor import colored
+#      click.echo(colored("Saving final results to %s"%csv_fh_final.name, "cyan"))
+#      analyze_df.to_csv(csv_fh_final.name, index=False)
+#      click.echo(colored("Save complete", "cyan"))
+#
+#    # save in context for aggregator
+#    context_all['csv_fn_final'] = self.csv_fn_final
 
     return context_all
 
 
-  def display(self, context_all):
-    # copied from isitfit.cost.optimizationListener.display_all
-    analyze_df = self.analyzer.analyze_df
-
-    # display dataframe
-    from isitfit.utils import display_df
-    display_df(
-      "Redshift cluster classifications",
-      analyze_df,
-      self.csv_fn_final,
-      analyze_df.shape,
-      logger
-    )
-    return context_all
+# DEPRECATED
+#  def display(self, context_all):
+#    # copied from isitfit.cost.optimizationListener.display_all
+#    analyze_df = self.analyzer.analyze_df
+#
+#    # display dataframe
+#    from isitfit.utils import display_df
+#    display_df(
+#      "Redshift cluster classifications",
+#      analyze_df,
+#      self.csv_fn_final,
+#      analyze_df.shape,
+#      logger
+#    )
+#    return context_all
 
 
   def email(self, context_all):

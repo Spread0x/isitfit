@@ -124,14 +124,20 @@ class TestAwsProfileMan:
     assert True # no exception
 
   def test_validateProfile(self):
+    class MockClickCtx:
+      obj = {
+      }
+
+    click_ctx = MockClickCtx()
+
     pm = AwsProfileMan()
-    actual = pm.validate_profile(None, "profile", "default")
+    actual = pm.validate_profile(click_ctx, "profile", "default")
     assert actual=="default"
 
     import pytest
     import click
     with pytest.raises(click.BadParameter):
-      pm.validate_profile(None, "profile", "inexistant")
+      pm.validate_profile(click_ctx, "profile", "inexistant")
 
 
   def test_prompt(self):
@@ -209,6 +215,43 @@ class TestPromptToEmailIfNotRequested:
     assert not result.exception
     assert '[skip]' not in result.output
     assert '[me@example.com]' in result.output
+
+
+  def test_userInput(self):
+    import click
+    from click.testing import CliRunner
+
+    class MyWrap:
+      def dummyFac(self, emailIn, emailPrompt):
+        self.emailOut = None
+
+        @click.command()
+        def dummyCmd():
+          from isitfit.utils import PromptToEmailIfNotRequested
+          pte = PromptToEmailIfNotRequested()
+          import tempfile
+          with tempfile.NamedTemporaryFile() as fh:
+            pte.last_email_cl.fn = fh.name # overwrite file to save last-used email
+            # dont set to leave blank # pte.last_email_cl.set('me@example.com')
+            self.emailOut = pte.prompt(emailIn)
+
+        # https://stackoverflow.com/q/38143366/4126114
+        runner = CliRunner()
+        result = runner.invoke(dummyCmd, input=emailPrompt)
+        return self.emailOut
+
+    mw = MyWrap()
+    actual = mw.dummyFac(None, '\n')
+    assert actual is None
+    actual = mw.dummyFac(None, 'n\n')
+    assert actual is None
+    actual = mw.dummyFac(None, 'y\nshadi@abc.com')
+    assert actual == ['shadi@abc.com']
+    actual = mw.dummyFac(None, 'y\nbla\nshadi@abc.com')
+    assert actual == ['shadi@abc.com']
+
+
+
 
 
 def test_word2color():

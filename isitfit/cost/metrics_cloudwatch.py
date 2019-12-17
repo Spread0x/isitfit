@@ -114,7 +114,7 @@ class CloudwatchAssistant:
     return response
 
 
-  def stats2df(self, response_metric, rc_id, ClusterCreateTime):
+  def stats2df(self, response_metric, rc_id, ClusterCreateTime, cloudwatch_namespace):
     if len(response_metric['Datapoints'])==0:
       raise_noCwExc(rc_id)
 
@@ -162,7 +162,12 @@ class CloudwatchAssistant:
     # https://aws.amazon.com/cloudwatch/faqs/
     # Q: What is the minimum resolution for the data that Amazon CloudWatch receives and aggregates?
     # A: ... For example, if you request for 1-minute data for a day from 10 days ago, you will receive the 1440 data points ...
-    df['nhours'] = np.ceil(df.SampleCount/60)
+    if cloudwatch_namespace == 'AWS/EC2':
+      df['nhours'] = np.ceil(df.SampleCount/60)
+    elif cloudwatch_namespace == 'AWS/Redshift':
+      # Redshift cloudwatch metrics are every 30 seconds (this seems to be the case by trial and error)
+      # X points * 0.5 mins/point / 60 minutes/hr = Y hours
+      df['nhours'] = np.ceil(df.SampleCount/60/2)
 
     # rename columns
     df.rename(columns={
@@ -209,7 +214,7 @@ class CloudwatchBase:
     response = self.assistant.metric2stats(metric_single)
 
     # dataframe of CPU Utilization, max and min, over 90 days
-    df = self.assistant.stats2df(response, rc_id, rc_created)
+    df = self.assistant.stats2df(response, rc_id, rc_created, self.cloudwatch_namespace)
 
     return df
 

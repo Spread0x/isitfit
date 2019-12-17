@@ -8,35 +8,6 @@ class TestReporterBase:
     rb = ReporterBase()
     assert True
 
-  def test_promptToEmailIfNotRequested(self):
-    import click
-    from click.testing import CliRunner
-
-    class MyWrap:
-      def dummyFac(self, emailIn, emailPrompt):
-        self.emailOut = None
-
-        @click.command()
-        def dummyCmd():
-          rb = ReporterBase()
-          self.emailOut = rb._promptToEmailIfNotRequested(emailIn)
-
-        # https://stackoverflow.com/q/38143366/4126114
-        runner = CliRunner()
-        result = runner.invoke(dummyCmd, input=emailPrompt)
-        return self.emailOut
-
-    mw = MyWrap()
-    actual = mw.dummyFac(None, '\n')
-    assert actual is None
-    actual = mw.dummyFac(None, 'n\n')
-    assert actual is None
-    actual = mw.dummyFac(None, 'y\nshadi@abc.com')
-    assert actual == ['shadi@abc.com']
-    actual = mw.dummyFac(None, 'y\nbla\nshadi@abc.com')
-    assert actual == ['shadi@abc.com']
-
-
 
 
 class TestReporterAnalyze:
@@ -61,45 +32,6 @@ class TestReporterAnalyze:
     rb = ReporterAnalyze()
     rb.postprocess({'analyzer': MockAnalyzer, 'mainManager': MockMm, 'n_ec2_total': 1, 'n_rc_analysed': 0})
     assert rb.table is not None
-
-
-  def test_display(self):
-    import datetime as dt
-    dt_now = dt.datetime.utcnow()
-
-    class MockAnalyzer:
-      class MockIter:
-        rc_noData = []
-      class MockCw:
-        pass
-
-      rp_iter = MockIter
-      cwman = MockCw
-
-    rb = ReporterAnalyze()
-    rb.table = [
-      {'color': '', 'label': 'bla', 'value': 'foo'}
-    ]
-    rb.analyzer = MockAnalyzer
-    rb.display({})
-    assert True # no exception
-
-
-  # pytest isitfit/tests/cost/redshift/test_reporter.py::TestReporterAnalyze::test_email
-  def test_email(self, mocker):
-    mockee = 'isitfit.emailMan.EmailMan'
-    mocker.patch(mockee, autospec=True)
-
-    # assume user is not accepting to share by email, since will be prompted
-    mockee = 'click.confirm'
-    mocker.patch(mockee, side_effect=lambda x: False)
-    #mockee = 'click.prompt'
-    #mocker.patch(mockee, side_effect=lambda x: 'whatever')
-
-    rb = ReporterAnalyze()
-    rb.table = []
-    rb.email({'emailTo': [], 'click_ctx': None})
-    assert True # no exception
 
 
 

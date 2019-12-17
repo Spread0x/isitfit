@@ -70,15 +70,6 @@ class MetricsAuto:
 
 
   def display_status(self):
-    import pandas as pd
-    df = pd.DataFrame(self.status.values()).sort_values(['ID'])
-    gp = df.groupby(['datadog', 'cloudwatch']).count() # .reset_index().rename(columns={'ID': 'n'})
-    from isitfit.dotMan import DotMan
-    tempdir = DotMan().tempdir()
-    import tempfile
-    fh = tempfile.NamedTemporaryFile(prefix="isitfit-sourceStatus-", suffix='.csv', dir=tempdir, delete=False)
-    df.to_csv(fh.name, index=False)
-
     # choose main function to display
     #from isitfit.utils import logger
     #display_msg = logger.info
@@ -99,6 +90,25 @@ class MetricsAuto:
       CloudwatchRedshift: 'redshift'
     }
     service_inferred = service_map.get(type(self.cloudwatch), 'unknown')
+
+    # to dataframe
+    import pandas as pd
+    df = pd.DataFrame(self.status.values())
+
+    if df.shape[0]==0:
+      display_msg("")
+      display_msg("Status of metric sources (for service %s)"%service_inferred)
+      display_msg("<Empty table>")
+      display_msg("")
+      return
+
+    df = df.sort_values(['ID'])
+    gp = df.groupby(['datadog', 'cloudwatch']).count() # .reset_index().rename(columns={'ID': 'n'})
+    from isitfit.dotMan import DotMan
+    tempdir = DotMan().tempdir()
+    import tempfile
+    fh = tempfile.NamedTemporaryFile(prefix="isitfit-sourceStatus-", suffix='.csv', dir=tempdir, delete=False)
+    df.to_csv(fh.name, index=False)
 
     # print with tabulate
     from tabulate import tabulate

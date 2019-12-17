@@ -79,6 +79,8 @@ class MainManager(EventBus):
         n_ec2_total = self.ec2_it.count()
 
         if n_ec2_total==0:
+          import click
+          click.secho("No resources found in %s"%self.ec2_it.service_description, fg="red")
           return
 
         # context for pre listeners

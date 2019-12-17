@@ -4,6 +4,10 @@ Semantic versioning
 Version latest (0.18.0rc?, 2019-12-05?)
 
 - ...
+
+
+Version 0.19.0 (2019-12-17)
+
 - enh: rename cloudwatchman and datadogman to `metrics_cloudwatch` and `metrics_datadog`
 - feat: add `metrics_auto` for automatic failover from datadog to cloudwatch
 - enh: normalize dataframe column names from cloudatch and datadog
@@ -28,6 +32,12 @@ Version latest (0.18.0rc?, 2019-12-05?)
   - dataframe fields are `cpu_used_max` instead of `Maximum`, etc
   - when displaying migrations if `--debug` is requested, show the descriptions to dismiss doubt about migration contents
   - misc tests to accompany the code changes
+- bugfix: redshift metrics are sampled every 30 seconds, not every 1 minute like ec2 .. updated formula
+- enh: misc tests ironed after major updates above + still have lots of broken tests ATM
+- enh: replace `sys.exit` with `raise IsitfitCliError` in `cloudtrail_iterator` (very old code)
+- bugfix: datasource status for ec2 could be empty .. shouldnt fail
+- enh: `csv_fn_final` for `reporter` of ec2 and redshift is deprecated in favor of the `account-level` file
+  - commenting out misc deprecated code too
 
 
 Version 0.18.11 (2019-12-13)

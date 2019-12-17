@@ -334,8 +334,9 @@ class EventAggregatorOneRegion:
           try:
             r_i = list(man2_i.iterate_event())
           except botocore.exceptions.ClientError as e:
-            logger.error(colored("\n"+str(e), 'red'))
-            sys.exit(1)
+            # display error message without the frightening traceback
+            from isitfit.cli.click_descendents import IsitfitCliError
+            raise IsitfitCliError(str(e))
 
           return r_i
 

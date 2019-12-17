@@ -41,7 +41,7 @@ def sendemail_fac(MockEmailManFactory):
     @click.command()
     def cmd():
       em = MockEmailManFactory(response_list)
-      em.send([])
+      em.send(['foo@bar.com'])
 
     return cmd
 

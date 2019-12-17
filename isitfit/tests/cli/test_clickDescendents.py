@@ -27,7 +27,10 @@ def test_IsitfitCommand_exceptionsForwarded(ping_matomo, runner):
   ping_matomo.assert_not_called()
 
   @click.command(cls=IsitfitCommand)
-  def raiseexc(): raise Exception("hey")
+  @click.pass_context
+  def raiseexc(ctx):
+    ctx.ensure_object(dict)
+    raise Exception("hey")
   result = runner.invoke(raiseexc)
   ping_matomo.assert_called()
 
@@ -51,46 +54,61 @@ def group_case(request):
   def group_click_pass(): pass
 
   @click.group()
-  def group_click_raise(): raise Exception("yoo")
+  @click.pass_context
+  def group_click_raise(ctx):
+    ctx.ensure_object(dict)
+    raise Exception("yoo")
 
   @isitfit_group()
-  def group_isitfit_pass(): pass
+  @click.pass_context
+  def group_isitfit_pass(ctx):
+    ctx.ensure_object(dict)
+    pass
 
   @isitfit_group()
-  def group_isitfit_raise(): raise Exception("yoo")
+  @click.pass_context
+  def group_isitfit_raise(ctx):
+    ctx.ensure_object(dict)
+    raise Exception("yoo")
 
   @click.command()
   def cmd_click_pass(): pass
 
   @click.command()
-  def cmd_click_raise(): raise Exception("hey")
+  @click.pass_context
+  def cmd_click_raise(ctx):
+    ctx.ensure_object(dict)
+    raise Exception("hey")
 
   @click.command(cls=IsitfitCommand)
   def cmd_isitfit_pass(): pass
 
   @click.command(cls=IsitfitCommand)
-  def cmd_isitfit_raise(): raise Exception("hey")
+  @click.pass_context
+  def cmd_isitfit_raise(ctx):
+    ctx.ensure_object(dict)
+    raise Exception("hey")
 
   out = [
-    {'g':group_click_pass, 'c':cmd_click_pass,    'd':'cmd_isitfit_pass',  'a':False},
-    {'g':group_click_pass, 'c':cmd_click_raise,   'd':'cmd_isitfit_raise', 'a':False},
-    {'g':group_click_pass, 'c':cmd_isitfit_pass,  'd':'cmd_isitfit_pass',  'a':False},
-    {'g':group_click_pass, 'c':cmd_isitfit_raise, 'd':'cmd_isitfit_raise', 'a':True },
+    {'id': 0, 'g':group_click_pass, 'c':cmd_click_pass,    'd':'cmd_click_pass',    'a':False},
+    {'id': 1, 'g':group_click_pass, 'c':cmd_click_raise,   'd':'cmd_click_raise',   'a':False},
+    {'id': 2, 'g':group_click_pass, 'c':cmd_isitfit_pass,  'd':'cmd_isitfit_pass',  'a':False},
+    {'id': 3, 'g':group_click_pass, 'c':cmd_isitfit_raise, 'd':'cmd_isitfit_raise', 'a':True },
 
-    {'g':group_click_raise, 'c':cmd_click_pass,    'd':'cmd_isitfit_pass',  'a':False},
-    {'g':group_click_raise, 'c':cmd_click_raise,   'd':'cmd_isitfit_raise', 'a':False},
-    {'g':group_click_raise, 'c':cmd_isitfit_pass,  'd':'cmd_isitfit_pass',  'a':False},
-    {'g':group_click_raise, 'c':cmd_isitfit_raise, 'd':'cmd_isitfit_raise', 'a':False}, # group fails before command exception caught
+    {'id': 4, 'g':group_click_raise, 'c':cmd_click_pass,    'd':'cmd_click_pass',    'a':False},
+    {'id': 5, 'g':group_click_raise, 'c':cmd_click_raise,   'd':'cmd_click_raise',   'a':False},
+    {'id': 6, 'g':group_click_raise, 'c':cmd_isitfit_pass,  'd':'cmd_isitfit_pass',  'a':False},
+    {'id': 7, 'g':group_click_raise, 'c':cmd_isitfit_raise, 'd':'cmd_isitfit_raise', 'a':False}, # group fails before command exception caught
 
-    {'g':group_isitfit_pass, 'c':cmd_click_pass,    'd':'cmd_isitfit_pass',  'a':False},
-    {'g':group_isitfit_pass, 'c':cmd_click_raise,   'd':'cmd_isitfit_raise', 'a':True },
-    {'g':group_isitfit_pass, 'c':cmd_isitfit_pass,  'd':'cmd_isitfit_pass',  'a':False},
-    {'g':group_isitfit_pass, 'c':cmd_isitfit_raise, 'd':'cmd_isitfit_raise', 'a':True },
+    {'id': 8, 'g':group_isitfit_pass, 'c':cmd_click_pass,    'd':'cmd_click_pass',    'a':False},
+    {'id': 9, 'g':group_isitfit_pass, 'c':cmd_click_raise,   'd':'cmd_click_raise',   'a':True },
+    {'id':10, 'g':group_isitfit_pass, 'c':cmd_isitfit_pass,  'd':'cmd_isitfit_pass',  'a':False},
+    {'id':11, 'g':group_isitfit_pass, 'c':cmd_isitfit_raise, 'd':'cmd_isitfit_raise', 'a':True },
 
-    {'g':group_isitfit_raise, 'c':cmd_click_pass,    'd':'cmd_isitfit_pass',  'a':True},
-    {'g':group_isitfit_raise, 'c':cmd_click_raise,   'd':'cmd_isitfit_raise', 'a':True},
-    {'g':group_isitfit_raise, 'c':cmd_isitfit_pass,  'd':'cmd_isitfit_pass',  'a':True},
-    {'g':group_isitfit_raise, 'c':cmd_isitfit_raise, 'd':'cmd_isitfit_raise', 'a':True},
+    {'id':12, 'g':group_isitfit_raise, 'c':cmd_click_pass,    'd':'cmd_click_pass',    'a':True},
+    {'id':13, 'g':group_isitfit_raise, 'c':cmd_click_raise,   'd':'cmd_click_raise',   'a':True},
+    {'id':14, 'g':group_isitfit_raise, 'c':cmd_isitfit_pass,  'd':'cmd_isitfit_pass',  'a':True},
+    {'id':15, 'g':group_isitfit_raise, 'c':cmd_isitfit_raise, 'd':'cmd_isitfit_raise', 'a':True},
   ]
   return out[request.param]
 
