@@ -1,4 +1,5 @@
 from isitfit.utils import logger
+import pandas as pd
 
 
 from ..utils import SECONDS_IN_ONE_DAY
@@ -42,8 +43,17 @@ class RedisPandas:
   def set(self, key, df):
     # Note that in case data was not found, eg in mainManager._cloudwatch_metrics_core, an empty dataframe is returned (and thus passed in here)
     pybytes = self.pyarrow_context.serialize(df).to_buffer().to_pybytes()
+
+    # if dataframe with shape[0]==0, raise (no longer supported)
+    if not callable(df):
+      if type(df) != pd.DataFrame:
+        raise Exception("Only caching of callables or pandas dataframes supported as of isitfit 0.19")
+
+      if df.shape[0]==0:
+        raise Exception("Caching empty dataframes is no longer supported as of isitfit 0.19")
+
     # set expiration of key-value pair to be 1 day if data was found, 10 minutes otherwise
-    ex = SECONDS_IN_10MINS if df.shape[0]==0 else SECONDS_IN_ONE_DAY
+    ex = SECONDS_IN_10MINS if callable(df) else SECONDS_IN_ONE_DAY
     # https://redis-py.readthedocs.io/en/latest/#redis.Redis.set
     self.redis_client.set(name=key, value=pybytes, ex=ex)
 
@@ -94,3 +104,75 @@ And finally re-run isitfit as usual.
 
         # done
         return context_pre
+
+
+
+from isitfit.utils import myreturn
+class MetricCacheMixin:
+    """
+    Mixin for metrics_* classes to get Caching
+    """
+    def __init__(self, cache_man):
+      """
+      cache_man - RedisPandasCacheManager
+      """
+      self.cache_man = cache_man
+      super().__init__()
+
+
+    def get_key(self, host_id):
+      raise Exception("Define in derived/mixin")
+
+
+    def get_metrics_derived(self, rc_describe_entry, rc_id, rc_created):
+      raise Exception("Define in derived/mixin")
+
+
+    def get_metrics_base(self, rc_describe_entry, rc_id, rc_created):
+        # check cache first
+        cache_key = self.get_key(rc_id)
+
+        if self.cache_man.isReady():
+          df_cache = self.cache_man.get(cache_key)
+          if df_cache is None:
+            # not found
+            pass
+          else:
+            if callable(df_cache):
+              # if one of the raise_* functions is cached
+              df_cache()
+            elif type(df_cache) is pd.DataFrame:
+              if df_cache.shape[0]==0:
+                # found but no data
+                raise Exception("As of isitfit 0.19, empty dataframes are no longer cached")
+              else:
+                logger.debug("Found datadog metrics in redis cache for %s, and data.shape[0] = %i"%(host_id, df_cache.shape[0]))
+                # replace with None if .shape[0]==0
+                df_cache = myreturn(df_cache)
+                # done
+                return df_cache
+            else:
+              raise ValueError("Invalid value in cache for %s"%cache_key)
+
+        # if no cache, then download
+        df_fresh = pd.DataFrame() # use an empty dataframe in order to distinguish when getting from cache if not available in cache or data not found but set in cache
+        try:
+          df_fresh = super().get_metrics_derived(rc_describe_entry, rc_id, rc_created)
+        except HostNotFoundInDdg:
+          df_fresh = raise_hostNotFound
+        except DataNotFoundForHostInDdg:
+          df_fresh = raise_dataNotFound
+        finally:
+          # if caching enabled, store it for later fetching
+          # https://stackoverflow.com/a/57986261/4126114
+          # Note that this even stores the result if it was "None" (meaning that no data was found)
+          if self.cache_man.isReady():
+            self.cache_man.set(cache_key, df_fresh)
+
+          # if exception
+          if callable(df_fresh):
+            df_fresh()
+
+          # done
+          return myreturn(df_fresh)
+

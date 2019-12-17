@@ -23,7 +23,7 @@ class RedshiftPerformanceIterator(BaseIterator):
 # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/redshift.html#Redshift.Paginator.DescribeClusters
 
 import pandas as pd
-from isitfit.cost.mainManager import NoCloudwatchException
+from isitfit.cost.metrics_cloudwatch import NoCloudwatchException
 
 
 
@@ -144,7 +144,7 @@ def redshift_cost_core(ra, rr, share_email, filter_region, ctx, filter_tags):
     # pipeline
     from isitfit.cost.mainManager import MainManager
     from isitfit.cost.cacheManager import RedisPandas as RedisPandasCacheManager
-    from isitfit.cost.metrics_cloudwatch import CloudwatchRedshift
+    from isitfit.cost.metrics_cloudwatch import CwRedshiftListener
     from isitfit.cost.ec2_common import Ec2Common
     from isitfit.cost.cloudtrail_ec2type import CloudtrailCached
 
@@ -154,7 +154,7 @@ def redshift_cost_core(ra, rr, share_email, filter_region, ctx, filter_tags):
     cache_man = RedisPandasCacheManager()
 
     # manager of cloudwatch
-    cwman = CloudwatchRedshift(cache_man)
+    cwman = CwRedshiftListener(cache_man)
     cwman.set_ndays(ctx.obj['ndays'])
 
     # common stuff

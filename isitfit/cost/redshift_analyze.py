@@ -81,7 +81,7 @@ class CalculatorAnalyzeRedshift(CalculatorBaseRedshift):
       df_single = df_single.merge(redshiftPricing_df, left_on='NodeType', right_on='NodeType', how='left')
 
       # calculate columns capacity_usd and used_usd
-      df_single['used_usd'    ] = df_single.Average / 100 * df_single.Cost * df_single.n_hours * df_single.NumberOfNodes
+      df_single['used_usd'    ] = df_single.cpu_used_avg / 100 * df_single.Cost * df_single.n_hours * df_single.NumberOfNodes
       df_single['capacity_usd'] = 1                       * df_single.Cost * df_single.n_hours * df_single.NumberOfNodes
 
       # save back to context for further binning

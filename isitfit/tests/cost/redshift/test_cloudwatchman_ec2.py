@@ -3,10 +3,9 @@
 # and inherit here to avoid code redundancy
 
 
-from isitfit.cost.metrics_cloudwatch import CloudwatchEc2
+from isitfit.cost.metrics_cloudwatch import CloudwatchEc2, NoCloudwatchException
 
 import pytest
-from isitfit.utils import NoCloudwatchException
 
 def test_init():
   rpi = CloudwatchEc2()

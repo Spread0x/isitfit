@@ -1,6 +1,8 @@
 from ...cost.metrics_datadog import DatadogManager, DatadogAssistant, DataNotFoundForHostInDdg, HostNotFoundInDdg, DatadogCached
-
+import pandas as pd
 import pytest
+
+
 @pytest.mark.skip(reason="Can only test this with live credentials ATM. Need to mock")
 def test_datadogman_1():
     ddg = DatadogManager()
@@ -139,7 +141,6 @@ class TestDatadogManager:
       class MockInst:
         instance_id = 'i-123456'
 
-      import pandas as pd
       import datetime as dt
       ddg_met = pd.DataFrame({'ts_dt': [dt.datetime.now()]})
       ddm = datadog_manager()
@@ -154,11 +155,9 @@ class TestDatadogManager:
 
 
   def test_getMetricsAll(self, datadog_manager, mocker):
-      import pandas as pd
-
       def mymock(mr, me):
         mockreturn = lambda *args, **kwargs: mr
-        mockee = 'isitfit.cost.datadogManager.DatadogAssistant.%s'%me
+        mockee = 'isitfit.cost.metrics_datadog.DatadogAssistant.%s'%me
         mocker.patch(mockee, side_effect=mockreturn)
 
       mockees = [
@@ -184,66 +183,138 @@ class TestDatadogManager:
       assert actual.shape[1]==5 # columns: ts_dt  cpu_used_max  cpu_used_avg  ram_used_max  ram_used_avg
 
 
+
+@pytest.fixture
+def cache_man(mocker):
+    """
+    Mocked cache manager
+    """
+    class MockCacheMan:
+      def __init__(self):
+        self._map = {}
+        self.ready = False
+
+      def isReady(self): return self.ready
+      def get(self, key): return self._map.get(key)
+      def set(self, key, val): self._map[key] = val
+
+    cache_man = MockCacheMan()
+    mocker.spy(cache_man, 'get')
+    mocker.spy(cache_man, 'set')
+    return cache_man
+
+
 class TestDatadogCachedGetMetricsAll:
-  def test_notReady_noData(self, mocker):
-    class MockCacheMan:
-      def isReady(self): return False
-
+  def test_notReady_noData(self, mocker, cache_man):
     # mock parent
-    import pandas as pd
-    mockreturn = lambda *args, **kwargs: pd.DataFrame()
-    mockee = 'isitfit.cost.datadogManager.DatadogManager.get_metrics_all'
+    # mockreturn = lambda *args, **kwargs: pd.DataFrame()
+    def mockreturn(*args, **kwargs): raise DataNotFoundForHostInDdg
+    mockee = 'isitfit.cost.metrics_datadog.DatadogManager.get_metrics_all'
     mocker.patch(mockee, side_effect=mockreturn)
 
-    cache_man = MockCacheMan()
     ddc = DatadogCached(cache_man)
-    actual = ddc.get_metrics_all('i-123456')
-    assert actual is None
+
+    # after first call
+    with pytest.raises(DataNotFoundForHostInDdg):
+      actual = ddc.get_metrics_all('i-123456')
+
+    assert cache_man.get.call_count == 0
+    assert cache_man.set.call_count == 0
+    assert cache_man._map == {}
+
+    # after 2nd call
+    with pytest.raises(DataNotFoundForHostInDdg):
+      actual = ddc.get_metrics_all('i-123456')
+
+    assert cache_man.get.call_count == 0
+    assert cache_man.set.call_count == 0
+    assert cache_man._map == {}
 
 
-  def test_notReady_yesData(self, mocker):
-    class MockCacheMan:
-      def isReady(self): return False
-
+  def test_notReady_yesData(self, mocker, cache_man):
     # mock parent
-    import pandas as pd
     mockreturn = lambda *args, **kwargs: pd.DataFrame({'a': [1,2,3]})
-    mockee = 'isitfit.cost.datadogManager.DatadogManager.get_metrics_all'
+    mockee = 'isitfit.cost.metrics_datadog.DatadogManager.get_metrics_all'
     mocker.patch(mockee, side_effect=mockreturn)
 
-    cache_man = MockCacheMan()
     ddc = DatadogCached(cache_man)
     actual = ddc.get_metrics_all('i-123456')
     assert actual is not None
     assert actual.shape[0]==3
 
+    assert cache_man.get.call_count == 0
+    assert cache_man.set.call_count == 0
+    assert cache_man._map == {}
 
-  def test_yesReady_missCache(self, mocker):
-    class MockCacheMan:
-      def isReady(self): return True
-      def get(self, ck): return None
-      def set(self, ck, cv): pass
+
+  def test_yesReady_noData(self, mocker, cache_man):
+    # mark as ready
+    cache_man.ready = True
 
     # mock parent
-    import pandas as pd
-    mockreturn = lambda *args, **kwargs: pd.DataFrame()
-    mockee = 'isitfit.cost.datadogManager.DatadogManager.get_metrics_all'
+    # mockreturn = lambda *args, **kwargs: pd.DataFrame()
+    def mockreturn(*args, **kwargs): raise DataNotFoundForHostInDdg
+    mockee = 'isitfit.cost.metrics_datadog.DatadogManager.get_metrics_all'
     mocker.patch(mockee, side_effect=mockreturn)
 
-    cache_man = MockCacheMan()
     ddc = DatadogCached(cache_man)
-    actual = ddc.get_metrics_all('i-123456')
-    assert actual is None
+    host_id = 'i-123456'
+
+    # after first call
+    with pytest.raises(DataNotFoundForHostInDdg):
+      actual = ddc.get_metrics_all(host_id)
+
+    assert cache_man.get.call_count == 1 # checks cache and doesn't find key
+    assert cache_man.set.call_count == 1 # first set key
+    assert callable(cache_man._map[ddc.get_key(host_id)])
+
+    # after 2nd call
+    with pytest.raises(DataNotFoundForHostInDdg):
+      actual = ddc.get_metrics_all(host_id)
+
+    assert cache_man.get.call_count == 2 # incremented
+    assert cache_man.set.call_count == 1 # no increment
+    assert callable(cache_man._map[ddc.get_key(host_id)])
 
 
-  def test_yesReady_hitCache(self, mocker):
-    import pandas as pd
-    class MockCacheMan:
-      def isReady(self): return True
-      def get(self, ck): return pd.DataFrame()
-      def set(self, ck, cv): pass
+  def test_yesReady_invalidCache(self, mocker, cache_man):
+    # enable mocked cache
+    cache_man.ready = True
 
-    cache_man = MockCacheMan()
+    # set key in cache
+    host_id = 'i-123456'
     ddc = DatadogCached(cache_man)
-    actual = ddc.get_metrics_all('i-123456')
-    assert actual is None
+    cache_man._map[ddc.get_key(host_id)] = pd.DataFrame()
+
+    # fetch will raise
+    with pytest.raises(Exception):
+      actual = ddc.get_metrics_all(host_id)
+
+
+  def test_yesReady_yesData(self, mocker, cache_man):
+    # mark as ready
+    cache_man.ready = True
+
+    # mock parent
+    mockreturn = lambda *args, **kwargs: pd.DataFrame({'a': [1,2,3]})
+    mockee = 'isitfit.cost.metrics_datadog.DatadogManager.get_metrics_all'
+    uncached_get = mocker.patch(mockee, side_effect=mockreturn)
+
+    ddc = DatadogCached(cache_man)
+    host_id = 'i-123456'
+
+    # after first call
+    actual = ddc.get_metrics_all(host_id)
+    assert actual is not None
+    assert actual.shape[0]==3
+    assert uncached_get.call_count == 1 # calls upstream
+    assert cache_man.get.call_count == 1 # 1st check in cache
+    assert cache_man.set.call_count == 1 # 1st set in cache
+
+    # after 2nd call
+    actual = ddc.get_metrics_all(host_id)
+    assert actual is not None
+    assert actual.shape[0]==3
+    assert uncached_get.call_count == 1 # no increment
+    assert cache_man.get.call_count == 2 # 2nd check in cache
+    assert cache_man.set.call_count == 1 # no increment

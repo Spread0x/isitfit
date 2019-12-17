@@ -30,11 +30,20 @@ from datadog import api
 
 SECONDS_IN_ONE_DAY = 60*60*24
 
-class HostNotFoundInDdg(ValueError):
+class DdgNoData(ValueError):
   pass
 
-class DataNotFoundForHostInDdg(ValueError):
+class HostNotFoundInDdg(DdgNoData):
   pass
+
+class DataNotFoundForHostInDdg(DdgNoData):
+  pass
+
+def raise_hostNotFound():
+  raise HostNotFoundInDdg
+
+def raise_dataNotFound():
+  raise DataNotFoundForHostInDdg
 
 class DataQueryError(ValueError):
   pass
@@ -180,47 +189,6 @@ class DatadogManager:
       return False
 
 
-    def per_ec2(self, context_ec2):
-        if not self.is_configured():
-          context_ec2['ddg_df'] = None
-          return context_ec2
-
-        # parse out keys
-        host_id = context_ec2['ec2_obj'].instance_id
-
-        # get data
-        ddg_df = self.get_metrics_all(host_id)
-
-        if ddg_df is None:
-          context_ec2['ddg_df'] = None
-          return context_ec2
-
-        # proceed if found datadog data
-        # convert from datetime to date to be able to merge with ec2_df
-        ddg_df['ts_dt'] = ddg_df.ts_dt.dt.date
-        # append the datadog suffix
-        ddg_df = ddg_df.add_suffix('.datadog')
-        # merge
-        ec2_df = context_ec2['ec2_df']
-        ec2_df = ec2_df.merge(ddg_df, how='outer', left_on='Timestamp', right_on='ts_dt.datadog')
-
-        # if Datadog CPU data available, overwrite the cloudwatch data
-        # This is inefficient, as the pipeline could have fetched data from Datadog only
-        # Especially in the case that cloudwatch data is missing (check cloudwatchman.CloudwatchEc2.per_ec2 section interception an exception to set nan)
-        # TODO improve later
-        if 'cpu_used_max.datadog' in ec2_df.columns: ec2_df['Maximum'] = ec2_df['cpu_used_max.datadog']
-        if 'cpu_used_avg.datadog' in ec2_df.columns: ec2_df['Average'] = ec2_df['cpu_used_avg.datadog']
-        if 'cpu_used_min.datadog' in ec2_df.columns: ec2_df['Minimum'] = ec2_df['cpu_used_min.datadog']
-        if 'nhours.datadog' in ec2_df.columns: ec2_df['nhours'] = ec2_df['nhours.datadog']
-
-        # add to context
-        context_ec2['ec2_df'] = ec2_df # update context
-        context_ec2['ddg_df'] = ddg_df
-
-        # return
-        return context_ec2
-
-
     def get_metrics_all(self, host_id):
         # FIXME: we already have cpu from cloudwatch, so maybe just focus on ram from datadog
         logger.debug("Fetching datadog data for %s"%host_id)
@@ -242,44 +210,53 @@ class DatadogManager:
             .merge(df_count,   how='outer', on=['ts_dt'])
         )
         df_all = df_all[['ts_dt', 'cpu_used_max', 'cpu_used_min', 'cpu_used_avg', 'ram_used_max', 'ram_used_min', 'ram_used_avg', 'nhours']]
+
+        # convert from datetime to date to be able to merge with cloudtrail
+        df_all['ts_dt'] = df_all.ts_dt.dt.date
+
+        # rename like cloudwatch
+        df_all.rename(columns={'ts_dt': 'Timestamp'}, inplace=True)
+
         return df_all
 
 
-from ..utils import myreturn
-class DatadogCached(DatadogManager):
-    def __init__(self, cache_man):
-      """
-      cache_man - RedisPandasCacheManager
-      """
-      self.cache_man = cache_man
-      super().__init__()
+from .cacheManager import MetricCacheMixin
 
-    def get_metrics_all(self, host_id):
-        # check cache first
+
+class DatadogCached(MetricCacheMixin, DatadogManager):
+    def get_key(self, host_id):
         cache_key = "datadog:cpu+ram:%s:%i"%(host_id, self.ndays)
+        return cache_key
 
-        if self.cache_man.isReady():
-          df_cache = self.cache_man.get(cache_key)
-          if df_cache is not None:
-            logger.debug("Found datadog metrics in redis cache for %s, and data.shape[0] = %i"%(host_id, df_cache.shape[0]))
-            return myreturn(df_cache)
+    def get_metrics_derived(self, rc_describe_entry, rc_id, rc_created):
+      return super().get_metrics_all(rc_id)
 
-        # if no cache, then download
-        df_fresh = pd.DataFrame() # use an empty dataframe in order to distinguish when getting from cache if not available in cache or data not found but set in cache
-        try:
-          df_fresh = super().get_metrics_all(host_id)
-        except HostNotFoundInDdg:
-          pass
-        except DataNotFoundForHostInDdg:
-          pass
 
-        # if caching enabled, store it for later fetching
-        # https://stackoverflow.com/a/57986261/4126114
-        # Note that this even stores the result if it was "None" (meaning that no data was found)
-        if self.cache_man.isReady():
-          # print("Saving to redis %s"%host_id)
-          self.cache_man.set(cache_key, df_fresh)
-
-        # done
-        return myreturn(df_fresh)
-
+#class DatadogListener(DatadogCached):
+#    """
+#    A listener for the Event Bus defined in mainManager.py
+#    """
+#    def per_ec2(self, context_ec2):
+#        raise Exception("Deprecated")
+#
+#        if not self.is_configured():
+#          context_ec2['ddg_df'] = None
+#          return context_ec2
+#
+#        # parse out keys
+#        host_id = context_ec2['ec2_obj'].instance_id
+#
+#        # get data
+#        ddg_df = self.get_metrics_all(host_id)
+#
+#        if ddg_df is None:
+#          context_ec2['ddg_df'] = None
+#          return context_ec2
+#
+#        # add to context
+#        context_ec2['ec2_df'] = ec2_df # update context
+#        context_ec2['ddg_df'] = ddg_df
+#
+#        # return
+#        return context_ec2
+#

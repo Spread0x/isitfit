@@ -1,0 +1,70 @@
+{
+    "SpotInstanceRequests": [
+        {
+            "BlockDurationMinutes": 120,
+            "CreateTime": "2019-12-16T14:30:23.000Z",
+            "LaunchSpecification": {
+                "SecurityGroups": [
+                    {
+                        "GroupName": "default",
+                        "GroupId": "sg-91582dd0"
+                    }
+                ],
+                "ImageId": "ami-0bbe6b35405ecebdb",
+                "InstanceType": "t3.medium",
+                "KeyName": "shadi-uswest2",
+                "Placement": {
+                    "AvailabilityZone": "us-west-2a"
+                },
+                "SubnetId": "subnet-44d3e00f",
+                "Monitoring": {
+                    "Enabled": false
+                }
+            },
+            "ProductDescription": "Linux/UNIX",
+            "SpotInstanceRequestId": "sir-ewfr9iwn",
+            "SpotPrice": "0.300000",
+            "State": "open",
+            "Status": {
+                "Code": "pending-evaluation",
+                "Message": "Your Spot request has been submitted for review, and is pending evaluation.",
+                "UpdateTime": "2019-12-16T14:30:23.000Z"
+            },
+            "Type": "one-time",
+            "InstanceInterruptionBehavior": "terminate"
+        },
+        {
+            "BlockDurationMinutes": 120,
+            "CreateTime": "2019-12-16T14:30:23.000Z",
+            "LaunchSpecification": {
+                "SecurityGroups": [
+                    {
+                        "GroupName": "default",
+                        "GroupId": "sg-91582dd0"
+                    }
+                ],
+                "ImageId": "ami-0bbe6b35405ecebdb",
+                "InstanceType": "t3.medium",
+                "KeyName": "shadi-uswest2",
+                "Placement": {
+                    "AvailabilityZone": "us-west-2a"
+                },
+                "SubnetId": "subnet-44d3e00f",
+                "Monitoring": {
+                    "Enabled": false
+                }
+            },
+            "ProductDescription": "Linux/UNIX",
+            "SpotInstanceRequestId": "sir-is8iaa8m",
+            "SpotPrice": "0.300000",
+            "State": "open",
+            "Status": {
+                "Code": "pending-evaluation",
+                "Message": "Your Spot request has been submitted for review, and is pending evaluation.",
+                "UpdateTime": "2019-12-16T14:30:23.000Z"
+            },
+            "Type": "one-time",
+            "InstanceInterruptionBehavior": "terminate"
+        }
+    ]
+}

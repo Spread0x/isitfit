@@ -117,23 +117,23 @@ class CalculatorOptimizeEc2:
     return 'Normal', None
 
 
-  def _ec2df_to_classification(self, ec2_df, ddg_df):
-    cpu_maxmax = ec2_df.Maximum.max()
-    cpu_maxavg = ec2_df.Average.max()
-    cpu_avgmax = ec2_df.Maximum.mean()
+  def _ec2df_to_classification(self, ec2_df):
+    cpu_maxmax = ec2_df.cpu_used_max.max()
+    cpu_maxavg = ec2_df.cpu_used_avg.max()
+    cpu_avgmax = ec2_df.cpu_used_max.mean()
     cpu_c1, cpu_c2 = self._xxx_to_classification(cpu_maxmax, cpu_maxavg, cpu_avgmax)
     #print("ec2_df.{maxmax,avgmax,maxavg} = ", maxmax, avgmax, maxavg)
 
-    if ddg_df is None:
-      cpu_c2 = [cpu_c2, "No memory data"]
+    if pd.isnull(ec2_df.ram_used_max).all():
+      cpu_c2 = ["No ram", cpu_c2]
       cpu_c2 = [x for x in cpu_c2 if x is not None]
       cpu_c2 = ", ".join(cpu_c2)
       return cpu_c1, cpu_c2
 
-    # continue with datadog data
-    ram_maxmax = ddg_df['ram_used_max.datadog'].max()
-    ram_maxavg = ddg_df['ram_used_max.datadog'].mean()
-    ram_avgmax = ddg_df['ram_used_avg.datadog'].max()
+    # continue with cpu + ram data
+    ram_maxmax = ec2_df['ram_used_max'].fillna(value=0).max()
+    ram_maxavg = ec2_df['ram_used_max'].fillna(value=0).mean()
+    ram_avgmax = ec2_df['ram_used_avg'].fillna(value=0).max()
     ram_c1, ram_c2 = self._xxx_to_classification(ram_maxmax, ram_maxavg, ram_avgmax)
 
     # consolidate ram with cpu
@@ -165,10 +165,10 @@ class CalculatorOptimizeEc2:
 
   def per_ec2(self, context_ec2):
     # parse out context keys
-    ec2_obj, ec2_df, mm, ddg_df = context_ec2['ec2_obj'], context_ec2['ec2_df'], context_ec2['mainManager'], context_ec2['ddg_df']
+    ec2_obj, ec2_df, mm = context_ec2['ec2_obj'], context_ec2['ec2_df'], context_ec2['mainManager']
 
     #print(ec2_obj.instance_id)
-    ec2_c1, ec2_c2 = self._ec2df_to_classification(ec2_df, ddg_df)
+    ec2_c1, ec2_c2 = self._ec2df_to_classification(ec2_df)
 
     ec2_name = ec2obj_to_name(ec2_obj)
 
@@ -371,10 +371,23 @@ def pipeline_factory(ctx, n, filter_tags):
     # moved these imports from outside the function to inside it so that `isitfit --version` wouldn't take 5 seconds due to the loading
     from isitfit.cost.mainManager import MainManager
     from isitfit.cost.cloudtrail_ec2type import CloudtrailCached
+
+    # manager of redis-pandas caching
     from isitfit.cost.cacheManager import RedisPandas as RedisPandasCacheManager
+    cache_man = RedisPandasCacheManager()
+
+    # 2019-12-16 deprecate direct datadog/cloudwatch listeners in favor of the automatic failover
+    # from isitfit.cost.metrics_datadog import DatadogListener
+    # from isitfit.cost.metrics_cloudwatch import CwEc2Listener
     from isitfit.cost.metrics_datadog import DatadogCached
-    from isitfit.cost.ec2_common import Ec2TagFilter
     from isitfit.cost.metrics_cloudwatch import CloudwatchEc2
+    from isitfit.cost.metrics_automatic import MetricsListener
+    ddg = DatadogCached(cache_man)
+    cloudwatchman = CloudwatchEc2(cache_man)
+    metrics = MetricsListener(ddg, cloudwatchman)
+    metrics.set_ndays(ctx.obj['ndays'])
+
+    from isitfit.cost.ec2_common import Ec2TagFilter
     from isitfit.cost.catalog_ec2 import Ec2Catalog
     from isitfit.cost.ec2_common import Ec2Common
 
@@ -383,16 +396,10 @@ def pipeline_factory(ctx, n, filter_tags):
 
     ol = CalculatorOptimizeEc2(n)
 
-    # manager of redis-pandas caching
-    cache_man = RedisPandasCacheManager()
 
-    ddg = DatadogCached(cache_man)
-    ddg.set_ndays(ctx.obj['ndays'])
 
     etf = Ec2TagFilter(filter_tags)
 
-    cloudwatchman = CloudwatchEc2(cache_man)
-    cloudwatchman.set_ndays(ctx.obj['ndays'])
 
     ra = ReporterOptimizeEc2()
 
@@ -417,11 +424,11 @@ def pipeline_factory(ctx, n, filter_tags):
     mm.add_listener('pre', ol.handle_pre)
     mm.add_listener('pre', ec2_cat.handle_pre)
     mm.add_listener('ec2', etf.per_ec2)
-    mm.add_listener('ec2', cloudwatchman.per_ec2)
+    mm.add_listener('ec2', metrics.per_host)
     mm.add_listener('ec2', cloudtrail_manager.single)
     mm.add_listener('ec2', ec2_common._handle_ec2obj)
-    mm.add_listener('ec2', ddg.per_ec2)
     mm.add_listener('ec2', ol.per_ec2)
+    mm.add_listener('all', metrics.display_status)
     mm.add_listener('all', ec2_common.after_all)
     mm.add_listener('all', inject_analyzer)
     mm.add_listener('all', ra.postprocess)

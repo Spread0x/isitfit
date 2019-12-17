@@ -5,13 +5,29 @@ import pytz
 
 from isitfit.utils import logger
 
-from ..utils import SECONDS_IN_ONE_DAY, NoCloudwatchException, myreturn, NoCloudtrailException
+from ..utils import SECONDS_IN_ONE_DAY, myreturn, NoCloudtrailException
 
 MINUTES_IN_ONE_DAY = 60*24 # 1440
 
 
 from isitfit.cost.cacheManager import RedisPandas as RedisPandasCacheManager
-class MainManager:
+class EventBus:
+    """
+    Event bus design pattern
+    https://dzone.com/articles/design-patterns-event-bus
+    3 event types: pre, ec2, all
+    pre: event that is triggered before iterating on the resources
+    ec2: event that is triggered for each resource
+    all: event that is triggered after iterating on the resources
+
+    The pre event is triggered for all listeners before iterating on the resources.
+    The all event is triggered for all listeners after iterating on the resources
+    The ec2 event is triggered for all listeners for each resource
+
+    In the dzone.com jargon, listener = subscribable
+
+    This loose coupling allows for parallelization at a later stage
+    """
     def __init__(self, description, ctx):
         # description to keep track of each pipeline runner
         self.description = description
@@ -49,6 +65,13 @@ class MainManager:
 
 
     def get_ifi(self, tqdml2_obj):
+      raise Exception("Define in derived class")
+
+
+
+class MainManager(EventBus):
+
+    def get_ifi(self, tqdml2_obj):
         # display name of runner
         logger.info(self.description)
 
@@ -76,7 +99,7 @@ class MainManager:
         sum_capacity = 0
         sum_used = 0
         df_all = []
-        ec2_noCloudwatch = []
+        ec2_noCloudwatch = [] # FIXME DEPRECATED
         ec2_noCloudtrail = []
 
         # add some spaces for aligning the progress bars
@@ -101,10 +124,7 @@ class MainManager:
             # Listener can return None to break out of loop,
             # i.e. to stop processing with other listeners
             for l in self.listeners['ec2']:
-              try:
-                context_ec2 = l(context_ec2)
-              except NoCloudwatchException:
-                ec2_noCloudwatch.append(ec2_id)
+              context_ec2 = l(context_ec2)
 
               # skip rest of listeners if one of them returned None
               if context_ec2 is None:
@@ -134,7 +154,7 @@ class MainManager:
         if 'df_cat' in context_pre: context_all['df_cat'] = context_pre['df_cat'] # copy object between contexts
 
         # more
-        context_all['ec2_noCloudwatch'] = ec2_noCloudwatch
+        context_all['ec2_noCloudwatch'] = ec2_noCloudwatch # FIXME DEPRECATED
         context_all['ec2_noCloudtrail'] = ec2_noCloudtrail
         context_all['click_ctx'] = self.ctx
 
@@ -150,7 +170,7 @@ class MainManager:
 
 
 
-class RunnerAccount(MainManager):
+class RunnerAccount(EventBus):
   def get_ifi(self, tqdml2_obj):
         # iterate over services
         n_service_total = self.ec2_it.count()

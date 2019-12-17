@@ -27,10 +27,10 @@ class CalculatorOptimizeRedshift(CalculatorBaseRedshift):
         'NodeType': rc_describe_entry['NodeType'],
         'NumberOfNodes': rc_describe_entry['NumberOfNodes'],
 
-        'CpuMaxMax': df_single.Maximum.max(),
-        #'CpuMaxMin': df_single.Maximum.min(),
-        #'CpuMinMax': df_single.Minimum.max(),
-        'CpuMinMin': df_single.Minimum.min(),
+        'CpuMaxMax': df_single.cpu_used_max.max(),
+        #'CpuMaxMin': df_single.cpu_used_max.min(),
+        #'CpuMinMax': df_single.cpu_used_min.max(),
+        'CpuMinMin': df_single.cpu_used_min.min(),
 
         'tags': taglist
       })

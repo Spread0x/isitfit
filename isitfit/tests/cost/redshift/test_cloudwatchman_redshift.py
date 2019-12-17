@@ -1,6 +1,6 @@
 from isitfit.cost.metrics_cloudwatch import CloudwatchRedshift
 import pytest
-from isitfit.utils import NoCloudwatchException
+from isitfit.cost.metrics_cloudwatch import NoCloudwatchException
 
 
 def test_init():

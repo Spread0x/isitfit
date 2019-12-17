@@ -89,23 +89,20 @@ class CalculatorAnalyzeEc2:
     """
     Listener function to be called upon the download of each EC2 instance's data
     ec2_obj - boto3 resource
-    ec2_df - pandas dataframe with data from cloudwatch+cloudtrail
+    ec2_df - pandas dataframe with data from cloudwatch or datadog + cloudtrail + ec2instances.info catalog
     mm - mainManager class
-    ddg_df - dataframe of data from datadog: {cpu,ram}-{max,avg}
     """
     # parse out context keys
-    ec2_obj, ec2_df, mm, ddg_df = context_ec2['ec2_obj'], context_ec2['ec2_df'], context_ec2['mainManager'], context_ec2['ddg_df']
+    ec2_obj, ec2_df, mm = context_ec2['ec2_obj'], context_ec2['ec2_df'], context_ec2['mainManager']
 
     # results: 2 numbers: capacity (USD), used (USD)
     ec2_df['capacity_usd'] = ec2_df.nhours*ec2_df.cost_hourly
     res_capacity = ec2_df['capacity_usd'].sum()
 
-    if 'ram_used_avg.datadog' in ec2_df.columns:
-      # use both the CPU Average from cloudwatch and the RAM average from datadog
-      utilization_factor = ec2_df[['Average', 'ram_used_avg.datadog']].mean(axis=1, skipna=True)
-    else:
-      # use only the CPU average from cloudwatch
-      utilization_factor = ec2_df.Average
+    # use both the CPU Average from cloudwatch and the RAM average from datadog
+    # If the RAM is nan, eg if data is from cloudwatch, the skipna=True ensures that this is calculated based on CPU only
+    # >>> assert pd.DataFrame([{'a': 1, 'b': np.nan}]).mean(axis=1, skipna=True).iloc[0] == 1
+    utilization_factor = ec2_df[['cpu_used_avg', 'ram_used_avg']].mean(axis=1, skipna=True)
 
     ec2_df['used_usd'] = ec2_df.nhours*ec2_df.cost_hourly*utilization_factor/100
     res_used   = ec2_df['used_usd'].sum()
@@ -212,6 +209,51 @@ class BinCapUsed:
     #self.freq_delta = relativedelta(months=1)
     return
 
+  
+  def do_resample_start(self, df_in):
+    return df_in.resample(self.freq_start, label='left', closed='left')
+
+  def do_resample_end(self, df_in):
+    return df_in.resample(self.freq_end, label='right', closed='right')
+
+
+#  def fix_resample_end(self, df_d2e, df_d2s):
+#    # The problem showed up when computing min/max of Timestamp (i.e. dt_start, dt_end)
+#    raise Exception("Shouldnt use self.fix_resample_end. It fixes the index but not the actual binning")
+#
+#    # some pandas issues with the freq_{start,end}
+#    if self.freq_end=='1SM':
+#      # FIXME bug in pandas: when freq_end='1SM', the mid-month start is e.g. 2019-10-15 and the previous mid-month end is also 2019-10-15.
+#      # This is not the case for the mid-month ranges at the beginning, i.e. when start=2019-10-15 and end=2019-10-31
+#      # This is inconsistent with the month-start and month-end which are 2019-10-01 and 2019-09-30 respectively
+#      # So, substracting 1 day from the end date when it's the 15th
+#      df_d2e = df_d2e.reset_index()
+#      df_d2e['Timestamp'] = df_d2e.Timestamp.apply(lambda x: x - pd.DateOffset(1) if x.day==15 else x)
+#      df_d2e.set_index('Timestamp', inplace=True)
+#      return df_d2e
+#
+#    if self.freq_end=='1D':
+#      # subtract 1 day from the end date since there was no freq_end='1DE' (day-end, hypothetically would yield the same date with hour:minute 23:59)
+#      # such that [start,end] are inclusive just like the data
+#      # Alternatively, just copy df_d2s
+#      #df_d2e = df_d2e.reset_index()
+#      #df_d2e['Timestamp'] = df_d2e.Timestamp.apply(lambda x: x - pd.DateOffset(1))
+#      #df_d2e.set_index('Timestamp', inplace=True)
+#      df_d2e = df_d2s.copy()
+#      return df_d2e
+#
+#    # do nothing
+#    return df_d2e
+
+  def fix_resample_start(self, df_d2s, df_d2e, dt_start, dt_end):
+    # FIXME bug in pandas: for ndays=30, hence freq_start='1W-MON', the df_d2s was getting 1 extra week for the week before the dt_start
+    # I'm guessing that if the first day in df_d1 is a monday, the .resample adds 1 more entry for the monday before
+    # Getting around this by chopping off dates before dt_start
+    if df_d2s.shape[0]==(df_d2e.shape[0]+1):
+      df_d2s = df_d2s[dt_start.date():dt_end.date()]
+
+    return df_d2s
+
 
   def handle_pre(self, context_pre):
     # set freq
@@ -229,33 +271,10 @@ class BinCapUsed:
       'dummy': [0]*len(dt_daily),
     })
     df_d1.set_index('Timestamp', inplace=True)
-    df_d2s = df_d1.resample(self.freq_start, label='left' ).sum()
-    df_d2e = df_d1.resample(self.freq_end,   label='right').sum()
-
-    # some pandas issues with the freq_{start,end}
-    if self.freq_end=='1SM':
-      # FIXME bug in pandas: when freq_end='1SM', the mid-month start is e.g. 2019-10-15 and the previous mid-month end is also 2019-10-15.
-      # This is not the case for the mid-month ranges at the beginning, i.e. when start=2019-10-15 and end=2019-10-31
-      # This is inconsistent with the month-start and month-end which are 2019-10-01 and 2019-09-30 respectively
-      # So, substracting 1 day from the end date when it's the 15th
-      df_d2e = df_d2e.reset_index()
-      df_d2e['Timestamp'] = df_d2e.Timestamp.apply(lambda x: x - pd.DateOffset(1) if x.day==15 else x)
-      df_d2e.set_index('Timestamp', inplace=True)
-    elif self.freq_end=='1D':
-      # subtract 1 day from the end date since there was no freq_end='1DE' (day-end, hypothetically would yield the same date with hour:minute 23:59)
-      # such that [start,end] are inclusive just like the data
-      # Alternatively, just copy df_d2s
-      #df_d2e = df_d2e.reset_index()
-      #df_d2e['Timestamp'] = df_d2e.Timestamp.apply(lambda x: x - pd.DateOffset(1))
-      #df_d2e.set_index('Timestamp', inplace=True)
-      df_d2e = df_d2s.copy()
-
-
-    # FIXME bug in pandas: for ndays=30, hence freq_start='1W-MON', the df_d2s was getting 1 extra week for the week before the dt_start
-    # I'm guessing that if the first day in df_d1 is a monday, the .resample adds 1 more entry for the monday before
-    # Getting around this by chopping off dates before dt_start
-    if df_d2s.shape[0]==(df_d2e.shape[0]+1):
-      df_d2s = df_d2s[dt_start.date():dt_end.date()]
+    df_d2e = self.do_resample_end(df_d1).sum()
+    df_d2s = self.do_resample_start(df_d1).sum()
+    #df_d2e = self.fix_resample_end(df_d2e, df_d2s)
+    #df_d2s = self.fix_resample_start(df_d2s, df_d2e, dt_start, dt_end)
 
     # append 1 more month due to pandas date_range not yielding the EOM after dt_end
     # Update 2019-12-09 no longer needed due to usage of .resample instead of .date_range
@@ -303,11 +322,25 @@ class BinCapUsed:
     df_add.set_index('Timestamp', inplace=True)
 
     # resample ints
-    df_me = df_add[['capacity_usd', 'used_usd']].resample(self.freq_end, label='right').sum()
+    df_me = self.do_resample_end(df_add[['capacity_usd', 'used_usd']]).sum()
+    #df_ignore = self.do_resample_start(df_add[['capacity_usd', 'used_usd']]).sum()
+    #df_me = self.fix_resample_end(df_me, df_ignore)
 
-    # resample dates
-    df_me['dt_start'] = df_add['ts2'].resample(self.freq_end, label='right').min()
-    df_me['dt_end'] = df_add['ts2'].resample(self.freq_end, label='right').max()
+    # util vars
+    dt_start = context_ec2['mainManager'].StartTime
+    dt_end   = context_ec2['mainManager'].EndTime
+
+    # resample dates. Note that min/max doesn't matter below for freq_start='1D'.
+    # Intentionally calling do_resample_end for both dfme_{end,start} so that they get the same Timeindex
+    #dfme_end_max = self.do_resample_end(df_add['ts2']).max()
+    #dfme_end_min = self.do_resample_end(df_add['ts2']).min()
+    #dfme_start_max = self.do_resample_start(df_add['ts2']).max()
+    #dfme_start_min = self.do_resample_start(df_add['ts2']).min()
+    #df_me['dt_end'  ] = self.fix_resample_end(  dfme_end_max, dfme_start_max)
+    #df_me['dt_start'] = self.fix_resample_end(  dfme_end_min, dfme_start_min)
+    df_me['dt_end'  ] = self.do_resample_end(df_add['ts2']).max()
+    df_me['dt_start'] = self.do_resample_end(df_add['ts2']).min()
+
 
     # dummy column showing 1 for the current instance, ie where there is any capacity
     # df_me['count_analyzed'] = 1
@@ -506,10 +539,23 @@ def pipeline_factory(ctx, filter_tags, save_details):
     # moved these imports from outside the function to inside it so that `isitfit --version` wouldn't take 5 seconds due to the loading
     from isitfit.cost.mainManager import MainManager
     from isitfit.cost.cloudtrail_ec2type import CloudtrailCached
+
+    # manager of redis-pandas caching
     from isitfit.cost.cacheManager import RedisPandas as RedisPandasCacheManager
+    cache_man = RedisPandasCacheManager()
+
+    # 2019-12-16 Deprecate the datadog and cloudwatch listeners in favor of the automatic fallback listener
+    # from isitfit.cost.metrics_datadog import DatadogListener
+    # from isitfit.cost.metrics_cloudwatch import CwEc2Listener
     from isitfit.cost.metrics_datadog import DatadogCached
-    from isitfit.cost.ec2_common import Ec2TagFilter
     from isitfit.cost.metrics_cloudwatch import CloudwatchEc2
+    from isitfit.cost.metrics_automatic import MetricsListener
+    ddg = DatadogCached(cache_man)
+    cloudwatchman = CloudwatchEc2(cache_man)
+    metrics = MetricsListener(ddg, cloudwatchman)
+    metrics.set_ndays(ctx.obj['ndays'])
+
+    from isitfit.cost.ec2_common import Ec2TagFilter
     from isitfit.cost.catalog_ec2 import Ec2Catalog
     from isitfit.cost.ec2_common import Ec2Common
 
@@ -519,16 +565,10 @@ def pipeline_factory(ctx, filter_tags, save_details):
     share_email = ctx.obj.get('share_email', None)
     ul = CalculatorAnalyzeEc2(ctx, save_details)
 
-    # manager of redis-pandas caching
-    cache_man = RedisPandasCacheManager()
 
-    ddg = DatadogCached(cache_man)
-    ddg.set_ndays(ctx.obj['ndays'])
 
     etf = Ec2TagFilter(filter_tags)
 
-    cloudwatchman = CloudwatchEc2(cache_man)
-    cloudwatchman.set_ndays(ctx.obj['ndays'])
 
     ra = ReporterAnalyzeEc2()
 
@@ -558,12 +598,12 @@ def pipeline_factory(ctx, filter_tags, save_details):
     mm.add_listener('pre', ul.handle_pre)
     mm.add_listener('pre', bcs.handle_pre)
     mm.add_listener('ec2', etf.per_ec2)
-    mm.add_listener('ec2', cloudwatchman.per_ec2)
+    mm.add_listener('ec2', metrics.per_host)
     mm.add_listener('ec2', cloudtrail_manager.single)
     mm.add_listener('ec2', ec2_common._handle_ec2obj)
-    mm.add_listener('ec2', ddg.per_ec2)
     mm.add_listener('ec2', ul.per_ec2)
     mm.add_listener('ec2', bcs.per_ec2)
+    mm.add_listener('all', metrics.display_status)
     mm.add_listener('all', ec2_common.after_all)
     mm.add_listener('all', ul.after_all)
     mm.add_listener('all', inject_analyzer)

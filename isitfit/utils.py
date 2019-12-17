@@ -5,13 +5,6 @@ import logging
 logger = logging.getLogger('isitfit')
 
 
-class NoCloudwatchException(Exception):
-    pass
-
-
-def raise_noCwExc(rc_id):
-  raise NoCloudwatchException("No cloudwatch data for %s"%rc_id)
-
 
 class NoCloudtrailException(Exception):
     pass

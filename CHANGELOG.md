@@ -4,6 +4,30 @@ Semantic versioning
 Version latest (0.18.0rc?, 2019-12-05?)
 
 - ...
+- enh: rename cloudwatchman and datadogman to `metrics_cloudwatch` and `metrics_datadog`
+- feat: add `metrics_auto` for automatic failover from datadog to cloudwatch
+- enh: normalize dataframe column names from cloudatch and datadog
+- enh: append suffix `Listener` to classes that specifically deal with the Event Bus runner, `mainManager`, and the `context_*` dictionaries
+- feat: cost: major re-write of metrics fetch + misc improvements
+  - cleaner fetch of metrics from datadog if enabled, with fallback to cloudwatch if missing data
+  - caching no longer stores an empty dataframe when no data found, but rather a callable that raises a no-data exception if called again
+  - caching TTL is 10 minutes when a callable is stored (i.e. no-data exception)
+  - metrics cached split into separate mixin
+  - no more `ddg_df` key in the `context_ec2` dictionary as now the `ec2_df` key comes either from datadog or from cloudwatch
+  - no more `ram_used_avg.datadog` since `ram_used_avg` is a column that is available whether from datadog or cloudwatch (in the case of which it is nan)
+  - normalize calls to `pandas.Dataframe.resample` in `ec2_analyze.BinCapUsed`
+  - drop the `self.fix_resample_{start,end}` calls in `ec2_analyze.BinCapUsed`
+  - use the event-bus listener from `metrics_auto` in `ec2_analyze` and `ec2_optimize`
+  - display the status of `metrics source` as needed for debugging metric data that is available in datadog but not coming from datadog
+  - split out `EventBus` from `MainManager` and inherit
+  - `mainManager.ec2_noCloudwatch` no longer used in favor of `metrics_auto.sources`
+  - move `NoCloudwatchException` from `utils` into `metrics_cloudwatch`
+  - split out `CloudwatchAssistant` from `CloudwatchBase` and use clear function names
+  - `CloudwatchCached` and `DatadogCached` use the same `MetricsCacheMixin`
+  - `CwRedshiftListener` now handles exception of NoCloudwatchException since no longer handled by mainManager
+  - dataframe fields are `cpu_used_max` instead of `Maximum`, etc
+  - when displaying migrations if `--debug` is requested, show the descriptions to dismiss doubt about migration contents
+  - misc tests to accompany the code changes
 
 
 Version 0.18.11 (2019-12-13)

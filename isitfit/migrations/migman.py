@@ -56,28 +56,26 @@ class MigMan:
     # insert "new" migrations
     df_mer = self._insertNew()
 
-    # subset for those that don't have an executed date yet
-    df_mer = df_mer[df_mer.executed.isna()]
-
     # append docstrings
     df_mer['description'] = df_mer.func.apply(lambda x: x.__doc__.strip() if x.__doc__ is not None else None)
+
+    logger.debug("Migrations")
+    logger.debug(df_mer[['migname', 'executed', 'description']])
+
+    # subset for those that don't have an executed date yet
+    df_mer = df_mer[df_mer.executed.isna()]
 
     # save
     self.df_mig = df_mer
 
 
+
   def _insertNew(self):
     # migrations in local database
     df_db = pd.read_sql_query("select * from migrations", self.db_h)
-    logger.debug("Local migrations in sqlite database")
-    logger.debug(df_db)
 
     # full list of migrations
     df_py = pd.DataFrame(self._current(), columns=['migname', 'func'])
-
-    # debug display
-    logger.debug("All migrations (before merge)")
-    logger.debug(df_py)
 
     # join. Note the left join will drop from the database any migrations that are deleted from self._current
     df_mer = df_py.merge(df_db, on='migname', how='left')

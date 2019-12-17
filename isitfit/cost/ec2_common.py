@@ -2,7 +2,6 @@ from isitfit.utils import logger
 
 
 from isitfit.utils import mergeSeriesOnTimestampRange
-import numpy as np
 
 
 class Ec2Common:
@@ -43,12 +42,6 @@ class Ec2Common:
         #logger.debug("\nafter merge with catalog")
         #logger.debug(ec2_df.head())
 
-        # calculate number of running hours
-        # In the latest 90 days, sampling is per minute in cloudwatch
-        # https://aws.amazon.com/cloudwatch/faqs/
-        # Q: What is the minimum resolution for the data that Amazon CloudWatch receives and aggregates?
-        # A: ... For example, if you request for 1-minute data for a day from 10 days ago, you will receive the 1440 data points ...
-        ec2_df['nhours'] = np.ceil(ec2_df.SampleCount/60)
 
         # append instance ID and region for clarity
         ec2_df['region'] = ec2_obj.region_name
@@ -68,7 +61,9 @@ class Ec2Common:
 
     def after_all(self, context_all):
         # unpack
-        ec2_noCloudwatch, ec2_noCloudtrail = context_all['ec2_noCloudwatch'], context_all['ec2_noCloudtrail']
+        # Update 2019-12-17 ec2_noCloudwatch is deprecated
+        # ec2_noCloudwatch, ec2_noCloudtrail = context_all['ec2_noCloudwatch'], context_all['ec2_noCloudtrail']
+        ec2_noCloudtrail = context_all['ec2_noCloudtrail']
 
 
         # get now + 10 minutes
@@ -79,13 +74,13 @@ class Ec2Common:
         now_plus_10 = dt_now + dt.timedelta(minutes = TRY_IN)
         now_plus_10 = now_plus_10.strftime("%H:%M")
 
-        if len(ec2_noCloudwatch)>0:
-          n_no_cw = len(ec2_noCloudwatch)
-          has_more_cw = "..." if n_no_cw>5 else ""
-          l_no_cw = ", ".join(ec2_noCloudwatch[:5])
-          logger.info("No cloudwatch data for %i resources: %s%s"%(n_no_cw, l_no_cw, has_more_cw))
-          logger.info("Try again in %i minutes (at %s) to check for new data"%(TRY_IN, now_plus_10))
-          logger.info("")
+#        if len(ec2_noCloudwatch)>0:
+#          n_no_cw = len(ec2_noCloudwatch)
+#          has_more_cw = "..." if n_no_cw>5 else ""
+#          l_no_cw = ", ".join(ec2_noCloudwatch[:5])
+#          logger.info("No cloudwatch data for %i resources: %s%s"%(n_no_cw, l_no_cw, has_more_cw))
+#          logger.info("Try again in %i minutes (at %s) to check for new data"%(TRY_IN, now_plus_10))
+#          logger.info("")
 
         if len(ec2_noCloudtrail)>0:
           n_no_ct = len(ec2_noCloudtrail)
