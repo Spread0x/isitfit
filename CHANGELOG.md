@@ -6,6 +6,11 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
+Version 0.19.1 (2019-12-17)
+
+- enh: add datadog missing data message to debug logs
+
+
 Version 0.19.0 (2019-12-17)
 
 - enh: rename cloudwatchman and datadogman to `metrics_cloudwatch` and `metrics_datadog`

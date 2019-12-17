@@ -29,11 +29,11 @@ class MetricsAuto:
     try:
       df_ddg = self.datadog.get_metrics_all(host_id)
       return df_ddg, "ok"
-    except HostNotFoundInDdg:
-      logger.debug("Datadog: host not found for %s"%host_id)
+    except HostNotFoundInDdg as e:
+      logger.debug("Datadog: host not found for %s: %s"%(host_id, str(e)))
       return None, "host not found"
-    except DataNotFoundForHostInDdg:
-      logger.debug("Datadog: data not found for %s"%host_id)
+    except DataNotFoundForHostInDdg as e:
+      logger.debug("Datadog: data not found for %s: %s"%(host_id, str(e)))
       return None, "no data"
 
 
