@@ -53,6 +53,7 @@ setup(
         'matomo_sdk_py==0.2.1',
         'simple-cache==0.35',
 
+        # Before upgrading this, it's very important to test that my sentry_proxy.py code works with the new version
         'sentry-sdk==0.13.5'
     ],
     entry_points='''

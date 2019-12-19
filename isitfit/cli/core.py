@@ -40,6 +40,9 @@ def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upg
     sp_url = f"{BASE_URL}fwd/sentry"
     sentry_proxy.init(dsn=sp_url)
 
+    # test exception caught by sentry. FIXME Dont commit this! :D
+    # 1/0
+
     # usage stats
     # https://docs.python.org/3.5/library/string.html#format-string-syntax
     from isitfit.utils import ping_matomo, b2l
