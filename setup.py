@@ -51,7 +51,9 @@ setup(
         'outdated==0.2.0',
         'aws-requests-auth==0.4.2',
         'matomo_sdk_py==0.2.1',
-        'simple-cache==0.35'
+        'simple-cache==0.35',
+
+        'sentry-sdk==0.13.5'
     ],
     entry_points='''
         [console_scripts]
