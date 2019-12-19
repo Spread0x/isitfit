@@ -2,13 +2,19 @@ import click
 
 
 def pingOnError(ctx, error):
-  # if not dict yet
+  # if not dict yet, i.e. before the cli.core.cli_core group
+  # Important to keep track of the didPing variable
   if ctx.obj is None: return
 
   # check if the error's ping was done
   didPing = 'unhandled_error_pinged' in ctx.obj.keys()
   if didPing: return
 
+  # send to sentry.io via isitfit.io (check usage of sentry_proxy in cli.core)
+  from sentry_sdk import capture_exception
+  capture_exception(error)
+
+  # proceed to ping matomo about the error (to be deprecated in full in favor of sentry)
   from isitfit.utils import ping_matomo
   exception_type = type(error).__name__ # https://techeplanet.com/python-catch-all-exceptions/
   ping_matomo("/error/unhandled/%s?message=%s"%(exception_type, str(error)))

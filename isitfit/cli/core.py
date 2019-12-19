@@ -31,6 +31,15 @@ def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upg
     import sys
     if '--help' in sys.argv: return
 
+    # make sure that context is a dict
+    ctx.ensure_object(dict)
+
+    # set up exception aggregation in sentry.io
+    from isitfit import sentry_proxy
+    from isitfit.apiMan import BASE_URL
+    sp_url = f"{BASE_URL}fwd/sentry"
+    sentry_proxy.init(dsn=sp_url)
+
     # usage stats
     # https://docs.python.org/3.5/library/string.html#format-string-syntax
     from isitfit.utils import ping_matomo, b2l
@@ -75,9 +84,6 @@ def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upg
           err_msg = "As of version 0.11, please use `isitfit cost analyze` instead of `isitfit` to calculate the cost-weighted utilization."
           ping_matomo("/error/UsageError?message=%s"%err_msg)
           raise UsageError(err_msg)
-
-    # make sure that context is a dict
-    ctx.ensure_object(dict)
 
     # check if emailing requested
     if share_email is not None:

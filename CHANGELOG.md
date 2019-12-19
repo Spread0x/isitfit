@@ -6,6 +6,12 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
+Version 0.19.2rc (2019-12-19)
+
+- feat: add sentry-sdk as a dependency along with a sentry-proxy file to send exceptions to sentry.io
+  - proxy necessary to send exceptions via isitfit.io without exposing my sentry key in the isitfit-cli repository
+
+
 Version 0.19.1 (2019-12-17)
 
 - enh: add datadog missing data message to debug logs
