@@ -57,6 +57,43 @@ class TestCwAssUnit:
     st = ca.metric2stats(me)
     assert st is not None
 
-    df = ca.stats2df(st, iid, dtnow)
+    df = ca.stats2df(st, iid, dtnow, 'AWS/EC2')
     assert df is not None
     assert df.shape[0] > 0
+
+
+from isitfit.cost.metrics_cloudwatch import CloudwatchEc2, CloudwatchRedshift
+
+
+from isitfit.tests.cost.test_metricsDatadog import cache_man
+
+@pytest.mark.parametrize("AdapterCls", [CloudwatchEc2, CloudwatchRedshift])
+class TestCloudwatchEc2GetMetricsDerived:
+  def test_yesReady_yesData(self, mocker, cache_man, AdapterCls):
+    # mark as ready
+    cache_man.ready = True
+
+    # mock parent
+    import pandas as pd
+    mockreturn = lambda *args, **kwargs: pd.DataFrame({'a': [1,2,3]})
+    mockee = 'isitfit.cost.metrics_cloudwatch.CloudwatchBase.handle_main'
+    uncached_get = mocker.patch(mockee, side_effect=mockreturn)
+
+    cwc = AdapterCls(cache_man)
+    host_id = 'i-123456'
+
+    # after first call
+    actual = cwc.get_metrics_derived(None, host_id, None)
+    assert actual is not None
+    assert actual.shape[0]==3
+    assert uncached_get.call_count == 1 # calls upstream
+    assert cache_man.get.call_count == 1 # 1st check in cache
+    assert cache_man.set.call_count == 1 # 1st set in cache
+
+    # after 2nd call
+    actual = cwc.get_metrics_derived(None, host_id, None)
+    assert actual is not None
+    assert actual.shape[0]==3
+    assert uncached_get.call_count == 1 # no increment
+    assert cache_man.get.call_count == 2 # 2nd check in cache
+    assert cache_man.set.call_count == 1 # no increment

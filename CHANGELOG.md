@@ -6,6 +6,9 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 - enh: use pytest parametrize for 2 tests and reduce boilerplate code
 - bugfix: when exception has no .message field, CLI failed on client-side due to pinging matomo with exception. Fixed
+- bugfix: `MetricCacheMixin.get_metrics_derived` was using `try/except/finally` which turns out needs the `finally` moved to after the `try/catch`
+- bugfix: the redis cache (MetricCacheMixin class) was not getting used at all for both datadog and cloudwatch/ec2 due to the way I was using the inheritance .. fixed
+- bugfix: the cloudwatch/redshift pipeline listener (i.e. CwRedshiftListener) was not using the redis cache at all (`MetricCacheMixin.get_metrics_derived` function) .. fixed
 
 
 Version 0.19.2 (2019-12-19)
@@ -40,7 +43,7 @@ Version 0.19.0 (2019-12-17)
   - `mainManager.ec2_noCloudwatch` no longer used in favor of `metrics_auto.sources`
   - move `NoCloudwatchException` from `utils` into `metrics_cloudwatch`
   - split out `CloudwatchAssistant` from `CloudwatchBase` and use clear function names
-  - `CloudwatchCached` and `DatadogCached` use the same `MetricsCacheMixin`
+  - `CloudwatchCached` and `DatadogCached` use the same `MetricCacheMixin`
   - `CwRedshiftListener` now handles exception of NoCloudwatchException since no longer handled by mainManager
   - dataframe fields are `cpu_used_max` instead of `Maximum`, etc
   - when displaying migrations if `--debug` is requested, show the descriptions to dismiss doubt about migration contents

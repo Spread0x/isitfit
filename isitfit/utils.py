@@ -5,8 +5,20 @@ import logging
 logger = logging.getLogger('isitfit')
 
 
-
+# Exception classes
 class NoCloudtrailException(Exception):
+    pass
+
+class DdgNoData(ValueError):
+  pass
+
+class HostNotFoundInDdg(DdgNoData):
+  pass
+
+class DataNotFoundForHostInDdg(DdgNoData):
+  pass
+
+class NoCloudwatchException(Exception):
     pass
 
 

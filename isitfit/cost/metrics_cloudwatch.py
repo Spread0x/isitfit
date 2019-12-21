@@ -4,11 +4,7 @@ from isitfit.utils import SECONDS_IN_ONE_DAY
 import pandas as pd
 import boto3
 
-from isitfit.utils import logger
-
-
-class NoCloudwatchException(Exception):
-    pass
+from isitfit.utils import logger, NoCloudwatchException
 
 
 def raise_noCwExc(rc_id):
@@ -201,6 +197,13 @@ class CloudwatchBase:
   def set_ndays(self, ndays):
     self.assistant.set_ndays(ndays)
 
+  @property
+  def ndays(self):
+    """
+    Expose the assistant.ndays member as a member here
+    """
+    return self.assistant.ndays
+
   def handle_main(self, rc_describe_entry, rc_id, rc_created):
     logger.debug("Fetching cloudwatch data for resource %s"%rc_id)
 
@@ -241,8 +244,8 @@ class CloudwatchCached(MetricCacheMixin, CloudwatchBase):
         cache_key = "cloudwatch:cpu:%s:%i"%(rc_id, self.ndays)
         return cache_key
 
-    def get_metrics_derived(self, rc_describe_entry, rc_id, rc_created):
-      return super().handle_main(rc_describe_entry, rc_id, rc_created)
+    def get_metrics_base(self, rc_describe_entry, rc_id, rc_created):
+      return self.handle_main(rc_describe_entry, rc_id, rc_created)
 
 
 
@@ -252,13 +255,20 @@ class CloudwatchRedshift(CloudwatchCached):
 
 
 class CwRedshiftListener(CloudwatchRedshift):
+  """
+  Not yet deprecated
+  AFAIK the datdog-redshift integration doesn't include memory metrics [1]
+  So just referencing CwRedshiftListener in the redshift pipeline
+
+  [1] https://docs.datadoghq.com/integrations/amazon_redshift/
+  """
   def per_ec2(self, context_ec2):
         """
         Raises NoCloudwatchException if no data found in cloudwatch
         """
         rc_describe_entry, rc_id, rc_created = context_ec2['ec2_dict'], context_ec2['ec2_id'], context_ec2['ec2_launchtime']
         try:
-          df_single = self.handle_main(rc_describe_entry, rc_id, rc_created)
+          df_single = self.get_metrics_derived(rc_describe_entry, rc_id, rc_created)
           context_ec2['df_single'] = df_single
           return context_ec2
         except NoCloudwatchException:
@@ -275,6 +285,9 @@ class CloudwatchEc2(CloudwatchCached):
 
 
 class CwEc2Listener(CloudwatchEc2):
+  """
+  Deprecated in favor of metrics_automatic which references CloudwatchEc2 itself
+  """
 
   def handle_main(self, ec2_obj):
     raise Exception("Deprecated")

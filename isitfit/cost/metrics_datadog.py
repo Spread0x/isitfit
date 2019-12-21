@@ -28,22 +28,10 @@ from datadog import initialize
 # Use Datadog REST API client
 from datadog import api
 
-SECONDS_IN_ONE_DAY = 60*60*24
+from isitfit.utils import SECONDS_IN_ONE_DAY
 
-class DdgNoData(ValueError):
-  pass
+from isitfit.utils import DdgNoData, HostNotFoundInDdg, DataNotFoundForHostInDdg
 
-class HostNotFoundInDdg(DdgNoData):
-  pass
-
-class DataNotFoundForHostInDdg(DdgNoData):
-  pass
-
-def raise_hostNotFound():
-  raise HostNotFoundInDdg
-
-def raise_dataNotFound():
-  raise DataNotFoundForHostInDdg
 
 class DataQueryError(ValueError):
   pass
@@ -228,8 +216,8 @@ class DatadogCached(MetricCacheMixin, DatadogManager):
         cache_key = "datadog:cpu+ram:%s:%i"%(host_id, self.ndays)
         return cache_key
 
-    def get_metrics_derived(self, rc_describe_entry, rc_id, rc_created):
-      return super().get_metrics_all(rc_id)
+    def get_metrics_base(self, rc_describe_entry, rc_id, rc_created):
+      return self.get_metrics_all(rc_id)
 
 
 #class DatadogListener(DatadogCached):

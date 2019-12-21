@@ -116,43 +116,6 @@ class TestDatadogManager:
       ddm = datadog_manager()
       assert not ddm.is_configured()
 
-  def test_perEc2_notConf(self, datadog_manager, ddgenv_missing):
-      ddm = datadog_manager()
-      assert not ddm.is_configured()
-      context_ec2 = {}
-      context_ec2 = ddm.per_ec2(context_ec2)
-      assert context_ec2['ddg_df'] is None
-
-
-  def test_perEc2_noData(self, datadog_manager, ddgenv_set):
-      class MockInst:
-        instance_id = 'i-123456'
-
-      ddm = datadog_manager()
-      ddm.get_metrics_all = lambda *args, **kwargs: None
-
-      mock_obj = MockInst()
-      context_ec2 = {'ec2_obj': mock_obj}
-      context_ec2 = ddm.per_ec2(context_ec2)
-      assert context_ec2['ddg_df'] is None
-
-
-  def test_perEc2_yesData(self, datadog_manager, ddgenv_set):
-      class MockInst:
-        instance_id = 'i-123456'
-
-      import datetime as dt
-      ddg_met = pd.DataFrame({'ts_dt': [dt.datetime.now()]})
-      ddm = datadog_manager()
-      ddm.get_metrics_all = lambda *args, **kwargs: ddg_met
-
-      mock_obj = MockInst()
-      ec2_df = pd.DataFrame({'Timestamp': []})
-      context_ec2 = {'ec2_obj': mock_obj, 'ec2_df': ec2_df}
-      context_ec2 = ddm.per_ec2(context_ec2)
-      assert context_ec2['ddg_df'].shape[0]==1
-      assert context_ec2['ddg_df'].shape[1]==1
-
 
   def test_getMetricsAll(self, datadog_manager, mocker):
       def mymock(mr, me):
@@ -160,18 +123,30 @@ class TestDatadogManager:
         mockee = 'isitfit.cost.metrics_datadog.DatadogAssistant.%s'%me
         mocker.patch(mockee, side_effect=mockreturn)
 
+      import datetime as dt
+      dtnow = dt.datetime.now()
+
       mockees = [
-        ( pd.DataFrame({'ts_int':[1], 'ts_dt':[2], 'cpu_used_max': [3]}),
+        ( pd.DataFrame({'ts_int':[1], 'ts_dt':[dtnow], 'cpu_used_max': [3]}),
          'get_metrics_cpu_max'
         ),
-        ( pd.DataFrame({'ts_int':[1], 'ts_dt':[2], 'cpu_used_avg': [3]}),
+        ( pd.DataFrame({'ts_int':[1], 'ts_dt':[dtnow], 'cpu_used_avg': [3]}),
           'get_metrics_cpu_avg'
         ),
-        ( pd.DataFrame({'ts_int':[1], 'ts_dt':[2], 'ram_used_max': [3]}),
+        ( pd.DataFrame({'ts_int':[1], 'ts_dt':[dtnow], 'cpu_used_min': [3]}),
+         'get_metrics_cpu_min'
+        ),
+        ( pd.DataFrame({'ts_int':[1], 'ts_dt':[dtnow], 'ram_used_max': [3]}),
           'get_metrics_ram_max'
         ),
-        ( pd.DataFrame({'ts_int':[1], 'ts_dt':[2], 'ram_used_avg': [3]}),
+        ( pd.DataFrame({'ts_int':[1], 'ts_dt':[dtnow], 'ram_used_avg': [3]}),
           'get_metrics_ram_avg'
+        ),
+        ( pd.DataFrame({'ts_int':[1], 'ts_dt':[dtnow], 'ram_used_min': [3]}),
+          'get_metrics_ram_min'
+        ),
+        ( pd.DataFrame({'ts_int':[1], 'ts_dt':[dtnow], 'nhours': [3]}),
+          'get_metrics_count'
         ),
       ]
       for mr, me in mockees: mymock(mr, me)
@@ -180,7 +155,7 @@ class TestDatadogManager:
       actual = ddm.get_metrics_all('i-123456')
 
       assert actual.shape[0]==1
-      assert actual.shape[1]==5 # columns: ts_dt  cpu_used_max  cpu_used_avg  ram_used_max  ram_used_avg
+      assert actual.shape[1]==8 # columns: ts_dt  cpu_used_max  cpu_used_avg  cpu_used_min  ram_used_max  ram_used_avg  ram_used_min  nhours
 
 
 
@@ -204,7 +179,7 @@ def cache_man(mocker):
     return cache_man
 
 
-class TestDatadogCachedGetMetricsAll:
+class TestDatadogCachedGetMetricsDerived:
   def test_notReady_noData(self, mocker, cache_man):
     # mock parent
     # mockreturn = lambda *args, **kwargs: pd.DataFrame()
@@ -216,7 +191,7 @@ class TestDatadogCachedGetMetricsAll:
 
     # after first call
     with pytest.raises(DataNotFoundForHostInDdg):
-      actual = ddc.get_metrics_all('i-123456')
+      actual = ddc.get_metrics_derived(None, 'i-123456', None)
 
     assert cache_man.get.call_count == 0
     assert cache_man.set.call_count == 0
@@ -224,7 +199,7 @@ class TestDatadogCachedGetMetricsAll:
 
     # after 2nd call
     with pytest.raises(DataNotFoundForHostInDdg):
-      actual = ddc.get_metrics_all('i-123456')
+      actual = ddc.get_metrics_derived(None, 'i-123456', None)
 
     assert cache_man.get.call_count == 0
     assert cache_man.set.call_count == 0
@@ -238,7 +213,7 @@ class TestDatadogCachedGetMetricsAll:
     mocker.patch(mockee, side_effect=mockreturn)
 
     ddc = DatadogCached(cache_man)
-    actual = ddc.get_metrics_all('i-123456')
+    actual = ddc.get_metrics_derived(None, 'i-123456', None)
     assert actual is not None
     assert actual.shape[0]==3
 
@@ -262,7 +237,7 @@ class TestDatadogCachedGetMetricsAll:
 
     # after first call
     with pytest.raises(DataNotFoundForHostInDdg):
-      actual = ddc.get_metrics_all(host_id)
+      actual = ddc.get_metrics_derived(None, host_id, None)
 
     assert cache_man.get.call_count == 1 # checks cache and doesn't find key
     assert cache_man.set.call_count == 1 # first set key
@@ -270,7 +245,7 @@ class TestDatadogCachedGetMetricsAll:
 
     # after 2nd call
     with pytest.raises(DataNotFoundForHostInDdg):
-      actual = ddc.get_metrics_all(host_id)
+      actual = ddc.get_metrics_derived(None, host_id, None)
 
     assert cache_man.get.call_count == 2 # incremented
     assert cache_man.set.call_count == 1 # no increment
@@ -288,7 +263,7 @@ class TestDatadogCachedGetMetricsAll:
 
     # fetch will raise
     with pytest.raises(Exception):
-      actual = ddc.get_metrics_all(host_id)
+      actual = ddc.get_metrics_derived(None, host_id, None)
 
 
   def test_yesReady_yesData(self, mocker, cache_man):
@@ -304,7 +279,7 @@ class TestDatadogCachedGetMetricsAll:
     host_id = 'i-123456'
 
     # after first call
-    actual = ddc.get_metrics_all(host_id)
+    actual = ddc.get_metrics_derived(None, host_id, None)
     assert actual is not None
     assert actual.shape[0]==3
     assert uncached_get.call_count == 1 # calls upstream
@@ -312,7 +287,7 @@ class TestDatadogCachedGetMetricsAll:
     assert cache_man.set.call_count == 1 # 1st set in cache
 
     # after 2nd call
-    actual = ddc.get_metrics_all(host_id)
+    actual = ddc.get_metrics_derived(None, host_id, None)
     assert actual is not None
     assert actual.shape[0]==3
     assert uncached_get.call_count == 1 # no increment

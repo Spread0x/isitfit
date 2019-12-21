@@ -110,6 +110,7 @@ And finally re-run isitfit as usual.
         return context_pre
 
 
+from isitfit.utils import logger, NoCloudwatchException, HostNotFoundInDdg, DataNotFoundForHostInDdg
 
 from isitfit.utils import myreturn
 class MetricCacheMixin:
@@ -128,11 +129,11 @@ class MetricCacheMixin:
       raise Exception("Define in derived/mixin")
 
 
-    def get_metrics_derived(self, rc_describe_entry, rc_id, rc_created):
+    def get_metrics_base(self, rc_describe_entry, rc_id, rc_created):
       raise Exception("Define in derived/mixin")
 
 
-    def get_metrics_base(self, rc_describe_entry, rc_id, rc_created):
+    def get_metrics_derived(self, rc_describe_entry, rc_id, rc_created):
         # check cache first
         cache_key = self.get_key(rc_id)
 
@@ -145,12 +146,13 @@ class MetricCacheMixin:
             if callable(df_cache):
               # if one of the raise_* functions is cached
               df_cache()
+
             elif type(df_cache) is pd.DataFrame:
               if df_cache.shape[0]==0:
                 # found but no data
                 raise Exception("As of isitfit 0.19, empty dataframes are no longer cached")
               else:
-                logger.debug("Found datadog metrics in redis cache for %s, and data.shape[0] = %i"%(host_id, df_cache.shape[0]))
+                logger.debug("Found metrics (datadog? cloudwatch?)  in redis cache for %s, and data.shape[0] = %i"%(rc_id, df_cache.shape[0]))
                 # replace with None if .shape[0]==0
                 df_cache = myreturn(df_cache)
                 # done
@@ -160,23 +162,32 @@ class MetricCacheMixin:
 
         # if no cache, then download
         df_fresh = pd.DataFrame() # use an empty dataframe in order to distinguish when getting from cache if not available in cache or data not found but set in cache
+        def error2func(error):
+          def raiseme(): raise error
+          return raiseme
+
         try:
-          df_fresh = super().get_metrics_derived(rc_describe_entry, rc_id, rc_created)
-        except HostNotFoundInDdg:
-          df_fresh = raise_hostNotFound
-        except DataNotFoundForHostInDdg:
-          df_fresh = raise_dataNotFound
-        finally:
-          # if caching enabled, store it for later fetching
-          # https://stackoverflow.com/a/57986261/4126114
-          # Note that this even stores the result if it was "None" (meaning that no data was found)
-          if self.cache_man.isReady():
-            self.cache_man.set(cache_key, df_fresh)
+          df_fresh = self.get_metrics_base(rc_describe_entry, rc_id, rc_created)
+        except HostNotFoundInDdg as error:
+          df_fresh = error2func(error)
+        except DataNotFoundForHostInDdg as error:
+          df_fresh = error2func(error)
+        except NoCloudwatchException as error:
+          df_fresh = error2func(error)
+        except:
+          # anything else should bubble up
+          raise
 
-          # if exception
-          if callable(df_fresh):
-            df_fresh()
+        # if caching enabled, store it for later fetching
+        # https://stackoverflow.com/a/57986261/4126114
+        # Note that this even stores the result if it was "None" (meaning that no data was found)
+        if self.cache_man.isReady():
+          self.cache_man.set(cache_key, df_fresh)
 
-          # done
-          return myreturn(df_fresh)
+        # if exception
+        if callable(df_fresh):
+          df_fresh()
+
+        # done
+        return myreturn(df_fresh)
 
