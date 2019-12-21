@@ -1,3 +1,6 @@
+import pytest
+
+
 # mocker fixture becomes available after installing pytest-mock
 # https://github.com/pytest-dev/pytest-mock
 def test_pingMatomo_unit(mocker):
@@ -21,7 +24,6 @@ def test_pingMatomo_functional(mocker):
 
 
 def test_isitfitCliError():
-    import pytest
     from isitfit.cli.click_descendents import IsitfitCliError
 
     class MockContext:
@@ -77,18 +79,13 @@ def test_l2s():
   assert a=='0,1,...,8,9'
 
 
-
-def test_taglist2str():
+# https://stackoverflow.com/a/40884671/4126114
+@pytest.mark.parametrize("filter_val,expect_out", [(None, 'app = isitfit\napp = another'), ('is', 'app = isitfit'), ('foo', '')])
+def test_taglist2str(filter_val, expect_out):
   from isitfit.utils import taglist2str
 
-  a = taglist2str([{'Key':'app', 'Value':'isitfit'}, {'Key':'app', 'Value':'another'}], None)
-  assert a == 'app = isitfit\napp = another'
-
-  a = taglist2str([{'Key':'app', 'Value':'isitfit'}, {'Key':'app', 'Value':'another'}], 'is')
-  assert a == 'app = isitfit'
-
-  a = taglist2str([{'Key':'app', 'Value':'isitfit'}, {'Key':'app', 'Value':'another'}], 'foo')
-  assert a == ''
+  a = taglist2str([{'Key':'app', 'Value':'isitfit'}, {'Key':'app', 'Value':'another'}], filter_val)
+  assert a == expect_out
 
 
 
@@ -134,7 +131,6 @@ class TestAwsProfileMan:
     actual = pm.validate_profile(click_ctx, "profile", "default")
     assert actual=="default"
 
-    import pytest
     import click
     with pytest.raises(click.BadParameter):
       pm.validate_profile(click_ctx, "profile", "inexistant")
