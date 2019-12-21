@@ -17,7 +17,13 @@ def pingOnError(ctx, error):
   # proceed to ping matomo about the error (to be deprecated in full in favor of sentry)
   from isitfit.utils import ping_matomo
   exception_type = type(error).__name__ # https://techeplanet.com/python-catch-all-exceptions/
-  ping_matomo("/error/unhandled/%s?message=%s"%(exception_type, str(error)))
+  exception_str = ""
+  try:
+    exception_str = str(error)
+  except:
+    pass
+
+  ping_matomo("/error/unhandled/%s?message=%s"%(exception_type, exception_str))
 
   # save a flag saying that the error sent a ping
   # Note that it is not necessary to do more than that, such as storing a list of pinged errors,

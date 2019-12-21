@@ -5,6 +5,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
 
 - ...
 - enh: use pytest parametrize for 2 tests and reduce boilerplate code
+- bugfix: when exception has no .message field, CLI failed on client-side due to pinging matomo with exception. Fixed
 
 
 Version 0.19.2 (2019-12-19)
