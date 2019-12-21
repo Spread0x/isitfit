@@ -3,14 +3,6 @@ import pandas as pd
 import pytest
 
 
-@pytest.mark.skip(reason="Can only test this with live credentials ATM. Need to mock")
-def test_datadogman_1():
-    ddg = DatadogManager()
-    host_id='i-0f31feed76f7fb07c'
-    df_all = ddg.get_metrics_all(host_id=host_id)
-    assert df_all.shape[0] > 0
-    #print(df_all.head())
-
 
 @pytest.fixture
 def datadog_assistant(mocker):
@@ -19,11 +11,17 @@ def datadog_assistant(mocker):
       mockee = 'datadog.api.Metric.query'
       mocker.patch(mockee, side_effect=mockreturn)
 
-      mockreturn = lambda *args, **kwargs: {'host_list': host_list}
+      mockreturn = lambda *args, **kwargs: {'total_returned': len(host_list), 'host_list': host_list}
       mockee = 'datadog.api.Hosts.search'
       mocker.patch(mockee, side_effect=mockreturn)
 
-      dda = DatadogAssistant(None, None, host_id='i-123456')
+      # set start/end
+      import datetime as dt
+      from datetime import timedelta
+      dt_now = dt.datetime.now()
+      dt_1w  = dt_now - timedelta(days=7)
+
+      dda = DatadogAssistant(dt_1w, dt_now, host_id='i-123456')
       return dda
 
     return factory
@@ -51,7 +49,7 @@ class TestDatadogAssistant:
       df = dda._get_meta()
 
   def test_getMeta_ok(self, datadog_assistant):
-    dda = datadog_assistant(host_list=[{'meta': {'gohai': '{"memory": {"total": "10kB"}}', 'cpuCores': 2}}])
+    dda = datadog_assistant(host_list=[{'meta': {'gohai': '{"memory": {"total": "10kB"}}', 'cpuCores': 2}, 'name': 'i-123456'}])
     res = dda._get_meta()
     assert res=={'cpuCores': 2, 'memory_total': 10240}
 
@@ -59,7 +57,7 @@ class TestDatadogAssistant:
     pointlist = [{'ts_int': 1234567, 'cpu_idle_min': 2.5, 'cpu_idle_avg': 2.5, 'ram_free_min': 10, 'ram_free_avg': 5}]
     dda = datadog_assistant(
       series=[{'pointlist': pointlist}],
-      host_list=[{'meta': {'gohai': '{"memory": {"total": "10kB"}}', 'cpuCores': 2}}],
+      host_list=[{'meta': {'gohai': '{"memory": {"total": "10kB"}}', 'cpuCores': 2}, 'name': 'i-123456'}],
     )
 
     actual = dda.get_metrics_cpu_max()

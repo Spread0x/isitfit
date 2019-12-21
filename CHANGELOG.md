@@ -4,11 +4,18 @@ Semantic versioning
 Version latest (0.18.0rc?, 2019-12-05?)
 
 - ...
+
+
+Version 0.19.3 (2019-12-21)
+
 - enh: use pytest parametrize for 2 tests and reduce boilerplate code
 - bugfix: when exception has no .message field, CLI failed on client-side due to pinging matomo with exception. Fixed
 - bugfix: `MetricCacheMixin.get_metrics_derived` was using `try/except/finally` which turns out needs the `finally` moved to after the `try/catch`
 - bugfix: the redis cache (MetricCacheMixin class) was not getting used at all for both datadog and cloudwatch/ec2 due to the way I was using the inheritance .. fixed
 - bugfix: the cloudwatch/redshift pipeline listener (i.e. CwRedshiftListener) was not using the redis cache at all (`MetricCacheMixin.get_metrics_derived` function) .. fixed
+- bugfix: major errors in datadog api usage which were going under the radar .. fixed and added more unit tests to detect such issues
+    - these are in `isitfit.cost.metrics_datadog.DatadogApiWrap`
+    - also changed the 2 locations where the 1st entry of the list was taken, without checking if it indeed corresponded to the proper host
 
 
 Version 0.19.2 (2019-12-19)
