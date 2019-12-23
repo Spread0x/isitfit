@@ -1,5 +1,6 @@
 from isitfit.utils import logger
 import pandas as pd
+import redis
 
 
 from ..utils import SECONDS_IN_ONE_DAY
@@ -31,7 +32,6 @@ class RedisPandas:
   def connect(self):
     logger.info("Connecting to redis cache")
     logger.debug(self.redis_args)
-    import redis
     import pyarrow as pa
 
     self.redis_client = redis.Redis(**self.redis_args)
@@ -62,7 +62,19 @@ class RedisPandas:
     self.redis_client.set(name=key, value=pybytes, ex=ex)
 
   def get(self, key):
-    v1 = self.redis_client.get(key)
+    try:
+      v1 = self.redis_client.get(key)
+    except redis.exceptions.ResponseError as e:
+      msg = 'Redis error: {e.__class__.__module__}.{e.__class__.__name__}: {e}'.format(e=e)
+      # eg, 'redis.exceptions.ResponseError: invalid DB index'
+      if 'invalid DB index' in str(e):
+        import os
+        msg += "\nHint: Check that environment variable ISITFIT_REDIS_DB=%s is a valid redis database index"%(os.getenv("ISITFIT_REDIS_DB", None))
+        msg += "\nFor more info: https://stackoverflow.com/questions/13386053/how-do-i-change-between-redis-database"
+
+      from isitfit.cli.click_descendents import IsitfitCliError
+      raise IsitfitCliError(msg)
+
     if not v1: return v1
     v2 = self.pyarrow_context.deserialize(v1)
     return v2

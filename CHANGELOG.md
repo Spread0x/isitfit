@@ -20,6 +20,7 @@ Version 0.19.4rc (2019-12-23)
 - enh: convert the usage of `context[break_iterator]` to raising an exception `IsitfitCliRunnerBreakIterator` and then catching it in the `mainManager`
 - enh: promote the stderr message "Will skip ... out of ... regions" to stdout and display it exactly once per service
 - enh: split the "AWS returned AccessDenied for ... out of ... regions" into 2 parts, 1 going to stdout and the other going to stderr at `--verbose` level
+- enh: if error from redis, prefix the error with "redis" to indicate it
 
 
 Version 0.19.3 (2019-12-21)
