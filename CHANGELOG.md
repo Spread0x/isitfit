@@ -6,7 +6,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
-Version 0.19.4rc (2019-12-23)
+Version 0.19.4 (2019-12-23)
 
 - enh: add `--skip-prompt-email` option
 - feat: add `AccessDenied` botocore error as an exception that gets ignored (and skips region) instead of fails the run
