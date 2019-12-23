@@ -25,8 +25,9 @@ from isitfit.cli.click_descendents import isitfit_group
 @click.option('--version', is_flag=True, help='DEPRECATED: use "isitfit version" instead', hidden=True)
 @click.option('--share-email', multiple=True, help='Share result to email address')
 @click.option('--skip-check-upgrade', is_flag=True, help='Skip step for checking for upgrade of isitfit')
+@click.option('--skip-prompt-email', is_flag=True, help='Skip the prompt to share result to email address')
 @click.pass_context
-def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upgrade):
+def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upgrade, skip_prompt_email):
     # FIXME click bug: `isitfit cost --help` is calling the code in here. Workaround is to check --help
     import sys
     if '--help' in sys.argv: return
@@ -121,6 +122,8 @@ def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upg
     # save `verbose` and `debug` for later tqdm
     ctx.obj['debug'] = debug
     ctx.obj['verbose'] = verbose
+    # save skip-prompt-email for later usage
+    ctx.obj['skip_prompt_email'] = skip_prompt_email
 
 
 

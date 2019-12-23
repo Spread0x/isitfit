@@ -31,9 +31,10 @@ class ReporterBase:
       emailTo, ctx = context_all['emailTo'], context_all['click_ctx']
 
       # prompt user for email if not requested
-      from isitfit.utils import PromptToEmailIfNotRequested
-      pte = PromptToEmailIfNotRequested()
-      emailTo = pte.prompt(emailTo)
+      if not ctx.obj['skip_prompt_email']:
+        from isitfit.utils import PromptToEmailIfNotRequested
+        pte = PromptToEmailIfNotRequested()
+        emailTo = pte.prompt(emailTo)
 
       # check if email requested
       if emailTo is None:
