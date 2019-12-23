@@ -252,11 +252,17 @@ class BaseIterator:
     # in which case getting an error on region R1 is normal,
     # and the iterator should still proceed to the next region R2.
     if not self.displayed_accessdenied and len(self.region_accessdenied)>0:
+      # 1st part goes to stdout
+      msgx = "AWS returned AccessDenied errors on %i out of %i regions. Use `isitfit --verbose ...` and re-run the command for more details"
+      import click
+      click.echo(colored(msgx, "yellow"))
+
+      # 2nd part is too long, send it to --verbose
       msg2 = "\n".join(["- %s"%str(e) for e in self.region_accessdenied])
-      msgx = "AWS returned AccessDenied errors on %i out of %i regions. Here are the full error messages:\n%s"
+      msgx = "Here are the full error messages:\n%s"
       msgx = msgx%(len(self.region_accessdenied), len(redshift_regions_sub), msg2)
-  
       logger.info(colored(msgx, "yellow"))
+
       self.displayed_accessdenied = True
 
 
