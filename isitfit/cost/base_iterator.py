@@ -162,7 +162,7 @@ class BaseIterator:
     # Before iterating, display a message that skipping some regions due to load from cache
     # The following conditions = region_include was loaded from cache
     if self.regionInclude_ready and len(redshift_regions_sub)!=len(self.region_include) and not self.displayed_willskip:
-        msg1 = "%s: Will skip %i out of %i regions to which the user/role has no access. To re-check, delete the local cache file %s"
+        msg1 = "%s: Will skip %i out of %i regions which were either empty or inaccessible. To re-check, delete the local cache file %s"
         msg1 = msg1%(self.service_description, len(redshift_regions_sub)-len(self.region_include), len(redshift_regions_sub), self.simpleCacheMan.filename)
         import click
         click.echo(colored(msg1, "yellow"))

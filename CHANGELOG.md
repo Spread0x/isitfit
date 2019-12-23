@@ -6,6 +6,11 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
+Version 0.19.5 (2019-12-23)
+
+- enh: minor wording in "will skip" message to be more explicit
+
+
 Version 0.19.4 (2019-12-23)
 
 - enh: add `--skip-prompt-email` option
