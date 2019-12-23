@@ -18,6 +18,7 @@ Version 0.19.4rc (2019-12-23)
     - maybe the user would even file a github issue, to which I can highlight the use of `--debug` to check the AccessDenied errors
 - enh: `base_iterator` split out `SimpleCacheMan` and made cache calls less verbose
 - enh: convert the usage of `context[break_iterator]` to raising an exception `IsitfitCliRunnerBreakIterator` and then catching it in the `mainManager`
+- enh: promote the stderr message "Will skip ... out of ... regions" to stdout and display it exactly once per service
 
 
 Version 0.19.3 (2019-12-21)
