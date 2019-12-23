@@ -21,6 +21,9 @@ class DataNotFoundForHostInDdg(DdgNoData):
 class NoCloudwatchException(Exception):
     pass
 
+class IsitfitCliRunnerBreakIterator(Exception):
+  pass
+
 
 def mergeSeriesOnTimestampRange(df_cpu, df_type, fields):
   """

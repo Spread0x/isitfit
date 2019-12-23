@@ -207,7 +207,8 @@ class CalculatorOptimizeEc2:
       sub_underused = [x for x in self.ec2_classes if x['classification_1']=='Underused']
       if len(sub_underused) >= self.n:
         # break early
-        context_ec2['break_iterator'] = True
+        from isitfit.utils import IsitfitCliRunnerBreakIterator
+        raise IsitfitCliRunnerBreakIterator
 
     # done
     return context_ec2

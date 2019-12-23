@@ -9,6 +9,15 @@ Version latest (0.18.0rc?, 2019-12-05?)
 Version 0.19.4rc (2019-12-23)
 
 - enh: add `--skip-prompt-email` option
+- feat: add `AccessDenied` botocore error as an exception that gets ignored (and skips region) instead of fails the run
+  - this is because a user might have access to ec2 and not redshift, so still would want to get results for ec2 and not just fail halfway
+  - this info gets displayed when `--debug` is issued
+  - the premise is that if a user doesnt already have access to something, then s/he doesnt depend on isitfit to know that there was an error accessing a region
+  - on the other hand, a user, who is getting access specifically for isitfit, would in fact want to know what s/he is missing
+    - in this case, eg, the user will see "1 region" in the report and no data from any other regions, and hence will check more details
+    - maybe the user would even file a github issue, to which I can highlight the use of `--debug` to check the AccessDenied errors
+- enh: `base_iterator` split out `SimpleCacheMan` and made cache calls less verbose
+- enh: convert the usage of `context[break_iterator]` to raising an exception `IsitfitCliRunnerBreakIterator` and then catching it in the `mainManager`
 
 
 Version 0.19.3 (2019-12-21)

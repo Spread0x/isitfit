@@ -2,11 +2,37 @@
 import datetime as dt
 from isitfit.utils import SECONDS_IN_ONE_DAY
 import pandas as pd
+from termcolor import colored
 
 from isitfit.utils import logger
 
 
 from isitfit.cli.click_descendents import IsitfitCliError
+
+
+import simple_cache
+SECONDS_PER_HOUR = 60*60
+class SimpleCacheMan:
+  """
+  Wrapper around
+  https://github.com/barisumog/simple_cache
+  """
+
+  def __init__(self, filename, namespace):
+    self.filename = filename
+    self.namespace = namespace
+
+  def key_with_namespace(self, key):
+    k2 = "%s-%s"%(self.namespace, key)
+    return k2
+
+  def load_key(self, key):
+    k2 = self.key_with_namespace(key)
+    return simple_cache.load_key(filename=self.filename, key=k2)
+
+  def save_key(self, key, value):
+    k2 = self.key_with_namespace(key)
+    simple_cache.save_key(filename=self.filename, key=k2, value=value, ttl=SECONDS_PER_HOUR)
 
 
 class BaseIterator:
@@ -44,6 +70,12 @@ class BaseIterator:
     # Set this flag to use region_include, eg if it is loaded from cache or if counting first pass is done
     self.regionInclude_ready = False
 
+    # list to gather AccessDenied errors
+    self.region_accessdenied = []
+
+    # flag to display the access denied message only once
+    self.displayed_accessdenied = False
+
     # init cache
     self._initCache()
 
@@ -80,19 +112,23 @@ class BaseIterator:
     # Update 2019-12-03: move from ~/.isitfit to /tmp/isitfit/
     from isitfit.dotMan import DotMan
     import os
-    self.cache_filename = 'iterator_cache-%s-%s.pkl'%(profile_name, self.service_name)
-    self.cache_filename = os.path.join(DotMan().tempdir(), self.cache_filename)
+    cache_filename = 'iterator_cache-%s-%s.pkl'%(profile_name, self.service_name)
+    cache_filename = os.path.join(DotMan().tempdir(), cache_filename)
 
-    # proceed with key
-    self.cache_key = 'iterator-region_include'
+    # set of keys to save in local cache file with simple_cache
+    self.simpleCacheMan = SimpleCacheMan(filename=cache_filename, namespace="iterator")
 
-    # https://github.com/barisumog/simple_cache
-    import simple_cache
-    ri_cached = simple_cache.load_key(filename=self.cache_filename, key=self.cache_key)
+    # load cached keys
+    ri_cached = self.simpleCacheMan.load_key(key='region_include')
     if ri_cached is not None:
       logger.debug("Loading regions containing EC2 from cache file")
       self.region_include = ri_cached
       self.regionInclude_ready = True
+
+    ri_cached = self.simpleCacheMan.load_key(key='region_accessdenied')
+    if ri_cached is not None:
+      self.region_accessdenied = ri_cached
+
 
 
   def iterate_core(self, display_tqdm=False):
@@ -106,25 +142,34 @@ class BaseIterator:
     import botocore
     import boto3
     import jmespath
-    redshift_regions = boto3.Session().get_available_regions(self.service_name)
-    # redshift_regions = ['us-west-2'] # FIXME
+    redshift_regions_full = boto3.Session().get_available_regions(self.service_name)
+    import copy
+    redshift_regions_sub = copy.deepcopy(redshift_regions_full)
+    # redshift_regions_sub = ['us-west-2'] # FIXME
 
     if self.filter_region is not None:
-      if self.filter_region not in redshift_regions:
+      if self.filter_region not in redshift_regions_sub:
         msg_err = "Invalid region specified: %s. Supported values: %s"
-        msg_err = msg_err%(self.filter_region, ", ".join(redshift_regions))
+        msg_err = msg_err%(self.filter_region, ", ".join(redshift_regions_sub))
         raise IsitfitCliError(msg_err, None) # passing None for click context
 
       # over-ride
-      redshift_regions = [self.filter_region]
+      redshift_regions_sub = [self.filter_region]
+
+    # Before iterating, display a message that skipping some regions due to load from cache
+    if self.regionInclude_ready:
+      if len(redshift_regions_sub)!=len(self.region_include):
+        msg1 = "%s: Will skip %i out of %i regions to which the user/role has no access. To re-check, delete the local cache file %s"%(self.service_description, len(redshift_regions_sub)-len(self.region_include), len(redshift_regions_sub), self.simpleCacheMan.filename)
+        logger.info(colored(msg1, "yellow"))
 
     # iterate
-    region_iterator = redshift_regions
+    region_iterator = redshift_regions_sub
     if display_tqdm:
       # add some spaces for aligning the progress bars
       desc = "%s, counting in all regions     "%self.service_description
       desc = "%-50s"%desc
-      region_iterator = self.tqdmman(region_iterator, total = len(redshift_regions), desc=desc)
+      region_iterator = self.tqdmman(region_iterator, total = len(redshift_regions_sub), desc=desc)
+
 
     for region_name in region_iterator:
       if self.regionInclude_ready and self.filter_region is None:
@@ -175,6 +220,13 @@ class BaseIterator:
         if e.response['Error']['Code']==self.paginator_exception:
           continue
 
+        # eg if user doesnt have access arn:aws:redshift:ap-northeast-1:974668457921:cluster:*
+        # it could be because of specific access to region, or general access to the full redshift service
+        # Note: capturing this exception means that the region is no longer included in the iterator, but it will still iterate over other regions
+        if e.response['Error']['Code']=='AccessDenied':
+          self.region_accessdenied.append(e)
+          continue
+
         # all other exceptions raised
         raise e
 
@@ -183,9 +235,23 @@ class BaseIterator:
       self.regionInclude_ready = True
 
       # save to cache
-      import simple_cache
-      SECONDS_PER_HOUR = 60*60
-      simple_cache.save_key(filename=self.cache_filename, key=self.cache_key, value=self.region_include, ttl=SECONDS_PER_HOUR)
+      self.simpleCacheMan.save_key(key='region_include', value=self.region_include)
+      self.simpleCacheMan.save_key(key='region_accessdenied', value=self.region_accessdenied)
+
+
+    # before exiting, if got some AccessDenied errors, display to user
+    # Note 1: originally, I wanted to break the iterator on the 1st AccessDenied error,
+    # thinking that it's because the user doesn't have permission to the service as a whole.
+    # Later, I figured out that maybe the user has permission to a subset of regions,
+    # in which case getting an error on region R1 is normal,
+    # and the iterator should still proceed to the next region R2.
+    if not self.displayed_accessdenied and len(self.region_accessdenied)>0:
+      msg2 = "\n".join(["- %s"%str(e) for e in self.region_accessdenied])
+      msgx = "AWS returned AccessDenied errors on %i out of %i regions. Here are the full error messages:\n%s"
+      msgx = msgx%(len(self.region_accessdenied), len(redshift_regions_sub), msg2)
+  
+      logger.info(colored(msgx, "yellow"))
+      self.displayed_accessdenied = True
 
 
   def count(self):

@@ -5,7 +5,7 @@ import pytz
 
 from isitfit.utils import logger
 
-from ..utils import SECONDS_IN_ONE_DAY, myreturn, NoCloudtrailException
+from ..utils import SECONDS_IN_ONE_DAY, myreturn, NoCloudtrailException, IsitfitCliRunnerBreakIterator
 
 MINUTES_IN_ONE_DAY = 60*24 # 1440
 
@@ -136,12 +136,12 @@ class MainManager(EventBus):
           except NoCloudtrailException:
             ec2_noCloudtrail.append(ec2_id)
 
-          # check special keyword for breaking from the iterator loop
-          # eg for isitfit cost optimize --n=1
-          if context_ec2 is not None:
-            if "break_iterator" in context_ec2:
-              if context_ec2["break_iterator"]:
-                break
+          except IsitfitCliRunnerBreakIterator as e:
+            # check request for breaking from the iterator loop
+            # eg for isitfit cost optimize --n=1
+            logger.debug("Breaking from the per-resource iterator")
+            break
+
 
         # call listeners
         #logger.info("... done")
@@ -188,10 +188,10 @@ class RunnerAccount(EventBus):
           # Listener can return None to break out of loop,
           # i.e. to stop processing with other listeners
           for l in self.listeners['ec2']:
-              context_ec2 = l(context_ec2)
+            context_ec2 = l(context_ec2)
 
-              # skip rest of listeners if one of them returned None
-              if context_ec2 is None: break
+            # skip rest of listeners if one of them returned None
+            if context_ec2 is None: break
 
         # set up context
         context_all = {}
