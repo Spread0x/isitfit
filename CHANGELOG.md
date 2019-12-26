@@ -4,8 +4,13 @@ Semantic versioning
 Version latest (0.18.0rc?, 2019-12-05?)
 
 - ...
-- feat: save account.cost.optimize recommendations to sqlite database, with a `dt_created` field that gets preserved between re-runs
+- feat: cost optimize: save account.cost.optimize recommendations to sqlite database, with a `dt_created` field that gets preserved between re-runs
     - this helps identify the date on which a recommendation was first created
+- feat: cost optimize: load recommendations from sqlite instead of re-calculating
+    - also made some code changes for separation of concerns
+    - implementation is horrible ATM, with a major requirement on how to have a different result "per ndays" request
+    - the `pipeline_factory` function now got very messy as well
+    - and there still is no way to pass a `--refresh` option to recalculate instead of load from sqlite
 
 
 Version 0.19.5 (2019-12-23)

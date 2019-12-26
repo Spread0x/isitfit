@@ -174,6 +174,7 @@ class MainManager(EventBus):
 
 class RunnerAccount(EventBus):
   def get_ifi(self, tqdml2_obj):
+    if len(self.listeners['ec2']) > 0:
         # iterate over services
         n_service_total = self.ec2_it.count()
         iter_wrap = tqdml2_obj(self.ec2_it, total=n_service_total, desc=self.ec2_it.service_description, initial=0)
@@ -193,6 +194,7 @@ class RunnerAccount(EventBus):
             # skip rest of listeners if one of them returned None
             if context_ec2 is None: break
 
+    if len(self.listeners['all']) > 0:
         # set up context
         context_all = {}
         context_all['click_ctx'] = self.ctx

@@ -1,7 +1,8 @@
 from isitfit.utils import logger
 
 from isitfit.cost.base_reporter import ReporterBase
-class ServiceReporter(ReporterBase):
+
+class ServiceAggregator:
   def __init__(self):
     self.table_d = {'ec2': {}, 'redshift': {}}
     self.table_c = None
@@ -84,6 +85,7 @@ class ServiceReporter(ReporterBase):
     t_all = [x for x in t_all if x is not None]
 
     if len(t_all)==0:
+      context_all['table_c'] = None
       return context_all
 
     import pandas as pd
@@ -104,36 +106,83 @@ class ServiceReporter(ReporterBase):
     # TODO
     #self.table_a = self.table_c.groupby(['service', 'region'])
 
-    return context_all
-
-
-  def append_dtCreated(self, context_all):
-    """
-    Save results to sqlite database, so that recommendations can get a UID attached and get tracked between re-runs
-    """
-    if self.table_c is None:     return context_all
-    #if self.table_c.shape[0]==0: return context_all
-
-    # get profile name (for per-profile sqlite databases)
-    profile_name = context_all['click_ctx'].obj['aws_profile']
-
     # add a new dt_created for all recommendations. Those which had a dt_created generated earlier will have this overwritten later
     import datetime as dt
     import pytz
     self.table_c['dt_created'] = dt.datetime.utcnow().replace(tzinfo=pytz.utc)
 
+    # save to context
+    context_all['table_c'] = self.table_c
+
+    return context_all
+
+
+class SqliteMan:
+  def __init__(self, click_ctx):
+    # get profile name (for per-profile sqlite databases)
+    # profile_name = context_all['click_ctx'].obj['aws_profile']
+    profile_name = click_ctx.obj['aws_profile']
+
     # settings for local sqlite database
     import sqlite3
     from isitfit.dotMan import DotMan
     import os
-    db_path = os.path.join(DotMan().get_dotisitfit(), "db_cost_optimize_01-%s.sqlite"%profile_name)
-    db_conn = sqlite3.connect(db_path)
+    self.db_path = os.path.join(DotMan().get_dotisitfit(), "db_cost_optimize_01-%s.sqlite"%profile_name)
+    self.db_exists = os.path.exists(self.db_path) # before the .connect below automatically creates the file
+    self.db_conn = sqlite3.connect(self.db_path)
+    self.init_dbExists()
+
+
+  def init_dbExists(self):
+    if not self.db_exists:
+      return
+
+    #import sqlite3
+    import pandas as pd
+
+    # test read
+    try:
+      self.read_sqlite({})
+    #except sqlite3.OperationalError:
+    except pd.io.sql.DatabaseError:
+      # set back to false
+      self.db_exists = False
+
+
+  def read_sqlite(self, context_all):
+    import pandas as pd
+    self.table_c = pd.read_sql_query('select * from recommendations_previous', self.db_conn)
+
+    # un-encode the tags_json field
+    import json
+    self.table_c['tags'] = self.table_c.tags_json.apply(lambda x: json.loads(x))
+    del self.table_c['tags_json']
+
+    context_all['table_c'] = self.table_c
+    return context_all
+
+
+  def update_dtCreated(self, context_all):
+    """
+    Save results to sqlite database, so that recommendations can get a UID attached and get tracked between re-runs
+    """
+    self.table_c = context_all['table_c']
+    if self.table_c is None:     return context_all
+    #if self.table_c.shape[0]==0: return context_all
+
+    # convert column "tags" to "tags_json" since it is a list
+    import json
+    self.table_c['tags_json'] = self.table_c.tags.apply(lambda x: json.dumps(x))
 
     # columns that need to go to sqlite
     cols_sqlite = [
       'service', 'region', 'resource_id',
       'resource_size1', 'resource_size2', 'classification_1', 'classification_2',
+      'cost_3m', # not needed in left join below, but needed for read_sqlite
       'recommended_size1',
+      'savings', # not needed in left join below, but needed for read_sqlite
+      # 'tags', # This is a list, which sqlite doesn't support, so use tags_json instead (json-encoded)
+      'tags_json', # not needed in left join below, but needed for read_sqlite
       'dt_created',
     ]
     # cols_sqlite = [x for x in cols_sqlite if x in self.table_c.columns] # Update 2019-12-26 no longer need this since adding resource_size2=None to ec2 results
@@ -142,10 +191,10 @@ class ServiceReporter(ReporterBase):
     # (use trick to append a 0-row table)
     df_empty = self.table_c[cols_sqlite].iloc[0:0]
     assert df_empty.shape[0] == 0
-    df_empty.to_sql('recommendations_previous', db_conn, if_exists='append')
+    df_empty.to_sql('recommendations_previous', self.db_conn, if_exists='append')
 
     # insert current table of recommendations into db
-    self.table_c[cols_sqlite].to_sql('recommendations_current', db_conn, if_exists='replace')
+    self.table_c[cols_sqlite].to_sql('recommendations_current', self.db_conn, if_exists='replace')
 
     # join on previously saved recommendations
     # Note: the table recommendations_previous = recommendations_current + 1 column "uid"
@@ -171,7 +220,7 @@ class ServiceReporter(ReporterBase):
       and rc.classification_2  = rp.classification_2
       and rc.recommended_size1 = rp.recommended_size1
     """
-    table_dated = pd.read_sql_query(sql=sql, con=db_conn)
+    table_dated = pd.read_sql_query(sql=sql, con=self.db_conn)
 
     # merge back table_dated into self.table_c (to get the corrected dt_created field)
     cols_exDate = [x for x in self.table_c.columns if x!='dt_created']
@@ -181,12 +230,19 @@ class ServiceReporter(ReporterBase):
     # Note that I'm not sure how this plays out with the --n=1 option
     # Method 1: simple, but loses all recommendations instead of preserving them all
     #           i.e. if a recommendation set is missing a recommendation R1, then it is deleted
-    self.table_c[cols_sqlite].to_sql('recommendations_previous', db_conn, if_exists='replace')
+    self.table_c[cols_sqlite].to_sql('recommendations_previous', self.db_conn, if_exists='replace')
+
+    # drop the tags_json field since not needed except for sqlite
+    del self.table_c['tags_json']
+
+    # update in context
+    context_all['table_c'] = self.table_c
 
     # done
     return context_all
 
 
+class ServiceReporter(ReporterBase):
   # commenting this out in favor of display2
   # def display(self, context_all):
   #   # ATM just using the individual service reports
@@ -222,14 +278,20 @@ class ServiceReporter(ReporterBase):
     """
     Re-write of self.display to merge the 2 dataframes of EC2 and Redshift into one table
     """
+    self.table_c = context_all['table_c']
+
     # ATM just using the individual service reports
     import click
 
-    if 'df_sort' not in self.table_d['ec2']:
+    # if 'df_sort' not in self.table_d['ec2']:
+    if self.table_c is None:
+      click.secho("No optimizations from EC2", fg='red')
+    elif 'EC2' not in self.table_c['service'].to_list():
       click.secho("No optimizations from EC2", fg='red')
     else:
       # copy from ec2_optimize.Reporter.display
-      sum_val = self.table_d['ec2']['sum_val']
+      # sum_val = self.table_d['ec2']['sum_val']
+      sum_val = self.table_c.savings.sum()
       if sum_val==0:
         # Update 2019-12-12 bring back the echo below (after having been commented out for a few days)
         click.secho("No optimizations from EC2", fg='red')
@@ -246,9 +308,14 @@ class ServiceReporter(ReporterBase):
     # spacer
     click.echo("")
 
-    if 'analyzer' not in self.table_d['redshift'].keys():
+    #if 'analyzer' not in self.table_d['redshift'].keys():
+    #  click.secho("No optimizations from redshift", fg='red')
+    #elif self.table_d['redshift']['analyzer'].analyze_df.shape[0]==0:
+    #  click.secho("No optimizations from redshift", fg='red')
+
+    if self.table_c is None:
       click.secho("No optimizations from redshift", fg='red')
-    elif self.table_d['redshift']['analyzer'].analyze_df.shape[0]==0:
+    elif 'Redshift' not in self.table_c['service'].to_list():
       click.secho("No optimizations from redshift", fg='red')
 
     if self.table_c is None:
@@ -286,18 +353,30 @@ def pipeline_factory(mm_eco, mm_rco, ctx):
     from isitfit.cost.mainManager import RunnerAccount
     mm_all = RunnerAccount("AWS cost optimize (EC2, Redshift) in all regions", ctx)
 
-    from .account_cost_analyze import ServiceIterator, ServiceCalculatorGet
-    iterator = ServiceIterator(mm_eco, mm_rco)
-    mm_all.set_iterator(iterator)
+    sqlite_man = SqliteMan(ctx)
+    if sqlite_man.db_exists:
+      # set up a pipeline that just reads the result from the sqlite file
+      mm_all.set_iterator([]) # no iterator really
+      mm_all.add_listener('all', sqlite_man.read_sqlite)
 
-    calculator_get = ServiceCalculatorGet()
-    mm_all.add_listener('ec2', calculator_get.per_service)
+    else:
+      # set up a pipeline that fetches fresh data
+      from .account_cost_analyze import ServiceIterator, ServiceCalculatorGet
+      iterator = ServiceIterator(mm_eco, mm_rco)
+      mm_all.set_iterator(iterator)
 
+      calculator_get = ServiceCalculatorGet()
+      mm_all.add_listener('ec2', calculator_get.per_service)
+
+      aggregator = ServiceAggregator()
+      mm_all.add_listener('ec2', aggregator.per_service_save)
+      mm_all.add_listener('all', aggregator.concat)
+
+      mm_all.add_listener('all', sqlite_man.update_dtCreated)
+
+    # whether reading from sqlite or fresh data, display
     reporter = ServiceReporter()
-    mm_all.add_listener('ec2', reporter.per_service_save)
-    mm_all.add_listener('all', reporter.concat)
     #mm_all.add_listener('all', reporter.display)
-    mm_all.add_listener('all', reporter.append_dtCreated)
     mm_all.add_listener('all', reporter.display2)
 
     # done
