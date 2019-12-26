@@ -4,6 +4,8 @@ Semantic versioning
 Version latest (0.18.0rc?, 2019-12-05?)
 
 - ...
+- feat: save account.cost.optimize recommendations to sqlite database, with a `dt_created` field that gets preserved between re-runs
+    - this helps identify the date on which a recommendation was first created
 
 
 Version 0.19.5 (2019-12-23)

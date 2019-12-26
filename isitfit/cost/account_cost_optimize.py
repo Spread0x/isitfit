@@ -47,6 +47,9 @@ class ServiceReporter(ReporterBase):
     # rename columns to match
     t_ec2.rename(columns={'instance_id':'resource_id', 'instance_type':'resource_size1', 'recommended_type':'recommended_size1'}, inplace=True)
 
+    # append columns that exist in redshift, but not in ec2
+    t_ec2['resource_size2'] = None
+
     return t_ec2
 
 
@@ -89,13 +92,98 @@ class ServiceReporter(ReporterBase):
     # order columns
     # self.table_c.set_index([], inplace=True) # do not set index since display_df ignores the index ATM
     cols_theo = ['service', 'region', 'resource_id', 'resource_size1', 'resource_size2', 'classification_1', 'classification_2', 'cost_3m', 'recommended_size1', 'savings', 'tags']
+
+    # the "if x in" part is needed because if there are no redshift recommendations, there would be no column resource_size2
+    # Update 2019-12-26 no longer need this since adding resource_size2=None to ec2 results. Keeping it anyway for now
     cols_all = [x for x in cols_theo if x in self.table_c.columns]
+
+    # actual ordering of columns
     self.table_c = self.table_c[cols_all]
 
     # group by for summary
     # TODO
     #self.table_a = self.table_c.groupby(['service', 'region'])
 
+    return context_all
+
+
+  def append_dtCreated(self, context_all):
+    """
+    Save results to sqlite database, so that recommendations can get a UID attached and get tracked between re-runs
+    """
+    if self.table_c is None:     return context_all
+    #if self.table_c.shape[0]==0: return context_all
+
+    # get profile name (for per-profile sqlite databases)
+    profile_name = context_all['click_ctx'].obj['aws_profile']
+
+    # add a new dt_created for all recommendations. Those which had a dt_created generated earlier will have this overwritten later
+    import datetime as dt
+    import pytz
+    self.table_c['dt_created'] = dt.datetime.utcnow().replace(tzinfo=pytz.utc)
+
+    # settings for local sqlite database
+    import sqlite3
+    from isitfit.dotMan import DotMan
+    import os
+    db_path = os.path.join(DotMan().get_dotisitfit(), "db_cost_optimize_01-%s.sqlite"%profile_name)
+    db_conn = sqlite3.connect(db_path)
+
+    # columns that need to go to sqlite
+    cols_sqlite = [
+      'service', 'region', 'resource_id',
+      'resource_size1', 'resource_size2', 'classification_1', 'classification_2',
+      'recommended_size1',
+      'dt_created',
+    ]
+    # cols_sqlite = [x for x in cols_sqlite if x in self.table_c.columns] # Update 2019-12-26 no longer need this since adding resource_size2=None to ec2 results
+
+    # make sure that the table recommendations_previous exists
+    # (use trick to append a 0-row table)
+    df_empty = self.table_c[cols_sqlite].iloc[0:0]
+    assert df_empty.shape[0] == 0
+    df_empty.to_sql('recommendations_previous', db_conn, if_exists='append')
+
+    # insert current table of recommendations into db
+    self.table_c[cols_sqlite].to_sql('recommendations_current', db_conn, if_exists='replace')
+
+    # join on previously saved recommendations
+    # Note: the table recommendations_previous = recommendations_current + 1 column "uid"
+    import pandas as pd
+    sql = """
+    select
+      -- service + region + resource ID: unique over resource life, other fields changeable
+      rc.service,
+      rc.region,
+      rc.resource_id,
+
+      -- date this recommendation was created
+      COALESCE(rp.dt_created, rc.dt_created) as dt_created
+
+    from recommendations_current as rc
+    left join recommendations_previous as rp
+       on rc.service           = rp.service
+      and rc.region            = rp.region
+      and rc.resource_id       = rp.resource_id
+      and rc.resource_size1    = rp.resource_size1
+      and coalesce(rc.resource_size2, 'na')    = coalesce(rp.resource_size2, 'na') -- field that is missing for ec2
+      and rc.classification_1  = rp.classification_1
+      and rc.classification_2  = rp.classification_2
+      and rc.recommended_size1 = rp.recommended_size1
+    """
+    table_dated = pd.read_sql_query(sql=sql, con=db_conn)
+
+    # merge back table_dated into self.table_c (to get the corrected dt_created field)
+    cols_exDate = [x for x in self.table_c.columns if x!='dt_created']
+    self.table_c = self.table_c[cols_exDate].merge(table_dated, how='left', on=['service', 'region', 'resource_id'])
+
+    # save table with corrected dt_created back into db
+    # Note that I'm not sure how this plays out with the --n=1 option
+    # Method 1: simple, but loses all recommendations instead of preserving them all
+    #           i.e. if a recommendation set is missing a recommendation R1, then it is deleted
+    self.table_c[cols_sqlite].to_sql('recommendations_previous', db_conn, if_exists='replace')
+
+    # done
     return context_all
 
 
@@ -166,6 +254,9 @@ class ServiceReporter(ReporterBase):
     if self.table_c is None:
       return context_all
 
+    if self.table_c.shape[0]==0:
+      return context_all
+
     # save concatenated table to CSV
     # copied from isitfit.cost.optimizationListener.storecsv...
     import tempfile
@@ -185,6 +276,8 @@ class ServiceReporter(ReporterBase):
       self.table_c.shape,
       logger
     )
+
+    # done
     return context_all
 
 
@@ -204,6 +297,7 @@ def pipeline_factory(mm_eco, mm_rco, ctx):
     mm_all.add_listener('ec2', reporter.per_service_save)
     mm_all.add_listener('all', reporter.concat)
     #mm_all.add_listener('all', reporter.display)
+    mm_all.add_listener('all', reporter.append_dtCreated)
     mm_all.add_listener('all', reporter.display2)
 
     # done
