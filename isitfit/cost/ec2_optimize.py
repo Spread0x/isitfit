@@ -118,6 +118,10 @@ class CalculatorOptimizeEc2:
 
 
   def _ec2df_to_classification(self, ec2_df):
+    # data is daily, so if less than 7 days, just return "Not enough data"
+    if ec2_df.shape[0] < 7:
+      return "Not enough data", "Not enough data"
+
     cpu_maxmax = ec2_df.cpu_used_max.max()
     cpu_maxavg = ec2_df.cpu_used_avg.max()
     cpu_avgmax = ec2_df.cpu_used_max.mean()

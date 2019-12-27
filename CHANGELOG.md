@@ -17,6 +17,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
       - the `pipeline_factory` function now got very messy as well
       - and there still is no way to pass a `--refresh` option to recalculate instead of load from sqlite
 - bugfix: cost optimize: filter the `ec2_df` for only the latest size. This fixes the issue of cpu.max.max being a value for size s1 whereas the current size is s2
+- bugfix: cost optimize: when `ec2_df` is shorter than 7 days of daily data, return "Not enough data" in classification
 
 
 
