@@ -203,7 +203,8 @@ class SqliteMan:
     table_current[cols_sqlite].to_sql('recommendations_current', self.db_conn, if_exists='replace', index=False)
 
     # join on previously saved recommendations
-    # Note: the table recommendations_previous = recommendations_current + 1 column "uid"
+    # Note: the table recommendations_previous = recommendations_current with the dt_detected being the 1st date on which it was generated
+    # Also note that the result is just the current recommendations
     import pandas as pd
     sql = """
     select
