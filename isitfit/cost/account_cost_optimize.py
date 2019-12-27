@@ -121,6 +121,7 @@ class ServiceAggregator:
 class SqliteMan:
   def __init__(self, click_ctx):
     # get profile name (for per-profile sqlite databases)
+    # Note, no need to do a per-ndays database, since a recommendation of "change size from S1 to S2" is the same whether it is based on 7 days or 90 days
     # profile_name = context_all['click_ctx'].obj['aws_profile']
     profile_name = click_ctx.obj['aws_profile']
 
