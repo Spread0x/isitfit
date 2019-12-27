@@ -16,6 +16,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
       - implementation is horrible ATM, with a major requirement on how to have a different result "per ndays" request
       - the `pipeline_factory` function now got very messy as well
       - and there still is no way to pass a `--refresh` option to recalculate instead of load from sqlite
+- bugfix: cost optimize: filter the `ec2_df` for only the latest size. This fixes the issue of cpu.max.max being a value for size s1 whereas the current size is s2
 
 
 

@@ -167,6 +167,11 @@ class CalculatorOptimizeEc2:
     # parse out context keys
     ec2_obj, ec2_df, mm = context_ec2['ec2_obj'], context_ec2['ec2_df'], context_ec2['mainManager']
 
+    # filter ec2_df for the part matching the latest ec2 size only
+    from isitfit.utils import pd_subset_latest
+    ec2_df = ec2_df.copy()
+    ec2_df = pd_subset_latest(ec2_df, 'instanceType', 'Timestamp')
+
     #print(ec2_obj.instance_id)
     ec2_c1, ec2_c2 = self._ec2df_to_classification(ec2_df)
 

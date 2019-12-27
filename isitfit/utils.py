@@ -448,3 +448,21 @@ class Word2Color:
       hash_ = hash_ % self.n_colors
       #print("word", word, "hash", hash_)
       return self.colors[hash_]
+
+
+
+def pd_subset_latest(df1, field_val, field_sortmax):
+    """
+    # only keep the latest section with the latest size
+    # (eg if the ec2 had the size s1 then s2 then s1, only keep the latest)
+    """
+    if df1.shape[0]==0: return df1
+
+    df2 = df1.sort_values(by=field_sortmax, ascending=True)
+    latest_val = df2[field_val].iloc[-1]
+
+    latest_idx = (df2[field_val] == latest_val).astype(int)
+    latest_idx = latest_idx.sort_index(ascending=False).cummin().sort_index(ascending=True)
+
+    df3 = df2[latest_idx.astype(bool)]
+    return df3

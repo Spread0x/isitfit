@@ -264,3 +264,27 @@ def test_word2color():
 
   actual = w2c.convert('yih')
   assert actual=='cyan'
+
+
+def test_pdSubsetLatest():
+  import pandas as pd
+  df_in = pd.DataFrame(
+    {
+      'a':  [1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13],
+      'b':  [1, 1, 1, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2],
+    },
+    index = [1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13]
+  )
+  df_expected = pd.DataFrame(
+    {
+      'a':  [10,11,12,13],
+      'b':  [ 2, 2, 2, 2]
+    },
+    index = [10,11,12,13]
+  )
+
+  from isitfit.utils import pd_subset_latest
+  df_actual = pd_subset_latest(df_in, 'b', 'a')
+
+  pd.testing.assert_frame_equal(df_actual, df_expected)
+  assert len(set(df_actual.b.to_list())) == 1
