@@ -27,7 +27,7 @@ class TestSqliteManUpdateDtCreated:
        'recommended_size1': 't3.small',
        'savings': -53,
        'tags': [1,2,3],
-       #'dt_created': dtnow,
+       #'dt_detected': dtnow,
       },
       {'service': 'EC2',
        'region': 'us-west-2',
@@ -40,7 +40,7 @@ class TestSqliteManUpdateDtCreated:
        'recommended_size1': 't3.small',
        'savings': -53,
        'tags': [1,2,3],
-       #'dt_created': dtnow,
+       #'dt_detected': dtnow,
       },
       {'service': 'EC2',
        'region': 'us-west-2',
@@ -53,7 +53,7 @@ class TestSqliteManUpdateDtCreated:
        'recommended_size1': 't3.small',
        'savings': -53,
        'tags': [1,2,3],
-       #'dt_created': dtnow,
+       #'dt_detected': dtnow,
       }
     ])
 
@@ -78,50 +78,50 @@ class TestSqliteManUpdateDtCreated:
       click_ctx = ClickCtx()
       sr = SqliteMan(click_ctx)
 
-      # 1st run, no sqlite exists yet, assert only 1 value of dt_created
-      table_fixture['dt_created'] = getnow()
+      # 1st run, no sqlite exists yet, assert only 1 value of dt_detected
+      table_fixture['dt_detected'] = getnow()
       context_all['table_c'] = table_fixture.iloc[:1].copy()
       context_all = sr.update_dtCreated(context_all)
 
       tc_bkp1 = context_all['table_c'].copy()
       assert tc_bkp1.shape[0] == 1
-      assert len(set(tc_bkp1.dt_created.to_list())) == 1
+      assert len(set(tc_bkp1.dt_detected.to_list())) == 1
 
       # sleep x seconds
       time.sleep(2)
 
       # Add a new recommendation, assert 2 dates available
-      table_fixture['dt_created'] = getnow()
+      table_fixture['dt_detected'] = getnow()
       context_all['table_c'] = table_fixture.iloc[:2].copy()
       context_all = sr.update_dtCreated(context_all)
 
       tc_bkp2 = context_all['table_c'].copy()
       assert tc_bkp2.shape[0] == 2
-      assert len(set(tc_bkp2.dt_created.to_list())) == 2
+      assert len(set(tc_bkp2.dt_detected.to_list())) == 2
 
       # sleep x seconds
       time.sleep(2)
 
       # drop 1st 2 recommendations and create a 3rd new one, assert 1 dates available
-      table_fixture['dt_created'] = getnow()
+      table_fixture['dt_detected'] = getnow()
       context_all['table_c'] = table_fixture.iloc[2:3].copy()
       context_all = sr.update_dtCreated(context_all)
 
       tc_bkp3 = context_all['table_c'].copy()
       assert tc_bkp3.shape[0] == 1
-      assert len(set(tc_bkp3.dt_created.to_list())) == 1
+      assert len(set(tc_bkp3.dt_detected.to_list())) == 1
 
       # sleep x seconds
       time.sleep(2)
 
       # drop all recommendations and check code doesn't fail, assert 0 dates available
-      table_fixture['dt_created'] = getnow()
+      table_fixture['dt_detected'] = getnow()
       context_all['table_c'] = table_fixture.iloc[0:0].copy()
       context_all = sr.update_dtCreated(context_all)
 
       tc_bkp4 = context_all['table_c'].copy()
       assert tc_bkp4.shape[0] == 0
-      # assert len(set(tc_bkp4.dt_created.to_list())) == 0 # How to deal with this?
+      # assert len(set(tc_bkp4.dt_detected.to_list())) == 0 # How to deal with this?
 
       # sleep x seconds
       time.sleep(2)
@@ -129,10 +129,10 @@ class TestSqliteManUpdateDtCreated:
       # bring back all 3 recomendations, assert 3 dates available (i.e. the drop-all didn't wipe out the recommendations_previous table)
       # Update: actually, sticking with the simple method to update the recommendations_previous table,
       # which in fact wipes out the previous dates, and hence shows 1 single "new" date here
-      table_fixture['dt_created'] = getnow()
+      table_fixture['dt_detected'] = getnow()
       context_all['table_c'] = table_fixture.iloc[0:3].copy()
       context_all = sr.update_dtCreated(context_all)
 
       tc_bkp5 = context_all['table_c'].copy()
       assert tc_bkp5.shape[0] == 3
-      assert len(set(tc_bkp5.dt_created.to_list())) == 1 # not 3
+      assert len(set(tc_bkp5.dt_detected.to_list())) == 1 # not 3

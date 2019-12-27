@@ -106,10 +106,10 @@ class ServiceAggregator:
     # TODO
     #self.table_a = self.table_c.groupby(['service', 'region'])
 
-    # add a new dt_created for all recommendations. Those which had a dt_created generated earlier will have this overwritten later
+    # add a new dt_detected for all recommendations. Those which had a dt_detected generated earlier will have this overwritten later
     import datetime as dt
     import pytz
-    self.table_c['dt_created'] = dt.datetime.utcnow().replace(tzinfo=pytz.utc)
+    self.table_c['dt_detected'] = dt.datetime.utcnow().replace(tzinfo=pytz.utc)
 
     # save to context
     context_all['table_c'] = self.table_c
@@ -189,7 +189,7 @@ class SqliteMan:
       'savings', # not needed in left join below, but needed for read_sqlite
       # 'tags', # This is a list, which sqlite doesn't support, so use tags_json instead (json-encoded)
       'tags_json', # not needed in left join below, but needed for read_sqlite
-      'dt_created',
+      'dt_detected',
     ]
     # cols_sqlite = [x for x in cols_sqlite if x in table_current.columns] # Update 2019-12-26 no longer need this since adding resource_size2=None to ec2 results
 
@@ -213,7 +213,7 @@ class SqliteMan:
       rc.resource_id,
 
       -- date this recommendation was created
-      COALESCE(rp.dt_created, rc.dt_created) as dt_created
+      COALESCE(rp.dt_detected, rc.dt_detected) as dt_detected
 
     from recommendations_current as rc
     left join recommendations_previous as rp
@@ -228,11 +228,11 @@ class SqliteMan:
     """
     table_dated = pd.read_sql_query(sql=sql, con=self.db_conn)
 
-    # merge back table_dated into table_current (to get the corrected dt_created field)
-    cols_exDate = [x for x in table_current.columns if x!='dt_created']
+    # merge back table_dated into table_current (to get the corrected dt_detected field)
+    cols_exDate = [x for x in table_current.columns if x!='dt_detected']
     table_current = table_current[cols_exDate].merge(table_dated, how='left', on=['service', 'region', 'resource_id'])
 
-    # save table with corrected dt_created back into db
+    # save table with corrected dt_detected back into db
     # Note that I'm not sure how this plays out with the --n=1 option
     # Method 1: simple, but loses all recommendations instead of preserving them all
     #           i.e. if a recommendation set is missing a recommendation R1, then it is deleted
