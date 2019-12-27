@@ -4,6 +4,10 @@ Semantic versioning
 Version latest (0.18.0rc?, 2019-12-05?)
 
 - ...
+
+
+Version 0.19.6 (2019-12-27)
+
 - feat: cost optimize: save account.cost.optimize recommendations to sqlite database, with a `dt_created` field that gets preserved between re-runs
     - this helps identify the date on which a recommendation was first created
 - feat: cost optimize: do not load recommendations from sqlite instead of re-calculating
