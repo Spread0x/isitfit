@@ -174,6 +174,14 @@ class MainManager(EventBus):
 
 class RunnerAccount(EventBus):
   def get_ifi(self, tqdml2_obj):
+    if len(self.listeners['pre']) > 0:
+        context_pre = {}
+        # call listeners
+        for l in self.listeners['pre']:
+          context_pre = l(context_pre)
+          if context_pre is None:
+            raise Exception("Breaking the chain is not allowed in listener/pre")
+
     if len(self.listeners['ec2']) > 0:
         # iterate over services
         n_service_total = self.ec2_it.count()
