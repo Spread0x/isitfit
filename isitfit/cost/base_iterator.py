@@ -233,6 +233,24 @@ class BaseIterator:
           self.region_accessdenied.append(e)
           continue
 
+        # Handle error:
+        # botocore.exceptions.ClientError: An error occurred (InvalidClientTokenId) when calling the AssumeRole operation: The security token included in the request is invalid.
+        # Not sure what this means, but maybe that a role is not allowed to assume into a region?
+        # This error can be raised for example with using my local AWS profile "afc_external_readCur".
+        # Here is an excerpt from my ~/.aws/credentials file
+        # # Role created in Autofitcloud giving access to shadiakiki1986 to read CUR S3
+        # [afc_external_readCur]
+        # role_arn = arn:aws:iam::123456789:role/external-read-athena-role-ExternalReadCURRole-abcdef
+        # source_profile = a_user_profile_not_a_role
+        # region = us-east-1
+        if e.response['Error']['Code']=='InvalidClientTokenId':
+          continue
+
+        # after setting up the InvalidClientTokenId filter above on the profile afc_external_readCur,
+        # faced error: botocore.exceptions.ClientError: An error occurred (UnauthorizedOperation) when calling the DescribeInstances operation: You are not authorized to perform this operation.
+        if e.response['Error']['Code']=='UnauthorizedOperation':
+          continue
+
         # all other exceptions raised
         raise e
 

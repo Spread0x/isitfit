@@ -6,6 +6,13 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
+Version 0.19.7 (2019-12-31)
+
+- bugfix: add more exception handling when counting resources in regions to account for case of Roles with no access
+- bugfix: added a simple `aws iam get-user` command test run at the launch of isitfit just to make sure that the user has proper credentials
+    - if any error with that is faced, then probably there is a problem with the credentials in the first place
+
+
 Version 0.19.6 (2019-12-27)
 
 - feat: cost optimize: save account.cost.optimize recommendations to sqlite database, with a `dt_created` field that gets preserved between re-runs
