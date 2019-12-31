@@ -26,11 +26,11 @@ req_id = `echo $res|jq .SpotInstanceRequests[0].SpotInstanceRequestId`
 sleep 30
 
 # check
-$AWSCLI ec2 describe-spot-instance-requests --region=us-west-2 --spot-instance-request-ids=$req_id
+$AWSCLI ec2 describe-spot-instance-requests --spot-instance-request-ids=$req_id
 
 # get public IP
 instance_id = `echo $res|jq .SpotInstanceRequests[0].InstanceId`
-res = `$AWSCLI ec2 describe-instances --region=us-west-2 --instance-id=$instance_id`
+res = `$AWSCLI ec2 describe-instances --instance-id=$instance_id`
 echo $res | jq .Reservations[0].Instances[0].PublicIpAddress
 
 # Install datadog agent
