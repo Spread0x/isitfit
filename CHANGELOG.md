@@ -4,6 +4,7 @@ Semantic versioning
 Version latest (0.18.0rc?, 2019-12-05?)
 
 - ...
+- enh: docker: dropped redis installation from docker image
 
 
 Version 0.19.7 (2019-12-31)

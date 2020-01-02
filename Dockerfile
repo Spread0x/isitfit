@@ -6,8 +6,9 @@ MAINTAINER Shadi Akiki
 # 
 # add openssh-client is for ssh keys, for using with pip install of private repo on gitlab
 # Note "redis" gets both server and cli
+# Removing "apt-get install redis" in favor or using a separate container
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip git jq redis time && \
+    apt-get install -y python3 python3-pip git jq time && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -48,7 +49,7 @@ COPY . .
 RUN chmod +x /code/docker-entrypoint.sh
 
 # https://github.com/antirez/redis/issues/5055#issuecomment-405516849
-RUN sed -i "s/bind .*/bind 127.0.0.1/g" /etc/redis/redis.conf
+# RUN sed -i "s/bind .*/bind 127.0.0.1/g" /etc/redis/redis.conf
 
 RUN python3 -m pew in isitfit pip3 install .
 
