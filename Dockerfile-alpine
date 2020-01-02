@@ -1,23 +1,17 @@
-FROM ubuntu:18.04
+# Inspired from https://hub.docker.com/r/banst/awscli/dockerfile
+# but doesn't work due to compilation requirements (gcc et al for pandas/numpy/etc)
+# changing base image
+# FROM ubuntu:18.04
+FROM python:3.7-alpine3.9
 MAINTAINER Shadi Akiki
 
-# pre-requisites
-# https://github.com/kstaken/dockerfile-examples/blob/master/apache-php/Dockerfile
-# 
-# add openssh-client is for ssh keys, for using with pip install of private repo on gitlab
-# Note "redis" gets both server and cli
-# Update 2020-01-02: Removing "apt-get install redis" in favor or using a separate container
-RUN apt-get update && \
-    apt-get install -y python3 python3-pip git jq time && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+ENV PATH="/root/.local/bin:$PATH"
+ENV PYTHONIOENCODING=UTF-8
 
-RUN python3 -m pip install pew
-RUN python3 -m pew new isitfit
+RUN apk add --no-cache jq
 
 # copy dependencies here to save on install step below and benefit from docker cache
-RUN python3 -m pew in isitfit \
-  pip install \
+RUN pip install --user \
     Click==7.0 \
     pandas==0.25.1 \
     requests==2.22.0 \
@@ -36,7 +30,7 @@ RUN python3 -m pew in isitfit \
     outdated==0.2.0
 
 # for unit tests
-RUN python3 -m pew in isitfit pip install pytest
+RUN pip install --user pytest
 
 # install moto for testing purposes
 # https://github.com/spulec/moto#stand-alone-server-mode
@@ -46,12 +40,12 @@ RUN python3 -m pew in isitfit pip install pytest
 # install isitfit package itself
 WORKDIR /code
 COPY . .
-RUN chmod +x /code/docker-entrypoint.sh
+# RUN chmod +x /code/docker-entrypoint.sh
 
 # https://github.com/antirez/redis/issues/5055#issuecomment-405516849
 # RUN sed -i "s/bind .*/bind 127.0.0.1/g" /etc/redis/redis.conf
 
-RUN python3 -m pew in isitfit pip3 install .
+RUN pip install --user .
 
 # Some locale issues for click within docker
 # https://click.palletsprojects.com/en/7.x/python3/#python-3-surrogate-handling
@@ -65,4 +59,5 @@ WORKDIR /workspace
 # both the CMD and ENTRYPOINT instructions should be specified with the JSON array format.
 # Copied from https://docs.docker.com/engine/reference/builder/
 # ENTRYPOINT ["python3", "-m", "pew", "in", "isitfit"]
-ENTRYPOINT ["/code/docker-entrypoint.sh"]
+# ENTRYPOINT ["/code/docker-entrypoint.sh"]
+ENTRYPOINT [ "isitfit" ]

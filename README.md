@@ -10,6 +10,26 @@ A simple command-line tool to check if an AWS EC2/Redshift account is fit or und
 Check https://isitfit.autofitcloud.com
 
 
+## Quickstart
+
+Install and run with python's pip
+
+```
+pip3 install isitfit
+isitfit cost analyze
+isitfit cost optimize
+```
+
+Install and run with docker
+
+```
+docker pull autofitcloud/isitfit:latest
+docker run -it -v ~/.aws:/root/.aws autofitcloud/isitfit:latest bash # drops within the docker container's terminal
+isitfit cost analyze
+isitfit cost optimize
+```
+
+
 ## Changelog
 
 Check [CHANGELOG.md](CHANGELOG.md)

@@ -102,4 +102,15 @@ docker build -t autofitcloud/isitfit:latest .
 docker login # currently using user shadiakiki1986 which owns the organization autofitcloud on hub.docker.com
 docker push autofitcloud/isitfit:latest
 docker run -it autofitcloud/isitfit:latest isitfit version
+docker run -it -v ~/.aws:/root/.aws autofitcloud/isitfit:latest aws sts get-caller-identity
+docker run -it -v ~/.aws:/root/.aws autofitcloud/isitfit:latest isitfit cost analyze
 ```
+
+
+### Release engineering
+
+- Tests should pass
+- Update version in `isitfit/__init__.py`
+- Publish new git tag
+- Publish to pypi
+- Publish to docker hub
