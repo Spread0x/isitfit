@@ -98,13 +98,43 @@ A few useful redis commands:
 ### Building the docker image
 
 ```
-docker build -t autofitcloud/isitfit:latest .
 docker login # currently using user shadiakiki1986 which owns the organization autofitcloud on hub.docker.com
+
+docker build -t autofitcloud/isitfit:latest .
 docker push autofitcloud/isitfit:latest
+```
+
+Also build and push an image with the tag for the installed isitfit version
+
+```
+docker build -t autofitcloud/isitfit:0.19.8 .
+docker push autofitcloud/isitfit:0.19.8
+```
+
+Quick tests
+
+```
 docker run -it autofitcloud/isitfit:latest isitfit version
 docker run -it -v ~/.aws:/root/.aws autofitcloud/isitfit:latest aws sts get-caller-identity
 docker run -it -v ~/.aws:/root/.aws autofitcloud/isitfit:latest isitfit cost analyze
+docker run -it -v ~/.aws:/root/.aws autofitcloud/isitfit:latest bash # drops into terminal inside container
+# isitfit version ... # (from within the container)
 ```
+
+Note about AWS Cloud9 keymap binding for `Ctrl-O`:
+
+If using git on aws cloud9, the "Ctrl-O" is used for the "gotofiles" keyboard shortcut,
+whereas a `git commit amend ... ` will open nano terminal editor for the commit message.
+Nano needs the `Ctrl-O` binding for saving the commit message.
+The solution to this conflict is to click on the `AWS Cloud9` menu button on the top left,
+then `Open your keymap` and finally add the following to the opened keymap file
+
+```
+    { "command": "gotofile", "keys": { "win": "Ctrl-p", "mac": "Cmd-p" } }
+```
+
+This moves the `Ctrl-O` binding to `Ctrl-P`
+
 
 
 ### Release engineering
