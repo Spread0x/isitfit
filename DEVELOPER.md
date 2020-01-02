@@ -94,3 +94,12 @@ A few useful redis commands:
 - To list all keys: `redis-cli --scan --pattern '*'` ([ref](https://www.shellhacks.com/redis-get-all-keys-redis-cli/))
 - To delete a particular key: `redis-cli --scan --pattern "cloudtrail_ec2type._fetch" | xargs redis-cli del` ([ref](https://rdbtools.com/blog/redis-delete-keys-matching-pattern-using-scan/))
 
+
+### Building the docker image
+
+```
+docker build -t autofitcloud/isitfit:latest .
+docker login # currently using user shadiakiki1986 which owns the organization autofitcloud on hub.docker.com
+docker push autofitcloud/isitfit:latest
+docker run -it autofitcloud/isitfit:latest isitfit version
+```

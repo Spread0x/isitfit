@@ -4,7 +4,12 @@ Semantic versioning
 Version latest (0.18.0rc?, 2019-12-05?)
 
 - ...
+
+
+Version 0.19.8rc (2020-01-02)
+
 - enh: docker: dropped redis installation from docker image
+- enh: move the aws credentials test at the launch of the CLI to not be run if `isitfit version` is launched
 
 
 Version 0.19.7 (2019-12-31)

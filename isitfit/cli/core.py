@@ -119,24 +119,24 @@ def cli_core(ctx, debug, verbose, optimize, version, share_email, skip_check_upg
         migname_s = l2s(migname_l)
         ping_matomo("/migrations/silent?migname=%s"%(migname_s))
 
-    # test that boto3 minimum command can run
-    # This would fail for example for: `AWS_ACCESS_KEY_ID=wrong AWS_SECRET_ACCESS_KEY=alsowrong aws iam get-user`
-    import boto3
-    iam_client = boto3.client('iam')
-    try:
-      # response = iam_client.get_user()
-      iam_client.get_user()
-    except Exception as e:
-      msg_e = str(e)
-      msg_x = f"""Error in basic aws usage: {msg_e}
+      # test that boto3 minimum command can run
+      # This would fail for example for: `AWS_ACCESS_KEY_ID=wrong AWS_SECRET_ACCESS_KEY=alsowrong aws iam get-user`
+      import boto3
+      iam_client = boto3.client('iam')
+      try:
+        # response = iam_client.get_user()
+        iam_client.get_user()
+      except Exception as e:
+        msg_e = str(e)
+        msg_x = f"""Error in basic aws usage: {msg_e}
 The AWS credentials are probably wrongly configured (maybe with quotes?).
 Try a command as `aws iam get-user` to check if the problem is with isitfit or with your local configuration.
 Possibly helpful links:
 - https://github.com/hashicorp/terraform/issues/3243
 - https://github.com/99designs/aws-vault/issues/260
 """
-      from isitfit.cli.click_descendents import IsitfitCliError
-      raise IsitfitCliError(msg_x) from e
+        from isitfit.cli.click_descendents import IsitfitCliError
+        raise IsitfitCliError(msg_x) from e
 
 
     # save `verbose` and `debug` for later tqdm
