@@ -107,12 +107,37 @@ class IsitfitCliError(click.UsageError):
     # main error
     wrapecho('Error: %s' % self.format_message())
 
-    # if isitfit installation is outdated, append a message to upgrade
+    # if error from terminal during execution (not on program boot)
     if self.ctx is not None:
       if self.ctx.obj is not None:
+        # if isitfit installation is outdated, append a message to upgrade
         if self.ctx.obj.get('is_outdated', None):
           hint_1 = "Upgrade your isitfit installation with `pip3 install --upgrade isitfit` and try again."
           wrapecho(hint_1)
+
+        # test that boto3 minimum command can run
+        # This would fail for example for: `AWS_ACCESS_KEY_ID=wrong AWS_SECRET_ACCESS_KEY=alsowrong aws iam get-user`
+        import boto3
+        iam_client = boto3.client('iam')
+        try:
+            # response = iam_client.get_user()
+            iam_client.get_user()
+        except Exception as e:
+            msg_e = str(e)
+            hint_3 = f"""Hint: The command `aws iam get-user` has also failed with the following error:
+      {msg_e}
+      This might indicate a problem with your aws user's permissions and could be related to the current error in isitfit."""
+            # Update 2020-01-09 Instead of raising an exception, just display a warning
+            #from isitfit.cli.click_descendents import IsitfitCliError
+            #raise IsitfitCliError(hint_3) from e
+
+            # ping matomo about warning
+            from isitfit.utils import ping_matomo
+            ping_matomo("/warning/aws-iam-get-user?message=%s"%hint_3)
+
+            # display on screen
+            wrapecho(hint_3)
+
 
     # add link to github issues
     hint_2 = "If the problem persists, please report it at https://github.com/autofitcloud/isitfit/issues/new"
