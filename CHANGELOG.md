@@ -6,6 +6,11 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
+Version 0.19.10 (2020-01-23)
+
+- feat: added command `isitfit issue10 host_id` for debugging issue #10
+
+
 Version 0.19.9 (2020-01-09)
 
 - bugfix: run the `aws iam get-user` only after receiving another error. Also, reword from "error" to "hint"

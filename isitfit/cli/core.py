@@ -132,11 +132,14 @@ from .tags import tags as cli_tags
 from .cost import cost as cli_cost
 from .version import version as cli_version
 from isitfit.migrations.cli import migrations as cli_migrations
+from .issue10 import issue10 as cli_issue10
 
 cli_core.add_command(cli_version)
 cli_core.add_command(cli_cost)
 cli_core.add_command(cli_tags)
 cli_core.add_command(cli_migrations)
+cli_core.add_command(cli_issue10)
+
 
 #-----------------------
 
