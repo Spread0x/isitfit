@@ -20,7 +20,21 @@ class TestIssue10:
   """
   host_id = None
 
-  def test_hosts_search(self, datadog_api):
+  def test_hosts(self, datadog_api):
+    # check total numbers and display message in case of failure later
+    h_all = datadog_api.Hosts.totals()
+    print("Found {total_up} ec2 hosts that are UP, and {total_active} that are active".format(**h_all))
+    assert h_all['total_up'] > 0
+    assert h_all['total_active'] > 0
+
+    # search without filter
+    # print a list of 5 ec2 IDs in case of error when searching for specific ID below
+    h_all = datadog_api.Hosts.search(count=5)
+    print("first 5 ec2 IDs found: ", [hi['name'] for hi in h_all['host_list']])
+    assert len(h_all['host_list']) > 0
+    assert h_all['total_returned'] > 0
+
+    # now search for provided ID
     h_all = datadog_api.Hosts.search(filter='host:%s'%self.host_id)
     assert len(h_all['host_list']) > 0
     assert h_all['total_returned'] == 1
