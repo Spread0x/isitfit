@@ -6,7 +6,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
-Version 0.19.10 (2020-01-23)
+Version 0.19.{10,11} (2020-01-23)
 
 - feat: added command `isitfit issue10 host_id` for debugging issue #10
 

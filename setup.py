@@ -54,7 +54,10 @@ setup(
         'simple-cache==0.35',
 
         # Before upgrading this, it's very important to test that my sentry_proxy.py code works with the new version
-        'sentry-sdk==0.13.5'
+        'sentry-sdk==0.13.5',
+
+        # for issue10 command
+        'pytest==5.2.1'
     ],
     entry_points='''
         [console_scripts]
