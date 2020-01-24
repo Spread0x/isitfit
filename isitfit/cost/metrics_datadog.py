@@ -38,31 +38,31 @@ class DatadogApiWrap:
     Assisting the datadog assistant
     """
 
-    def hosts_search(self, host_id):
+    def hosts_search(self, dd_hostname):
       # https://docs.datadoghq.com/api/?lang=bash#search-hosts
-      h_all = datadog.api.Hosts.search(filter='host:%s'%host_id)
+      h_all = datadog.api.Hosts.search(filter='host:%s'%dd_hostname)
 
       # check if found
       if len(h_all['host_list'])==0:
-          raise HostNotFoundInDdg("Did not find host %s in datadog"%host_id)
+          raise HostNotFoundInDdg("Did not find host %s in datadog"%dd_hostname)
 
       # check if found
       # deprecate above? (of course change condition to != 1)
       if h_all['total_returned']>1:
-          raise HostNotFoundInDdg("Found multiple hosts identified by %s in datadog"%host_id)
+          raise HostNotFoundInDdg("Found multiple hosts identified by %s in datadog"%dd_hostname)
 
-      # filter for the host_id
+      # filter for the dd_hostname
       # Not enough to take the first because I had a bug where 
-      # h_all = api.Hosts.search(host=self.host_id)
+      # h_all = api.Hosts.search(host=self.dd_hostname)
       # was returning a list of all hosts because the argument host=... is not supported
       # I'm not sure where I got this usage patter from, maybe deprecated code.
       # To make matters worse, the datadog api allows the user to pass any parameters 
       # without any checks on their validity: datadog/api/resources.py SearchableAPIResource._search just passes **params to the API
       # WRONG # h_i = h_all['host_list'][0]
-      h_i = [x for x in h_all['host_list'] if x['name']==host_id]
+      h_i = [x for x in h_all['host_list'] if x['name']==dd_hostname]
 
       if len(h_i)==0:
-        raise HostNotFoundInDdg("Datadog API usage problem. Hosts.search returns set of hosts, but filtering on instance ID returns an empty set. Applied to host %s in datadog"%host_id)
+        raise HostNotFoundInDdg("Datadog API usage problem. Hosts.search returns set of hosts, but filtering on instance ID returns an empty set. Applied to host %s in datadog"%dd_hostname)
 
       # at this stage we can take the first entry
       h_i = h_i[0]
@@ -74,7 +74,7 @@ class DatadogApiWrap:
       return out
 
 
-    def metric_query(self, host_id, start, end, query, metric_name, dfcol_name):
+    def metric_query(self, dd_hostname, start, end, query, metric_name, dfcol_name):
       """
       start - number of seconds since unix epoch
       end   - similar
@@ -107,7 +107,7 @@ class DatadogApiWrap:
         raise DataQueryError(msg3)
 
       if len(m['series'])==0:
-          raise DataNotFoundForHostInDdg("No %s found for %s"%(metric_name, host_id))
+          raise DataNotFoundForHostInDdg("No %s found for %s"%(metric_name, dd_hostname))
 
       # filter for the series
       # Instead of just doing
@@ -117,7 +117,7 @@ class DatadogApiWrap:
       m = [x for x in m['series'] if x['metric']==metric_name]
 
       if len(m)==0:
-        raise DataNotFoundForHostInDdg("Datadog api usage. Metric query returns set of metrics not corresponding to request. Found for metric=%s and host=%s"%(metric_name, host_id))
+        raise DataNotFoundForHostInDdg("Datadog api usage. Metric query returns set of metrics not corresponding to request. Found for metric=%s and host=%s"%(metric_name, dd_hostname))
 
       # now safer to filter
       m = m[0]
@@ -130,23 +130,23 @@ class DatadogApiWrap:
 
 
 class DatadogAssistant:
-    def __init__(self, start, end, host_id):
+    def __init__(self, start, end, dd_hostname):
         self.end = end
         self.start = start
-        self.host_id = host_id
+        self.dd_hostname = dd_hostname
         self.apiwrap = DatadogApiWrap()
 
     def _get_metrics_core(self, query, metric_name, col_i):
-        return self.apiwrap.metric_query(host_id=self.host_id, start=self.start, end=self.end, query=query, metric_name=metric_name, dfcol_name=col_i)
+        return self.apiwrap.metric_query(dd_hostname=self.dd_hostname, start=self.start, end=self.end, query=query, metric_name=metric_name, dfcol_name=col_i)
 
     def _get_meta(self):
-        return self.apiwrap.hosts_search(self.host_id)
+        return self.apiwrap.hosts_search(self.dd_hostname)
         
     def get_metrics_cpu_max(self):
         # query language
         # https://docs.datadoghq.com/graphing/functions/
         # Use minimum so that cpu_used will be the maximum
-        query = 'system.cpu.idle{host:%s}.rollup(min,%i)'%(self.host_id, SECONDS_IN_ONE_DAY)
+        query = 'system.cpu.idle{host:%s}.rollup(min,%i)'%(self.dd_hostname, SECONDS_IN_ONE_DAY)
         col_i = 'cpu_idle_min'
         metric_name = 'system.cpu.idle'
         df = self._get_metrics_core(query, metric_name, col_i)
@@ -159,7 +159,7 @@ class DatadogAssistant:
         # query language
         # https://docs.datadoghq.com/graphing/functions/
         # Use minimum so that cpu_used will be the maximum
-        query = 'system.cpu.idle{host:%s}.rollup(max,%i)'%(self.host_id, SECONDS_IN_ONE_DAY)
+        query = 'system.cpu.idle{host:%s}.rollup(max,%i)'%(self.dd_hostname, SECONDS_IN_ONE_DAY)
         col_i = 'cpu_idle_max'
         metric_name = 'system.cpu.idle'
         df = self._get_metrics_core(query, metric_name, col_i)
@@ -170,7 +170,7 @@ class DatadogAssistant:
         
     def get_metrics_cpu_avg(self):
         # repeat for average
-        query = 'system.cpu.idle{host:%s}.rollup(avg,%i)'%(self.host_id, SECONDS_IN_ONE_DAY)
+        query = 'system.cpu.idle{host:%s}.rollup(avg,%i)'%(self.dd_hostname, SECONDS_IN_ONE_DAY)
         col_i = 'cpu_idle_avg'
         metric_name = 'system.cpu.idle'
         df = self._get_metrics_core(query, metric_name, col_i)
@@ -180,7 +180,7 @@ class DatadogAssistant:
 
     def get_metrics_ram_max(self):
         # query language, check note above in get_metrics_cpu
-        query = 'system.mem.free{host:%s}.rollup(min,%i)'%(self.host_id, SECONDS_IN_ONE_DAY)
+        query = 'system.mem.free{host:%s}.rollup(min,%i)'%(self.dd_hostname, SECONDS_IN_ONE_DAY)
         col_i = 'ram_free_min'
         metric_name = 'system.mem.free'
         df =  self._get_metrics_core(query, metric_name, col_i)
@@ -192,7 +192,7 @@ class DatadogAssistant:
 
     def get_metrics_ram_min(self):
         # query language, check note above in get_metrics_cpu
-        query = 'system.mem.free{host:%s}.rollup(max,%i)'%(self.host_id, SECONDS_IN_ONE_DAY)
+        query = 'system.mem.free{host:%s}.rollup(max,%i)'%(self.dd_hostname, SECONDS_IN_ONE_DAY)
         col_i = 'ram_free_max'
         metric_name = 'system.mem.free'
         df =  self._get_metrics_core(query, metric_name, col_i)
@@ -204,7 +204,7 @@ class DatadogAssistant:
 
     def get_metrics_ram_avg(self):
         # query language, check note above in get_metrics_cpu
-        query = 'system.mem.free{host:%s}.rollup(avg,%i)'%(self.host_id, SECONDS_IN_ONE_DAY)
+        query = 'system.mem.free{host:%s}.rollup(avg,%i)'%(self.dd_hostname, SECONDS_IN_ONE_DAY)
         col_i = 'ram_free_avg'
         metric_name = 'system.mem.free'
         df =  self._get_metrics_core(query, metric_name, col_i)
@@ -216,7 +216,7 @@ class DatadogAssistant:
 
     def get_metrics_count(self):
         # query language, check note above in get_metrics_cpu
-        query = 'count_not_null(system.mem.free{host:%s})'%(self.host_id)
+        query = 'count_not_null(system.mem.free{host:%s})'%(self.dd_hostname)
         col_i = 'nhours'
         metric_name = 'count_not_null(system.mem.free)'
         df1 =  self._get_metrics_core(query, metric_name, col_i)
@@ -260,10 +260,10 @@ class DatadogManager:
       return False
 
 
-    def get_metrics_all(self, host_id):
+    def get_metrics_all(self, dd_hostname):
         # FIXME: we already have cpu from cloudwatch, so maybe just focus on ram from datadog
-        logger.debug("Fetching datadog data for %s"%host_id)
-        ddgL2 = DatadogAssistant(self.start, self.end, host_id)
+        logger.debug("Fetching datadog data for %s"%dd_hostname)
+        ddgL2 = DatadogAssistant(self.start, self.end, dd_hostname)
         df_cpu_max = ddgL2.get_metrics_cpu_max()
         df_cpu_min = ddgL2.get_metrics_cpu_min()
         df_cpu_avg = ddgL2.get_metrics_cpu_avg()
@@ -295,8 +295,8 @@ from .cacheManager import MetricCacheMixin
 
 
 class DatadogCached(MetricCacheMixin, DatadogManager):
-    def get_key(self, host_id):
-        cache_key = "datadog:cpu+ram:%s:%i"%(host_id, self.ndays)
+    def get_key(self, dd_hostname):
+        cache_key = "datadog:cpu+ram:%s:%i"%(dd_hostname, self.ndays)
         return cache_key
 
     def get_metrics_base(self, rc_describe_entry, rc_id, rc_created):
@@ -315,10 +315,11 @@ class DatadogCached(MetricCacheMixin, DatadogManager):
 #          return context_ec2
 #
 #        # parse out keys
-#        host_id = context_ec2['ec2_obj'].instance_id
+#        # FIXME build/use map from AWS EC2 instance ID to Datadog hostname
+#        dd_hostname = context_ec2['ec2_obj'].instance_id
 #
 #        # get data
-#        ddg_df = self.get_metrics_all(host_id)
+#        ddg_df = self.get_metrics_all(dd_hostname)
 #
 #        if ddg_df is None:
 #          context_ec2['ddg_df'] = None
