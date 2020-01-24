@@ -6,7 +6,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
-Version 0.19.{13?} (2020-01-24)
+Version 0.19.13 (2020-01-24)
 
 - enh: figured out issue 10 is about datadog hostname versus AWS ID
   - added some more output to the tests in case my bugfix doesn't work
