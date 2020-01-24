@@ -38,27 +38,49 @@ class DatadogApiWrap:
     Assisting the datadog assistant
     """
 
+    def map_aws_datadog(self):
+      # Build a map from AWS ID to Datadog hostname
+      # FIXME Should probably paginate in pages of 100 hosts using combinations of start and count
+      # Leaving for later until this proves to be a problem for isitfit memory consumption during execution.
+      # https://docs.datadoghq.com/api/?lang=python#search-hosts
+      # https://docs.datadoghq.com/agent/faq/how-datadog-agent-determines-the-hostname/?tab=agentv6v7#potential-host-names
+      MAX_COUNT = 1000 # safety net, will cause problems for larger infra
+      h_rev = datadog.api.Hosts.search(count=MAX_COUNT)
+      # alternatively, can use host_name here.
+      # Note the similar field used in self.hosts_search below.
+      # If this field is changed from name to host_name, remember to change it below also
+      h_rev = {x['aws_id']: x['name'] for x in h_rev['host_list']}
+      return h_rev
+
+
     def hosts_search(self, dd_hostname):
       # https://docs.datadoghq.com/api/?lang=bash#search-hosts
       h_all = datadog.api.Hosts.search(filter='host:%s'%dd_hostname)
 
       # check if found
       if len(h_all['host_list'])==0:
-          raise HostNotFoundInDdg("Did not find host %s in datadog"%dd_hostname)
+          raise HostNotFoundInDdg("Did not find datadog hostname %s"%dd_hostname)
 
       # check if found
       # deprecate above? (of course change condition to != 1)
       if h_all['total_returned']>1:
-          raise HostNotFoundInDdg("Found multiple hosts identified by %s in datadog"%dd_hostname)
+          raise HostNotFoundInDdg("Found multiple hosts identified by datadog hostname %s"%dd_hostname)
 
       # filter for the dd_hostname
       # Not enough to take the first because I had a bug where 
       # h_all = api.Hosts.search(host=self.dd_hostname)
       # was returning a list of all hosts because the argument host=... is not supported
-      # I'm not sure where I got this usage patter from, maybe deprecated code.
+      # I'm not sure where I got this usage pattern from, maybe deprecated code.
       # To make matters worse, the datadog api allows the user to pass any parameters 
       # without any checks on their validity: datadog/api/resources.py SearchableAPIResource._search just passes **params to the API
       # WRONG # h_i = h_all['host_list'][0]
+      # Alternatively can use host_name, not sure if one is preferred or if one will prove to be buggy
+      # Will see how things come out of issue #10
+      # https://github.com/autofitcloud/isitfit/issues/10
+      # where name was a FQDN instead of an AWS ID
+      # For more info, check https://docs.datadoghq.com/agent/faq/how-datadog-agent-determines-the-hostname/?tab=agentv6v7#potential-host-names
+      # Note the similar field used in self.map_aws_datadog above.
+      # If this field is changed from name to host_name, remember to change it above also
       h_i = [x for x in h_all['host_list'] if x['name']==dd_hostname]
 
       if len(h_i)==0:
@@ -135,6 +157,7 @@ class DatadogAssistant:
         self.start = start
         self.dd_hostname = dd_hostname
         self.apiwrap = DatadogApiWrap()
+
 
     def _get_metrics_core(self, query, metric_name, col_i):
         return self.apiwrap.metric_query(dd_hostname=self.dd_hostname, start=self.start, end=self.end, query=query, metric_name=metric_name, dfcol_name=col_i)
@@ -230,6 +253,8 @@ class DatadogManager:
         datadog.initialize()
         self.set_ndays(90) # default is 90 days
         self.print_configured = True
+        self.map_aws_dd = None
+
 
     def set_ndays(self, ndays):
         self.ndays = ndays
@@ -260,9 +285,26 @@ class DatadogManager:
       return False
 
 
-    def get_metrics_all(self, dd_hostname):
+    def build_map_aws_dd(self):
+        apiwrap = DatadogApiWrap()
+        self.map_aws_dd = apiwrap.map_aws_datadog()
+
+
+    def get_metrics_all(self, aws_id):
+        # convert aws ID to datadog hostname
+        if self.map_aws_dd is None:
+          self.build_map_aws_dd()
+          if self.map_aws_dd is None:
+            raise Exception("Failed to build aws-datadog ID map")
+
+        # fail if not found
+        if aws_id not in self.map_aws_dd:
+          raise HostNotFoundInDdg("Did not find host aws ID %s in datadog reverse map"%aws_id)
+
+        dd_hostname = self.map_aws_dd[aws_id]
+
         # FIXME: we already have cpu from cloudwatch, so maybe just focus on ram from datadog
-        logger.debug("Fetching datadog data for %s"%dd_hostname)
+        logger.debug("Fetching datadog data for aws ID %s, datadog hostname %s"%(aws_id, dd_hostname))
         ddgL2 = DatadogAssistant(self.start, self.end, dd_hostname)
         df_cpu_max = ddgL2.get_metrics_cpu_max()
         df_cpu_min = ddgL2.get_metrics_cpu_min()
@@ -295,8 +337,8 @@ from .cacheManager import MetricCacheMixin
 
 
 class DatadogCached(MetricCacheMixin, DatadogManager):
-    def get_key(self, dd_hostname):
-        cache_key = "datadog:cpu+ram:%s:%i"%(dd_hostname, self.ndays)
+    def get_key(self, aws_id):
+        cache_key = "datadog:cpu+ram:%s:%i"%(aws_id, self.ndays)
         return cache_key
 
     def get_metrics_base(self, rc_describe_entry, rc_id, rc_created):

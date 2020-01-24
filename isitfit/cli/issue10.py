@@ -41,6 +41,7 @@ class TestIssue10:
     h_all = datadog_api.Hosts.search(filter='host:%s'%self.datadog_hostname)
     assert len(h_all['host_list']) > 0
     assert h_all['total_returned'] == 1
+    # alternatively can check host_name
     assert h_all['host_list'][0]['name']==self.datadog_hostname
 
 

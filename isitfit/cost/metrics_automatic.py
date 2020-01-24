@@ -22,18 +22,18 @@ class MetricsAuto:
     self.status = {}
 
 
-  def _try_datadog(self, host_id):
+  def _try_datadog(self, aws_id):
     if not self.datadog.is_configured():
       return None, "not configured"
 
     try:
-      df_ddg = self.datadog.get_metrics_all(host_id)
+      df_ddg = self.datadog.get_metrics_all(aws_id)
       return df_ddg, "ok"
     except HostNotFoundInDdg as e:
-      logger.debug("Datadog: host not found for %s: %s"%(host_id, str(e)))
+      logger.debug("Datadog: host not found for aws ID %s: %s"%(aws_id, str(e)))
       return None, "host not found"
     except DataNotFoundForHostInDdg as e:
-      logger.debug("Datadog: data not found for %s: %s"%(host_id, str(e)))
+      logger.debug("Datadog: data not found for aws ID %s: %s"%(aws_id, str(e)))
       return None, "no data"
 
 
