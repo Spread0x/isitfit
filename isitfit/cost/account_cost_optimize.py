@@ -373,6 +373,11 @@ def pipeline_factory(mm_eco, mm_rco, ctx):
     iterator = ServiceIterator(mm_eco, mm_rco)
     mm_all.set_iterator(iterator)
 
+    # ping matomo at start of calculation
+    from isitfit.utils import ping_matomo
+    inject_timer_start = lambda context_pre: context_pre if ping_matomo("/cost/optimize/account/start") else context_pre
+    mm_all.add_listener('pre', inject_timer_start)
+
     calculator_get = ServiceCalculatorGet()
     mm_all.add_listener('ec2', calculator_get.per_service)
 
@@ -381,6 +386,10 @@ def pipeline_factory(mm_eco, mm_rco, ctx):
     mm_all.add_listener('all', aggregator.concat)
 
     mm_all.add_listener('all', sqlite_man.update_dtCreated)
+
+    # ping matomo at end of calculation
+    inject_timer_end = lambda context_all: context_all if ping_matomo("/cost/optimize/account/end") else context_all
+    mm_all.add_listener('all', inject_timer_end)
 
     # whether reading from sqlite or fresh data, display
     reporter = ServiceReporter()

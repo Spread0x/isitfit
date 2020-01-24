@@ -7,6 +7,8 @@ import click
 # https://github.com/pallets/click/blob/8df9a6b2847b23de5c65dcb16f715a7691c60743/click/decorators.py#L92
 from isitfit.cli.click_descendents import IsitfitCommand, isitfit_group, isitfit_option_base, isitfit_option_profile
 
+from isitfit.utils import ping_matomo
+
 
 @isitfit_group(help="Evaluate AWS EC2 costs", invoke_without_command=False)
 @click.option('--filter-region', default=None, help='specify a single region against which to run cost analysis/optimization')
@@ -25,7 +27,6 @@ def cost(ctx, filter_region, ndays, profile):
   if '--help' in sys.argv: return
 
   # gather anonymous usage statistics
-  from isitfit.utils import ping_matomo
   ping_matomo("/cost?filter_region=%s&ndays=%i"%(filter_region, ndays))
 
   # save to click context
@@ -44,7 +45,7 @@ def cost(ctx, filter_region, ndays, profile):
 @click.pass_context
 def analyze(ctx, filter_tags, save_details):
     # gather anonymous usage statistics
-    from isitfit.utils import ping_matomo, b2l
+    from isitfit.utils import b2l
     ping_matomo("/cost/analyze?filter_tags=%s&save_details=%s"%(filter_tags, b2l(save_details) ))
 
     # save to click context
@@ -70,13 +71,13 @@ def analyze(ctx, filter_tags, save_details):
     mm_all.get_ifi(tqdml2)
 
 
+
 @cost.command(help='Generate recommendations of optimal EC2 sizes', cls=IsitfitCommand)
 @click.option('--n', default=-1, help='number of underused ec2 optimizations to find before stopping. Skip to get all optimizations')
 @click.option('--filter-tags', default=None, help='filter instances for only those carrying this value in the tag name or value')
 @click.pass_context
 def optimize(ctx, n, filter_tags):
     # gather anonymous usage statistics
-    from isitfit.utils import ping_matomo
     ping_matomo("/cost/optimize?n=%i&filter_tags=%s"%(n, filter_tags ))
 
     # save to context

@@ -14,6 +14,7 @@ Version 0.19.{13?} (2020-01-24)
     - https://docs.datadoghq.com/agent/faq/how-datadog-agent-determines-the-hostname/?tab=agentv6v7#potential-host-names
     - https://docs.datadoghq.com/api/?lang=python#search-hosts
 - bugfix: issue 10 uncovered that I need to map from AWS ID to Datadog hostname before I filter in datadog.. fixed
+- enh: add some timer code to gather (in matomo) time-to-run of calculations
 
 
 Version 0.19.{10,11,12} (2020-01-23)

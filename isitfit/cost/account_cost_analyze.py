@@ -359,6 +359,11 @@ def pipeline_factory(mm_eca, mm_rca, ctx, share_email):
     service_iterator = ServiceIterator(mm_eca, mm_rca)
     mm_all.set_iterator(service_iterator)
 
+    # ping matomo at start of calculation
+    from isitfit.utils import ping_matomo
+    inject_timer_start = lambda context_pre: context_pre if ping_matomo("/cost/analyze/account/start") else context_pre
+    mm_all.add_listener('pre', inject_timer_start)
+
     service_calculator_get = ServiceCalculatorGet()
     mm_all.add_listener('ec2', service_calculator_get.per_service)
 
@@ -381,6 +386,11 @@ def pipeline_factory(mm_eca, mm_rca, ctx, share_email):
     # mm_all.add_listener('all', service_reporter.display)
     # mm_all.add_listener('all', service_reporter.email)
 
+    # ping matomo at end of calculation
+    inject_timer_end = lambda context_all: context_all if ping_matomo("/cost/analyze/account/end") else context_all
+    mm_all.add_listener('all', inject_timer_end)
+
+    # display and email
     service_reporter = ServiceReporterBinned()
     service_reporter.emailTo = share_email
     mm_all.add_listener('all', service_reporter.display)
