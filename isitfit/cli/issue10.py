@@ -45,6 +45,9 @@ class TestIssue10:
     # alternatively can check host_name
     assert h_all['host_list'][0]['name']==self.datadog_hostname
 
+    # you shall not pass
+    assert False
+
 
   def test_metric_query_cpuIdle(self, datadog_api):
     # set start/end
