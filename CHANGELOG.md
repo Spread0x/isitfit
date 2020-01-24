@@ -6,7 +6,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
-Version 0.19.13 (2020-01-24)
+Version 0.19.{13,14} (2020-01-24)
 
 - enh: figured out issue 10 is about datadog hostname versus AWS ID
   - added some more output to the tests in case my bugfix doesn't work
@@ -15,6 +15,7 @@ Version 0.19.13 (2020-01-24)
     - https://docs.datadoghq.com/api/?lang=python#search-hosts
 - bugfix: issue 10 uncovered that I need to map from AWS ID to Datadog hostname before I filter in datadog.. fixed
 - enh: add some timer code to gather (in matomo) time-to-run of calculations
+- enh: add interim timer call with number of ec2 or rds entries to calculate code performance in seconds per resource
 
 
 Version 0.19.{10,11,12} (2020-01-23)

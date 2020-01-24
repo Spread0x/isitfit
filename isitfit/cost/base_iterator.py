@@ -295,6 +295,11 @@ class BaseIterator:
 
     self.n_entry = len(list(self.iterate_core(True)))
 
+    # interim result for timer data to calculate performance (seconds per ec2 or seconds per rds)
+    from isitfit.utils import ping_matomo
+    ping_matomo("/cost/base_iterator/BaseIterator/count?service=%s&n_entry=%s&n_region=%s"%(self.service_name, self.n_entry, len(self.region_include)))
+
+    # send message to logs for info
     if self.n_entry==0 and len(self.region_include)==0:
       msg_count = "Found no %s"
       logger.info(msg_count%(self.service_description))
