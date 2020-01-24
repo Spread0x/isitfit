@@ -31,8 +31,6 @@ class TestIssue10:
     # print a list of 5 ec2 IDs in case of error when searching for specific ID below
     MAX_HOSTS = 5 # limit just in case
     h_search_count = datadog_api.Hosts.search(count=MAX_HOSTS)
-    import pdb
-    pdb.set_trace()
     print("first %i IDs found (aws_id, name, host_name): "%MAX_HOSTS, [tuple(hi.get(k) for k in ['aws_id', 'name', 'host_name']) for hi in h_search_count['host_list']])
     print("datadog_api.Hosts.search(count=%i) full output:"%MAX_HOSTS)
     for i, hi in enumerate(h_search_count['host_list']): print("%i: "%i, hi)
