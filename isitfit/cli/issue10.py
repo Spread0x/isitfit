@@ -18,7 +18,7 @@ class TestIssue10:
   Tests to help resolve
   https://github.com/autofitcloud/isitfit/issues/10
   """
-  host_id = None
+  datadog_hostname = None
 
   def test_hosts(self, datadog_api):
     # check total numbers and display message in case of failure later
@@ -29,16 +29,19 @@ class TestIssue10:
 
     # search without filter
     # print a list of 5 ec2 IDs in case of error when searching for specific ID below
-    h_all = datadog_api.Hosts.search(count=5)
-    print("first 5 ec2 IDs found: ", [hi['name'] for hi in h_all['host_list']])
-    assert len(h_all['host_list']) > 0
-    assert h_all['total_returned'] > 0
+    MAX_HOSTS = 5 # limit just in case
+    h_search_count = datadog_api.Hosts.search(count=MAX_HOSTS)
+    print("first %i IDs found (aws_id, name, host_name): "%MAX_HOSTS, [(hi[k] for k in ['aws_id', 'name', 'host_name']) for hi in h_search_count['host_list']])
+    print("datadog_api.Hosts.search(count=%i) full output:"%MAX_HOSTS)
+    for i, hi in enumerate(h_search_count['host_list']): print("%i: "%i, hi)
+    assert len(h_search_count['host_list']) > 0
+    assert h_search_count['total_returned'] > 0
 
     # now search for provided ID
-    h_all = datadog_api.Hosts.search(filter='host:%s'%self.host_id)
+    h_all = datadog_api.Hosts.search(filter='host:%s'%self.datadog_hostname)
     assert len(h_all['host_list']) > 0
     assert h_all['total_returned'] == 1
-    assert h_all['host_list'][0]['name']==self.host_id
+    assert h_all['host_list'][0]['name']==self.datadog_hostname
 
 
   def test_metric_query_cpuIdle(self, datadog_api):
@@ -57,7 +60,7 @@ class TestIssue10:
 
     # build query
     from isitfit.utils import SECONDS_IN_ONE_DAY
-    query = 'system.cpu.idle{host:%s}.rollup(min,%i)'%(self.host_id, SECONDS_IN_ONE_DAY)
+    query = 'system.cpu.idle{host:%s}.rollup(min,%i)'%(self.datadog_hostname, SECONDS_IN_ONE_DAY)
 
     # query datadog
     # https://docs.datadoghq.com/api/?lang=python#query-timeseries-points
@@ -76,12 +79,12 @@ class TestIssue10:
 import click
 from isitfit.cli.click_descendents import IsitfitCommand
 @click.command(help='Tests to debug github issue #10', cls=IsitfitCommand, hidden=True)
-@click.argument('host_id') #, help='Instance ID on which to run this test')
-def issue10(host_id):
+@click.argument('datadog_hostname') #, help='Instance ID on which to run this test')
+def issue10(datadog_hostname):
   """
   Click command that runs test through pytest
   """
-  TestIssue10.host_id = host_id
+  TestIssue10.datadog_hostname = datadog_hostname
 
   # https://docs.pytest.org/en/latest/usage.html#calling-pytest-from-python-code
   exit_code = pytest.main([__file__, '--verbose'])

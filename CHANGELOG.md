@@ -6,6 +6,15 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
+Version 0.19.{13?} (2020-01-24)
+
+- enh: figured out issue 10 is about datadog hostname versus AWS ID
+  - added some more output to the tests in case my bugfix doesn't work
+  - useful references
+    - https://docs.datadoghq.com/agent/faq/how-datadog-agent-determines-the-hostname/?tab=agentv6v7#potential-host-names
+    - https://docs.datadoghq.com/api/?lang=python#search-hosts
+
+
 Version 0.19.{10,11,12} (2020-01-23)
 
 - feat: added command `isitfit issue10 host_id` for debugging issue #10
