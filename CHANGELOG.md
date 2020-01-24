@@ -6,6 +6,11 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
+Version 0.19.{15} (2020-01-24)
+
+- bugfix: `aws_id` is not always present in datadog hosts data
+
+
 Version 0.19.{13,14} (2020-01-24)
 
 - enh: figured out issue 10 is about datadog hostname versus AWS ID

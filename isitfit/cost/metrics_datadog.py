@@ -49,7 +49,7 @@ class DatadogApiWrap:
       # alternatively, can use host_name here.
       # Note the similar field used in self.hosts_search below.
       # If this field is changed from name to host_name, remember to change it below also
-      h_rev = {x['aws_id']: x['name'] for x in h_rev['host_list']}
+      h_rev = {x['aws_id']: x['name'] for x in h_rev['host_list'] if 'aws_id' in x and 'name' in x}
       return h_rev
 
 
