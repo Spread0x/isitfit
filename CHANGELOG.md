@@ -6,7 +6,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
-Version 0.19.{15,16} (2020-01-24)
+Version 0.19.{15..18} (2020-01-24)
 
 - bugfix: `aws_id` is not always present in datadog hosts data
 
