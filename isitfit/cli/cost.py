@@ -74,7 +74,7 @@ def analyze(ctx, filter_tags, save_details):
 @cost.command(help='Generate recommendations of optimal EC2 sizes', cls=IsitfitCommand)
 @click.option('--n', default=-1, help='number of underused ec2 optimizations to find before stopping. Skip to get all optimizations')
 @click.option('--filter-tags', default=None, help='filter instances for only those carrying this value in the tag name or value')
-@click.option('--allow-ec2-different-family', is_flag=True, prompt='Allow suggesting EC2 instance types of different families? m2.4xlarge -> r4.2xlarge')
+@click.option('--allow-ec2-different-family/--forbid-ec2-different-family', is_flag=True, prompt='Allow suggesting EC2 instance types of different families? m2.4xlarge -> r4.2xlarge', help='Allow suggesting EC2 instance types of different families')
 @click.pass_context
 def optimize(ctx, n, filter_tags, allow_ec2_different_family):
     # gather anonymous usage statistics
