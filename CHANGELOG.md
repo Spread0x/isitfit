@@ -6,9 +6,10 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
-Version 0.20.0 (2020-01-27)
+Version 0.20.{0,1} (2020-01-27)
 
 - feat: add option `isitfit cost optimize --allow-ec2-different-family`
+- feat: add `isitfit datadog dump i-1234` command
 
 
 Version 0.19.{15..19} (2020-01-24)
