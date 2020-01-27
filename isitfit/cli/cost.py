@@ -1,4 +1,4 @@
-from isitfit.utils import logger
+from isitfit.utils import logger, b2l
 
 
 import click
@@ -45,7 +45,6 @@ def cost(ctx, filter_region, ndays, profile):
 @click.pass_context
 def analyze(ctx, filter_tags, save_details):
     # gather anonymous usage statistics
-    from isitfit.utils import b2l
     ping_matomo("/cost/analyze?filter_tags=%s&save_details=%s"%(filter_tags, b2l(save_details) ))
 
     # save to click context
@@ -75,13 +74,15 @@ def analyze(ctx, filter_tags, save_details):
 @cost.command(help='Generate recommendations of optimal EC2 sizes', cls=IsitfitCommand)
 @click.option('--n', default=-1, help='number of underused ec2 optimizations to find before stopping. Skip to get all optimizations')
 @click.option('--filter-tags', default=None, help='filter instances for only those carrying this value in the tag name or value')
+@click.option('--allow-ec2-different-family', is_flag=True, help='Allow suggesting EC2 instance types of different families, eg r4.2xlarge instead of m2.4xlarge')
 @click.pass_context
-def optimize(ctx, n, filter_tags):
+def optimize(ctx, n, filter_tags, allow_ec2_different_family):
     # gather anonymous usage statistics
-    ping_matomo("/cost/optimize?n=%i&filter_tags=%s"%(n, filter_tags ))
+    ping_matomo("/cost/optimize?n=%i&filter_tags=%s&allow_ec2_different_family=%s"%(n, filter_tags, b2l(allow_ec2_different_family) ))
 
     # save to context
     share_email = ctx.obj.get('share_email', [])
+    ctx.obj['allow_ec2_different_family'] = allow_ec2_different_family
 
     #logger.info("Is it fit?")
     logger.info("Initializing...")

@@ -2,6 +2,8 @@ class Ec2Catalog:
   """
   download ec2 catalog: 2 columns: ec2 type, ec2 cost per hour
   """
+  def __init__(self, allow_ec2_different_family):
+    self.allow_ec2_different_family = allow_ec2_different_family
 
   def handle_pre(self, context_pre):
     import requests
@@ -15,8 +17,11 @@ class Ec2Catalog:
     # based on URL = 'http://www.ec2instances.info/instances.json'
     # URL = 's3://...csv'
     # Edit 2019-09-10 use CDN link instead of direct gitlab link
-    # URL = 'https://gitlab.com/autofitcloud/www.ec2instances.info-ec2op/raw/master/www.ec2instances.info/t3b_smaller_familyL2.json'
-    URL = 'https://cdn.jsdelivr.net/gh/autofitcloud/www.ec2instances.info-ec2op/www.ec2instances.info/t3b_smaller_familyL2.json'
+    if self.allow_ec2_different_family:
+      URL = 'https://cdn.jsdelivr.net/gh/autofitcloud/www.ec2instances.info-ec2op@t3c-noFamily/www.ec2instances.info/t3c_smaller_familyNone.json'
+    else:
+      # URL = 'https://gitlab.com/autofitcloud/www.ec2instances.info-ec2op/raw/master/www.ec2instances.info/t3b_smaller_familyL2.json'
+      URL = 'https://cdn.jsdelivr.net/gh/autofitcloud/www.ec2instances.info-ec2op/www.ec2instances.info/t3b_smaller_familyL2.json'
 
     # Update 2019-12-03: move into /tmp/isitfit/
     # fc_dir = '/tmp/isitfit_ec2info.cache'

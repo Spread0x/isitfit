@@ -418,7 +418,7 @@ def pipeline_factory(ctx, n, filter_tags):
     mm = MainManager("EC2 cost optimize", ctx)
     mm.set_ndays(ctx.obj['ndays'])
 
-    ec2_cat = Ec2Catalog()
+    ec2_cat = Ec2Catalog(ctx.obj['allow_ec2_different_family'])
     ec2_common = Ec2Common()
     ec2_it = Ec2Iterator(ctx.obj['filter_region'], tqdml2_obj)
 

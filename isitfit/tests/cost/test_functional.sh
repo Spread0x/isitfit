@@ -84,6 +84,10 @@ echo "Test 9: --share-email ok"
 AWS_PROFILE=shadi_shadi isitfit --share-email=shadi@autofitcloud.com cost --ndays=90 analyze
 
 
+echo "Test 10: isitfit cost optimize --allow-ec2-different-family"
+AWS_PROFILE=shadi_shadi isitfit --share-email=shadi@autofitcloud.com cost --ndays=7 optimize --allow-ec2-different-family
+
+
 # restore the original UID
 if [ -f ~/.isitfit/uid.txt.bkpDuringTest ]; then
   cp ~/.isitfit/uid.txt.bkpDuringTest ~/.isitfit/uid.txt
