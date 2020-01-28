@@ -6,6 +6,11 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
+Version 0.20.2 (2020-01-28)
+
+- bugfix: `allow_ec2_different_family` was missing in the `isitfit cost analyze` usage of `Ec2Catalog`
+
+
 Version 0.20.{0,1} (2020-01-27)
 
 - feat: add option `isitfit cost optimize --allow-ec2-different-family`

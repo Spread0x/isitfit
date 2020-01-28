@@ -575,7 +575,8 @@ def pipeline_factory(ctx, filter_tags, save_details):
     mm = MainManager("EC2 cost analyze", ctx)
     mm.set_ndays(ctx.obj['ndays'])
 
-    ec2_cat = Ec2Catalog()
+    # The allow_ec2_different_family is set to False because the "_smaller" fields are not used in "isitfit cost analyze"
+    ec2_cat = Ec2Catalog(False)
     ec2_common = Ec2Common()
     ec2_it = Ec2Iterator(ctx.obj['filter_region'], tqdml2_obj)
 
