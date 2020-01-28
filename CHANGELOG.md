@@ -6,9 +6,10 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
-Version 0.20.2 (2020-01-28)
+Version 0.20.{2,3} (2020-01-28)
 
 - bugfix: `allow_ec2_different_family` was missing in the `isitfit cost analyze` usage of `Ec2Catalog`
+- bugfix: was still referencing branch of ec2 catalog file instead of master
 
 
 Version 0.20.{0,1} (2020-01-27)

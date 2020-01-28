@@ -84,8 +84,9 @@ echo "Test 9: --share-email ok"
 AWS_PROFILE=shadi_shadi isitfit --share-email=shadi@autofitcloud.com cost --ndays=90 analyze
 
 
-echo "Test 10: isitfit cost optimize --allow-ec2-different-family"
+echo "Test 10: isitfit cost optimize --allow-ec2-different-family / --forbid-ec2-different-family"
 AWS_PROFILE=shadi_shadi isitfit --share-email=shadi@autofitcloud.com cost --ndays=7 optimize --allow-ec2-different-family
+AWS_PROFILE=shadi_shadi isitfit --share-email=shadi@autofitcloud.com cost --ndays=7 optimize --forbid-ec2-different-family
 
 
 # restore the original UID
