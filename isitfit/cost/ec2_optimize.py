@@ -141,12 +141,21 @@ class CalculatorOptimizeEc2:
     ram_c1, ram_c2 = self._xxx_to_classification(ram_maxmax, ram_maxavg, ram_avgmax)
 
     # consolidate ram with cpu
-    out_c2 = ["CPU + RAM checked",
-              "CPU: %s"%cpu_c2 if cpu_c2 is not None else None,
-              "RAM: %s"%ram_c2 if ram_c2 is not None else None ]
+    out_c2 = ["CPU+RAM",
+              "CPU: %s"%(cpu_c2 or "None"),
+              "RAM: %s"%(ram_c2 or "None")
+             ]
     out_c2 = ", ".join([x for x in out_c2 if x is not None])
     if cpu_c1=='Overused' or ram_c1=='Overused':
       return 'Overused', out_c2
+
+#    if cpu_c1=='Overused' or ram_c1=='Overused':
+#      if (cpu_c1=='Overused' and ram_c1=='Overused':):
+#        return 'Overused (CPU+RAM bound)', out_c2
+#      elif cpu_c1=='Overused':
+#        return 'Overused (CPU-bound)', out_c2
+#      else:
+#        return 'Overused (RAM-bound)', out_c2
 
     if cpu_c1=='Normal' or ram_c1=='Normal':
       return 'Normal', out_c2
