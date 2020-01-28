@@ -53,26 +53,26 @@ AWS_PROFILE=default isitfit --skip-prompt-email cost --filter-region=eu-central-
 
 
 echo "Test 4: optimize with default profile"
-AWS_PROFILE=default isitfit --skip-prompt-email cost --ndays=90 optimize
+AWS_PROFILE=default isitfit --skip-prompt-email cost --ndays=90 optimize --forbid-ec2-different-family
 
 
 echo "Test 5: optimize in region with 0 ec2 instances"
 # Note, unlike isitfit tags dump which returns a non-0 code if 0 ec2 found, this one just returns 0
-AWS_PROFILE=default isitfit --skip-prompt-email cost --filter-region=eu-central-1 --ndays=90 optimize
+AWS_PROFILE=default isitfit --skip-prompt-email cost --filter-region=eu-central-1 --ndays=90 optimize --forbid-ec2-different-family
 
 
 echo "Test 6a: optimize with n=1 on shadi@autofitcloud.com@amazonaws.com"
-AWS_PROFILE=default isitfit --skip-prompt-email cost --ndays=90 optimize --n=1
+AWS_PROFILE=default isitfit --skip-prompt-email cost --ndays=90 optimize --n=1 --forbid-ec2-different-family
 
 echo "Test 6b: optimize with n=1 on shadiakiki1986@gmail.com@amazonaws.com"
-AWS_PROFILE=shadi_shadi isitfit --skip-prompt-email cost --ndays=90 optimize --n=1
+AWS_PROFILE=shadi_shadi isitfit --skip-prompt-email cost --ndays=90 optimize --n=1 --forbid-ec2-different-family
 
 
 echo "Test 7: {analyse,optimize} filter-tags {ffa,inexistant}"
-AWS_PROFILE=default isitfit --skip-prompt-email cost --ndays=90 optimize --filter-tags=ffa
+AWS_PROFILE=default isitfit --skip-prompt-email cost --ndays=90 optimize --filter-tags=ffa --forbid-ec2-different-family
 AWS_PROFILE=default isitfit --skip-prompt-email cost --ndays=90 analyze  --filter-tags=ffa
 
-AWS_PROFILE=default isitfit --skip-prompt-email cost --ndays=90 optimize --filter-tags=inexistant
+AWS_PROFILE=default isitfit --skip-prompt-email cost --ndays=90 optimize --filter-tags=inexistant --forbid-ec2-different-family
 AWS_PROFILE=default isitfit --skip-prompt-email cost --ndays=90 analyze  --filter-tags=inexistant
 
 
