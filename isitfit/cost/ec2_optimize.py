@@ -50,6 +50,13 @@ def class2recommendedCore(r):
          'savings': r.cost_3m_larger-r.cost_3m
         }
 
+  if r.classification_1=='Normal':
+    # This is costing more
+    if 'type_cheaper' in r.index:
+      o = {'recommended_type': r.type_cheaper,
+           'savings': r.cost_3m_cheaper - r.cost_3m
+          }
+
   return o
 
 #---------------------------------
@@ -290,8 +297,16 @@ class ReporterOptimizeEc2(ReporterBase):
     map_larger = self.df_cat[['API Name', 'type_smaller', 'cost_hourly']].rename(columns={'type_smaller': 'API Name', 'API Name': 'type_larger', 'cost_hourly': 'cost_hourly_larger'})
     df_all = df_all.merge(map_larger, left_on='instance_type', right_on='API Name', how='left').drop(['API Name'], axis=1)
 
+    # merge same-specs, cheaper
+    if 'type_same_cheaper' in self.df_cat.columns:
+      map_cheaper = self.df_cat[['API Name', 'type_same_cheaper', 'Linux On Demand cost_same_cheaper']].rename(columns={'Linux On Demand cost_same_cheaper': 'cost_hourly_cheaper', 'type_same_cheaper': 'type_cheaper'})
+      df_all = df_all.merge(map_cheaper, left_on='instance_type', right_on='API Name', how='left').drop(['API Name'], axis=1)
+
     # convert from hourly to 3-months
-    for fx1, fx2 in [('cost_3m', 'cost_hourly'), ('cost_3m_smaller', 'cost_hourly_smaller'), ('cost_3m_larger', 'cost_hourly_larger')]:
+    for fx1, fx2 in [('cost_3m', 'cost_hourly'), ('cost_3m_smaller', 'cost_hourly_smaller'), ('cost_3m_larger', 'cost_hourly_larger'), ('cost_3m_cheaper', 'cost_hourly_cheaper')]:
+      if not fx2 in df_all.columns:
+        continue
+
       df_all[fx1] = df_all[fx2] * 24 * 30 * 3
       df_all[fx1] = df_all[fx1].fillna(value=0).astype(int)
 
