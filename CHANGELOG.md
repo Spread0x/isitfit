@@ -6,6 +6,11 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
+Version 0.20.5 (2020-01-29)
+
+- enh: improved `isitfit datadog dump y-m-d instance_id` command
+
+
 Version 0.20.4 (2020-01-28)
 
 - feat: for EC2 classified as `Normal`, suggest a cheaper family-generation upgrade, eg t2.nano to t3a.nano and save 20%
