@@ -46,6 +46,14 @@ class DatadogApiWrap:
       # https://docs.datadoghq.com/agent/faq/how-datadog-agent-determines-the-hostname/?tab=agentv6v7#potential-host-names
       MAX_COUNT = 1000 # safety net, will cause problems for larger infra
       h_rev = datadog.api.Hosts.search(count=MAX_COUNT)
+
+      if 'status' in h_rev:
+        if h_rev['status']=='error':
+          msg = "Datadog API/APP keys configured wrong?"
+          if 'errors' in h_rev: msg += " Got error: %s"%", ".join(h_rev['errors'])
+          from isitfit.cli.click_descendents import IsitfitCliError
+          raise IsitfitCliError(msg)
+
       # alternatively, can use host_name here.
       # Note the similar field used in self.hosts_search below.
       # If this field is changed from name to host_name, remember to change it below also
