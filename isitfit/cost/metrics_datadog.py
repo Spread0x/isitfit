@@ -270,16 +270,20 @@ class DatadogManager:
 
 
     def is_configured(self):
+      from isitfit.utils import ping_matomo
+
       # check not None and not empty string
       if os.getenv('DATADOG_API_KEY', None):
         if os.getenv('DATADOG_APP_KEY', None):
           if self.print_configured:
             logger.info("Datadog env vars available")
+            ping_matomo("/cost/setting?datadog.is_configured=True")
             self.print_configured = False
           return True
           
       if self.print_configured:
         logger.info("Datadog env vars missing. Set DATADOG_API_KEY and DATADOG_APP_KEY to get memory data from Datadog.")
+        ping_matomo("/cost/setting?datadog.is_configured=False")
         self.print_configured = False
 
       return False
