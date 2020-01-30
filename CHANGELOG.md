@@ -6,11 +6,12 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
-Version 0.20.{5..7} (2020-01-29)
+Version 0.20.{5..8} (2020-01-29)
 
 - enh: improved `isitfit datadog dump y-m-d instance_id` command
 - enh: stats collecting if datadog configured or not
 - bugfix: check error status of datadog.`map_aws_datadog` before proceeding and getting missing key
+- enh: use tags with the `www.ec2instances.info-ec2op` repo
 
 
 Version 0.20.4 (2020-01-28)

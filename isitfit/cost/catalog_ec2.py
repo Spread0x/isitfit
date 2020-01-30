@@ -18,10 +18,10 @@ class Ec2Catalog:
     # URL = 's3://...csv'
     # Edit 2019-09-10 use CDN link instead of direct gitlab link
     if self.allow_ec2_different_family:
-      URL = 'https://cdn.jsdelivr.net/gh/autofitcloud/www.ec2instances.info-ec2op/www.ec2instances.info/t3c_smaller_familyNone.json'
+      URL = 'https://cdn.jsdelivr.net/gh/autofitcloud/www.ec2instances.info-ec2op@0.3/www.ec2instances.info/t3c_smaller_familyNone.json'
     else:
       # URL = 'https://gitlab.com/autofitcloud/www.ec2instances.info-ec2op/raw/master/www.ec2instances.info/t3b_smaller_familyL2.json'
-      URL = 'https://cdn.jsdelivr.net/gh/autofitcloud/www.ec2instances.info-ec2op/www.ec2instances.info/t3b_smaller_familyL2.json'
+      URL = 'https://cdn.jsdelivr.net/gh/autofitcloud/www.ec2instances.info-ec2op@0.2/www.ec2instances.info/t3b_smaller_familyL2.json'
 
     # Update 2019-12-03: move into /tmp/isitfit/
     # fc_dir = '/tmp/isitfit_ec2info.cache'
