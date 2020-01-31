@@ -239,6 +239,8 @@ def display_footer():
 
 
 def ask_feedback():
+  # TODO should use a proper feedback gathering method rather than collecting it in matomo
+  # but this is a shortcut for now
   print("")
   import click
   a1 = click.prompt("How useful was this? (0: wtf, 1: useless, 2: IDK, 3: kind of, 4: epiphanic)", type=click.IntRange(0, 4))
