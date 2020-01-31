@@ -80,13 +80,18 @@ class RedisPandas:
     return v2
 
   def handle_pre(self, context_pre):
+        from isitfit.utils import ping_matomo
+
         # set up caching if requested
         self.fetch_envvars()
         if self.isSetup():
           self.connect()
+          ping_matomo("/cost/setting?redis.is_configured=True")
+          return context_pre
 
         # 0th pass to count
         n_ec2_total = context_pre['n_ec2_total']
+        ping_matomo("/cost/setting?redis.is_configured=False")
 
         # if more than 10 servers, recommend caching with redis
         cond_prompt = n_ec2_total > 10 and not self.isSetup()
@@ -111,7 +116,7 @@ where ISITFIT_REDIS_DB is the ID of an unused database in redis.
 And finally re-run isitfit as usual.
 """%n_ec2_total, "yellow"))
             import click
-            # not using abort=True so that I can send a cusomt message in the abort
+            # not using abort=True so that I can send a custom message in the abort
             continue_wo_redis = click.confirm(colored('Would you like to continue without redis caching? ', 'cyan'), abort=False, default=True)
             if not continue_wo_redis:
                 from isitfit.cli.click_descendents import IsitfitCliError

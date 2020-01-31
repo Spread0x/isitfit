@@ -9,6 +9,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
 Version 0.20.9 (2020-01-31)
 
 - bugfix: decolorize profile from terminal to include the case when putty converts the delimiter and no longer matches the regex
+- enh: stat added for whether or not redis is configured
 
 
 Version 0.20.{5..8} (2020-01-29)
