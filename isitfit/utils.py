@@ -321,11 +321,7 @@ class AwsProfileMan:
   def validate_profile(self, ctx, param, value_colored):
     if value_colored is None: return value_colored
 
-    # strip color from value_colored
-    # http://stackoverflow.com/questions/14693701/ddg#14693789
-    import re
-    ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
-    value_nocolor = ansi_escape.sub('', value_colored)
+    value_nocolor = decolorize(value_colored)
 
     # check if in list
     if value_nocolor not in self.profile_list_nocolors:
@@ -466,3 +462,19 @@ def pd_subset_latest(df1, field_val, field_sortmax):
 
     df3 = df2[latest_idx.astype(bool)]
     return df3
+
+
+def decolorize(value_colored):
+    # strip color from value_colored
+    # http://stackoverflow.com/questions/14693701/ddg#14693789
+    import re
+    ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
+    value_nocolor = ansi_escape.sub('', value_colored)
+
+    # strip color encoded with "_" instead of the "\x1B" delimiter
+    # This possibly happens when copy-pasting in a putty terminal
+    # https://www.linuxquestions.org/questions/linux-desktop-74/preserve-colors-when-copy-pasting-from-terminal-943213/
+    putty_escape = re.compile(r'_\[[0-?]*[ -/]*[@-~]')
+    value_nocolor = putty_escape.sub('', value_nocolor)
+
+    return value_nocolor

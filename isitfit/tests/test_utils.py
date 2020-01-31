@@ -288,3 +288,10 @@ def test_pdSubsetLatest():
 
   pd.testing.assert_frame_equal(df_actual, df_expected)
   assert len(set(df_actual.b.to_list())) == 1
+
+
+def test_decolorize():
+  from termcolor import colored
+  from isitfit.utils import decolorize
+  assert "hello" == decolorize(colored("hello", "green"))
+  assert "hello" == decolorize("_[33mhello_[0m")
