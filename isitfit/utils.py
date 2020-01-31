@@ -235,8 +235,34 @@ def display_footer():
     click.echo("😞 isitfit issues           https://github.com/autofitcloud/isitfit/issues")
     click.echo("🌎 Global Climate Strike    https://twitter.com/hashtag/ClimateStrike")
     click.echo("❤️  Built by AutofitCloud    https://www.autofitcloud.com")
+    click.echo("💬 Discord chat             https://discord.gg/Z2YMDvx")
 
 
+def ask_feedback():
+  print("")
+  import click
+  a1 = click.prompt("How useful was this? (0: wtf, 1: useless, 2: IDK, 3: kind of, 4: epiphanic)", type=click.IntRange(0, 4))
+  ping_matomo("/feedback?a1_usefulness=%i"%a1)
+  q2 = {
+    0: "Seriously? Why?",
+    1: "Is there no hope? What can be done?",
+    2: "What would make things clearer?",
+    3: "What can we improve?",
+    4: "TBH, I wasn't expecting this. Really? Why?"
+  }
+  a2 = click.prompt(q2[a1])
+  ping_matomo("/feedback?a2_why=%s"%a2)
+  a3a = click.confirm("Can we schedule a 10-minute phone call?")
+  ping_matomo("/feedback?a3a_can_we_call=%s"%b2l(a3a))
+  a3b = None
+  a3c = None
+  if a3a:
+    a3b = click.prompt("Phone number with country code")
+    ping_matomo("/feedback?a3b_phone=%s"%a3b)
+    a3c = click.prompt("Best time to call (include timezone)")
+    ping_matomo("/feedback?a3c_time=%s"%a3c)
+
+  print("Thanks!")
 
 
 
@@ -405,8 +431,6 @@ class PromptToEmailIfNotRequested():
 
 
   def prompt(self, emailTo):
-    from isitfit.utils import ping_matomo
-
     if emailTo is not None:
       if len(emailTo) > 0:
         # user already requested email

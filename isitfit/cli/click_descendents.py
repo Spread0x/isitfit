@@ -44,7 +44,7 @@ class IsitfitGroup(click.Group):
       raise
 
 
-from isitfit.utils import display_footer
+from isitfit.utils import display_footer, ask_feedback
 
 class IsitfitCommand(click.Command):
   """
@@ -57,6 +57,7 @@ class IsitfitCommand(click.Command):
     try:
       ret = super().invoke(ctx)
       display_footer()
+      ask_feedback()
       return ret
     except Exception as error:
       pingOnError(ctx, error)
