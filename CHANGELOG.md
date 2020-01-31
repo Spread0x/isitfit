@@ -6,7 +6,7 @@ Version latest (0.18.0rc?, 2019-12-05?)
 - ...
 
 
-Version 0.20.10 (2020-01-31)
+Version 0.20.{10,11} (2020-01-31)
 
 - enh: ask for feedback at end of run
 - enh: add discord link

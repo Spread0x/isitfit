@@ -141,7 +141,7 @@ class IsitfitCliError(click.UsageError):
 
 
     # add link to github issues
-    hint_2 = "If the problem persists, please report it at https://github.com/autofitcloud/isitfit/issues/new"
+    hint_2 = "Is this my fault? 😞 Please report it at https://github.com/autofitcloud/isitfit/issues/new or reach out to me at shadi@autofitcloud.com"
     wrapecho(hint_2)
 
 
