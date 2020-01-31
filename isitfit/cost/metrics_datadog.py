@@ -292,6 +292,11 @@ class DatadogManager:
       if self.print_configured:
         logger.info("Datadog env vars missing. Set DATADOG_API_KEY and DATADOG_APP_KEY to get memory data from Datadog.")
         ping_matomo("/cost/setting?datadog.is_configured=False")
+
+        import click
+        display_msg = lambda x: click.secho(x, fg='yellow')
+        display_msg("Note: without the datadog integration, memory metrics are missing, thus only CPU is used, which is not representative for memory-bound applications.")
+        display_msg("If you gather memory metrics using another provider than datadog, please get in touch at https://www.autofitcloud.com/contact")
         self.print_configured = False
 
       return False

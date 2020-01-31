@@ -119,7 +119,6 @@ class MetricsAuto:
     display_msg("")
 
 
-
 class MetricsListener(MetricsAuto):
   """
   Listener for event bus defined in mainManager.py
