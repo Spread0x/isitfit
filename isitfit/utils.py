@@ -326,7 +326,7 @@ class AwsProfileMan:
     # check if in list
     if value_nocolor not in self.profile_list_nocolors:
       import click
-      err_m = 'Profile %s is not from ~/.aws/credentials file.'%value_colored
+      err_m = 'Profile "%s" (decolored to "%s") is not from ~/.aws/credentials file.'%(value_colored, value_nocolor)
       raise click.BadParameter(err_m)
 
     # set the profile in an env var so that boto3 picks it up automatically
