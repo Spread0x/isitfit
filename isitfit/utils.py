@@ -471,10 +471,10 @@ def decolorize(value_colored):
     ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
     value_nocolor = ansi_escape.sub('', value_colored)
 
-    # strip color encoded with "_" instead of the "\x1B" delimiter
+    # strip color encoded with "_" (or is it another character that was re-coded to "_" in matomo?) instead of the "\x1B" delimiter
     # This possibly happens when copy-pasting in a putty terminal
     # https://www.linuxquestions.org/questions/linux-desktop-74/preserve-colors-when-copy-pasting-from-terminal-943213/
-    putty_escape = re.compile(r'_\[[0-?]*[ -/]*[@-~]')
+    putty_escape = re.compile(r'.\[[0-?]*[ -/]*[@-~]')
     value_nocolor = putty_escape.sub('', value_nocolor)
 
     return value_nocolor

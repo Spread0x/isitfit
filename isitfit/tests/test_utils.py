@@ -295,3 +295,4 @@ def test_decolorize():
   from isitfit.utils import decolorize
   assert "hello" == decolorize(colored("hello", "green"))
   assert "hello" == decolorize("_[33mhello_[0m")
+  assert "hello" == decolorize("x[33mhellox[0m")
